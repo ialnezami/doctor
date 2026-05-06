@@ -93,7 +93,72 @@ Build a **web + mobile healthcare platform** that allows:
 
 ---
 
-## 3.3 Admin (Optional - Phase 2)
+## 3.3 Laboratory Results
+
+* **Lab uploads results** (PDF, image, structured values) and tags them to a patient + requesting doctor
+* **Patient can view** all their lab results in Medical Records
+* **Doctor can view** lab results for any of their patients
+* **Searchable** by test name, date, lab name, or value range
+* Lab results are linked to appointments (optional) and prescriptions (optional)
+* Notification sent to patient and doctor when results are ready
+
+### Lab Result Data Model
+
+```
+LabResult:
+  - patientId (ref User)
+  - doctorId  (ref User — requesting doctor)
+  - appointmentId (optional ref Appointment)
+  - labName   (string — e.g. "Al-Hayat Lab")
+  - tests     [{ name, value, unit, referenceRange, flag (normal|high|low|critical) }]
+  - reportFile (URL — PDF/image stored in Cloudinary/S3)
+  - status    (pending | ready)
+  - notes     (string — doctor interpretation)
+  - issuedAt  (date)
+```
+
+### Access Rules
+
+* Patient: read own results only
+* Doctor: read results of their patients; add interpretation notes
+* Lab (future role): upload results
+
+### Secure Document Sharing via Link
+
+Any lab result or prescription can be shared as a **secure, time-limited, password-protected link**:
+
+* Owner (patient or doctor) generates a share link
+* Link contains a **cryptographic hash token** (e.g. 32-byte random hex, not the document ID)
+* Optional **password** set by the owner — recipient must enter it to view
+* Link has a configurable **expiry** (1h / 24h / 7d / never)
+* Recipient opens the link in browser — no login required, just the password if set
+* After expiry or manual revocation, link returns 410 Gone
+
+**Share Link Data Model addition to LabResult / Prescription:**
+
+```
+SharedLink:
+  - resourceType  (lab_result | prescription)
+  - resourceId    (ref LabResult | Prescription)
+  - ownerId       (ref User — who created the link)
+  - token         (string — 32-byte random hex, indexed unique)
+  - passwordHash  (string | null — bcrypt hash of optional password)
+  - expiresAt     (Date | null)
+  - viewCount     (number — how many times accessed)
+  - revokedAt     (Date | null)
+  - createdAt     (Date)
+```
+
+**API:**
+```
+POST   /api/share              — create link (auth required, owner only)
+GET    /api/share/:token       — view document (public, password required if set)
+DELETE /api/share/:token       — revoke link (auth required, owner only)
+```
+
+---
+
+## 3.4 Admin (Optional - Phase 2)
 
 * Manage users
 * Moderate doctors

@@ -76,6 +76,33 @@ Agent names map to roles defined in `AGENTS.md`.
 
 ---
 
+## Phase 6 — Laboratory Feature
+
+| ID | Task | Agent | Status | Notes |
+|----|------|-------|--------|-------|
+| L-01 | `LabResult` Mongoose model (tests[], flag, reportFile, status) | Backend | ⬜ Todo | See PRD §3.3 for schema |
+| L-02 | `POST /api/lab-results` — upload result (doctor/lab) | Backend | ⬜ Todo | Cloudinary for report PDF/image |
+| L-03 | `GET /api/lab-results` — list for current user (patient: own, doctor: patients') | Backend | ⬜ Todo | RBAC enforced |
+| L-04 | `GET /api/lab-results/:id` — full result detail | Backend | ⬜ Todo | |
+| L-05 | `PATCH /api/lab-results/:id/notes` — doctor adds interpretation | Backend | ⬜ Todo | Doctor-only |
+| L-06 | `GET /api/lab-results/search?q=&patientId=&from=&to=` — search by test name/date | Backend | ⬜ Todo | Text index on tests.name + labName |
+| L-07 | Web: Lab Results page (doctor view — patient's results + add notes) | Frontend Web | ⬜ Todo | Searchable list + detail panel |
+| L-08 | Web: Lab Results tab in patient Medical Records | Frontend Web | ⬜ Todo | Download PDF button |
+| L-09 | Mobile: Lab Results screen (patient view) | Frontend Mobile | ⬜ Todo | Flag indicators (normal/high/low/critical) |
+| L-10 | Mobile: Lab Results screen (doctor view) | Frontend Mobile | ⬜ Todo | |
+| L-11 | UX: Lab result detail design (flag colors, test table, PDF viewer) | UX/UI Designer | ⬜ Todo | Flag: mint=normal, rose=critical, amber=high/low |
+| L-12 | Notification on result ready (patient + doctor) | Backend | ⬜ Todo | Depends on B-10 (FCM) |
+| L-13 | `SharedLink` model (token, passwordHash, expiresAt, resourceType, viewCount, revokedAt) | Backend | ⬜ Todo | 32-byte random hex token, unique index |
+| L-14 | `POST /api/share` — create secure link with optional password + expiry | Backend | ⬜ Todo | bcrypt hash password; owner-only |
+| L-15 | `GET /api/share/:token` — public viewer (no auth, password gate if set) | Backend | ⬜ Todo | Check expiry + revocation; increment viewCount |
+| L-16 | `DELETE /api/share/:token` — revoke link | Backend | ⬜ Todo | Owner-only; sets revokedAt |
+| L-17 | Web: Share button on lab result + prescription — modal with link, password field, expiry picker | Frontend Web | ⬜ Todo | Copy-to-clipboard; show viewCount |
+| L-18 | Public share page `/s/:token` — password entry → document view (no login needed) | Frontend Web | ⬜ Todo | Works for both lab results and prescriptions |
+| L-19 | Mobile: Share sheet for lab result / prescription (copy link + set password) | Frontend Mobile | ⬜ Todo | |
+| L-20 | UX: Share modal design + public viewer page design | UX/UI Designer | ⬜ Todo | Minimalist, trust-signaling (lock icon, expiry countdown) |
+
+---
+
 ## Blocked / Deferred
 
 | ID | Task | Agent | Status | Blocker |

@@ -14,6 +14,8 @@ app.use('/api/doctors',       require('./routes/doctors'));
 app.use('/api/appointments',  require('./routes/appointments'));
 app.use('/api/patients',      require('./routes/patients'));
 app.use('/api/prescriptions', require('./routes/prescriptions'));
+app.use('/api/lab-results',   require('./routes/labResults'));
+app.use('/api/share',         require('./routes/share'));
 
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
