@@ -8,4 +8,6 @@ const labSchema = new mongoose.Schema({
   isApproved:    { type: Boolean, default: false },
 }, { timestamps: true });
 
+labSchema.index({ isApproved: 1 });
+
 module.exports = mongoose.model('Lab', labSchema);
