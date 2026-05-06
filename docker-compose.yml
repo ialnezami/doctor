@@ -1,0 +1,34 @@
+version: '3.9'
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: mediconnect-mongo
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - mediconnect-net
+
+  api:
+    build:
+      context: ./apps/api
+    container_name: mediconnect-api
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+    networks:
+      - mediconnect-net
+
+networks:
+  mediconnect-net:
+    driver: bridge
+
+volumes:
+  mongo-data:
