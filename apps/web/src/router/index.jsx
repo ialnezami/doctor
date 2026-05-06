@@ -8,9 +8,11 @@ import DashboardPage   from '../pages/doctor/DashboardPage';
 import AppointmentsPage from '../pages/doctor/AppointmentsPage';
 import PatientRecordsPage from '../pages/doctor/PatientRecordsPage';
 import PrescriptionsPage from '../pages/doctor/PrescriptionsPage';
+import LabResultsPage  from '../pages/doctor/LabResultsPage';
 import FindDoctorPage  from '../pages/patient/FindDoctorPage';
 import MyAppointmentsPage from '../pages/patient/MyAppointmentsPage';
 import MedicalRecordsPage from '../pages/patient/MedicalRecordsPage';
+import ShareViewerPage from '../pages/public/ShareViewerPage';
 
 function Protected({ children, role }) {
   const { user } = useAuthStore();
@@ -33,11 +35,15 @@ export default function AppRouter() {
         <Route path="/appointments" element={<Protected role="doctor"><AppointmentsPage /></Protected>} />
         <Route path="/patients"     element={<Protected role="doctor"><PatientRecordsPage /></Protected>} />
         <Route path="/prescriptions" element={<Protected role="doctor"><PrescriptionsPage /></Protected>} />
+        <Route path="/lab-results"  element={<Protected role="doctor"><LabResultsPage /></Protected>} />
 
         {/* Patient routes */}
         <Route path="/find-doctor"     element={<Protected role="patient"><FindDoctorPage /></Protected>} />
         <Route path="/my-appointments" element={<Protected role="patient"><MyAppointmentsPage /></Protected>} />
         <Route path="/records"         element={<Protected role="patient"><MedicalRecordsPage /></Protected>} />
+
+        {/* Public share viewer */}
+        <Route path="/s/:token" element={<ShareViewerPage />} />
 
         {/* Root redirect */}
         <Route path="/" element={

@@ -5,6 +5,7 @@ import C from '../constants/colors';
 import FindDoctorScreen from '../screens/patient/FindDoctorScreen';
 import MyAppointmentsScreen from '../screens/patient/MyAppointmentsScreen';
 import MedicalRecordsScreen from '../screens/patient/MedicalRecordsScreen';
+import LabResultsScreen from '../screens/patient/LabResultsScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -14,6 +15,7 @@ export default function PatientTabs() {
       <Tab.Screen name="Find Doctor" component={FindDoctorScreen} options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>🔍</Text> }} />
       <Tab.Screen name="Appointments" component={MyAppointmentsScreen} options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>📅</Text> }} />
       <Tab.Screen name="Records" component={MedicalRecordsScreen} options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>📋</Text> }} />
+      <Tab.Screen name="Lab Results" component={LabResultsScreen} options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>🧪</Text> }} />
     </Tab.Navigator>
   );
 }

@@ -6,6 +6,7 @@ const doctorNav = [
   { label: 'Appointments',    path: '/appointments', badge: true },
   { label: 'Patient Records', path: '/patients' },
   { label: 'Prescriptions',   path: '/prescriptions' },
+  { label: 'Lab Results',     path: '/lab-results' },
 ];
 
 const patientNav = [

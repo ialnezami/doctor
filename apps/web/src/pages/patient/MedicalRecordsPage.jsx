@@ -98,26 +98,28 @@ export default function MedicalRecordsPage() {
             )}
           </div>
 
-          <Card>
-            <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:12 }}>Health Profile</div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:14 }}>
-              {[['Age','27','years'],['Blood Type','A+',''],['Allergies','2','recorded']].map(([l,v,u]) => (
-                <div key={l} style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r-sm)', padding:'10px 12px', textAlign:'center' }}>
-                  <div style={{ fontSize:10, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text3)' }}>{l}</div>
-                  <div style={{ fontFamily:'var(--font-display)', fontSize:22, fontWeight:600, margin:'3px 0' }}>{v}</div>
-                  <div style={{ fontSize:10.5, color:'var(--text2)' }}>{u}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ height:1, background:'var(--border)', margin:'12px 0' }} />
-            <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:8 }}>Conditions</div>
-            <div style={{ display:'flex', gap:7, flexWrap:'wrap' }}>
-              {['Migraine','Anxiety'].map(c => (
-                <span key={c} style={{ padding:'2px 9px', borderRadius:20, fontSize:10.5, fontWeight:600, background:'var(--bg3)', border:'1px solid var(--border2)', color:'var(--text2)' }}>{c}</span>
-              ))}
-              <span style={{ padding:'2px 9px', borderRadius:20, fontSize:10.5, fontWeight:600, background:'var(--rose-dim)', border:'1px solid rgba(244,63,94,0.3)', color:'var(--rose)' }}>Penicillin allergy</span>
-            </div>
-          </Card>
+          {tab === 'profile' && (
+            <Card>
+              <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:12 }}>Health Profile</div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:14 }}>
+                {[['Age','27','years'],['Blood Type','A+',''],['Allergies','2','recorded']].map(([l,v,u]) => (
+                  <div key={l} style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r-sm)', padding:'10px 12px', textAlign:'center' }}>
+                    <div style={{ fontSize:10, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text3)' }}>{l}</div>
+                    <div style={{ fontFamily:'var(--font-display)', fontSize:22, fontWeight:600, margin:'3px 0' }}>{v}</div>
+                    <div style={{ fontSize:10.5, color:'var(--text2)' }}>{u}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ height:1, background:'var(--border)', margin:'12px 0' }} />
+              <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:8 }}>Conditions</div>
+              <div style={{ display:'flex', gap:7, flexWrap:'wrap' }}>
+                {['Migraine','Anxiety'].map(c => (
+                  <span key={c} style={{ padding:'2px 9px', borderRadius:20, fontSize:10.5, fontWeight:600, background:'var(--bg3)', border:'1px solid var(--border2)', color:'var(--text2)' }}>{c}</span>
+                ))}
+                <span style={{ padding:'2px 9px', borderRadius:20, fontSize:10.5, fontWeight:600, background:'var(--rose-dim)', border:'1px solid rgba(244,63,94,0.3)', color:'var(--rose)' }}>Penicillin allergy</span>
+              </div>
+            </Card>
+          )}
         </div>
       </div>
     </div>
