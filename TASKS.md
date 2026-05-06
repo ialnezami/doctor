@@ -14,7 +14,7 @@ Agent names map to roles defined in `AGENTS.md`.
 | F-02 | Set up GitHub Actions CI pipeline | DevOps | ✅ Done | Lint + test on PR |
 | F-03 | Configure Docker Compose for local dev (API + MongoDB) | DevOps | ✅ Done | |
 | F-04 | Design token system & component library spec | UX/UI Designer | ✅ Done | See `design/prototype.html` |
-| F-05 | Define MongoDB schemas: User, Doctor, Patient, Appointment, Prescription | Backend | ⬜ Todo | See `CLAUDE.md` for model specs |
+| F-05 | Define MongoDB schemas: User, Doctor, Patient, Appointment, Prescription | Backend | ✅ Done | See `CLAUDE.md` for model specs |
 
 ---
 
@@ -22,14 +22,14 @@ Agent names map to roles defined in `AGENTS.md`.
 
 | ID | Task | Agent | Status | Notes |
 |----|------|-------|--------|-------|
-| B-01 | Auth routes: `POST /auth/register`, `POST /auth/login` (JWT) | Backend | ⬜ Todo | Roles: doctor, patient |
-| B-02 | Doctor profile CRUD: `GET/PUT /doctors/:id` | Backend | ⬜ Todo | |
-| B-03 | Doctor availability slots: `GET/POST /doctors/:id/slots` | Backend | ⬜ Todo | Conflict prevention required |
-| B-04 | Geo search: `GET /doctors?lat=&lng=&radius=` | Backend | ⬜ Todo | 2dsphere index on User.location |
-| B-05 | Appointment booking: `POST /appointments` | Backend | ⬜ Todo | Atomic double-booking check |
-| B-06 | Appointment status flow: accept / reject / cancel / complete | Backend | ⬜ Todo | |
-| B-07 | Patient records: `GET/POST /patients/:id/notes` | Backend | ⬜ Todo | Doctor-only write access |
-| B-08 | Prescription CRUD: `POST /prescriptions`, `GET /prescriptions/:id/pdf` | Backend | ⬜ Todo | PDF generation endpoint |
+| B-01 | Auth routes: `POST /auth/register`, `POST /auth/login` (JWT) | Backend | ✅ Done | Roles: doctor, patient |
+| B-02 | Doctor profile CRUD: `GET/PUT /doctors/:id` | Backend | ✅ Done | |
+| B-03 | Doctor availability slots: `GET/POST /doctors/:id/slots` | Backend | ✅ Done | Conflict prevention required |
+| B-04 | Geo search: `GET /doctors?lat=&lng=&radius=` | Backend | ✅ Done | 2dsphere index on User.location |
+| B-05 | Appointment booking: `POST /appointments` | Backend | ✅ Done | Atomic double-booking check |
+| B-06 | Appointment status flow: accept / reject / cancel / complete | Backend | ✅ Done | |
+| B-07 | Patient records: `GET/POST /patients/:id/notes` | Backend | ✅ Done | Doctor-only write access |
+| B-08 | Prescription CRUD: `POST /prescriptions`, `GET /prescriptions/:id/pdf` | Backend | ✅ Done | PDF generation endpoint |
 | B-09 | File upload to Cloudinary (profile photos) | Backend | ⬜ Todo | |
 | B-10 | FCM push notification on appointment status change | Backend | ⬜ Todo | |
 
@@ -39,13 +39,13 @@ Agent names map to roles defined in `AGENTS.md`.
 
 | ID | Task | Agent | Status | Notes |
 |----|------|-------|--------|-------|
-| W-01 | Auth screens: Login, Register with role toggle | Frontend Web | ⬜ Todo | Matches `design/prototype.html` auth screen |
-| W-02 | Doctor Dashboard screen | Frontend Web | ⬜ Todo | Stats, today's schedule, mini calendar |
-| W-03 | Appointments management screen (accept/reject/filter) | Frontend Web | ⬜ Todo | |
-| W-04 | Patient Records screen + detail panel | Frontend Web | ⬜ Todo | Timeline, vitals, history |
-| W-05 | Prescription builder form + PDF export | Frontend Web | ⬜ Todo | |
-| W-06 | JWT auth integration (Axios interceptors) | Frontend Web | ⬜ Todo | Depends on B-01 |
-| W-07 | Global state management setup (Zustand) | Frontend Web | ⬜ Todo | |
+| W-01 | Auth screens: Login, Register with role toggle | Frontend Web | ✅ Done | Matches `design/prototype.html` auth screen |
+| W-02 | Doctor Dashboard screen | Frontend Web | ✅ Done | Stats, today's schedule, mini calendar |
+| W-03 | Appointments management screen (accept/reject/filter) | Frontend Web | ✅ Done | |
+| W-04 | Patient Records screen + detail panel | Frontend Web | ✅ Done | Timeline, vitals, history |
+| W-05 | Prescription builder form + PDF export | Frontend Web | ✅ Done | |
+| W-06 | JWT auth integration (Axios interceptors) | Frontend Web | ✅ Done | Depends on B-01 |
+| W-07 | Global state management setup (Zustand) | Frontend Web | ✅ Done | |
 
 ---
 
@@ -53,13 +53,13 @@ Agent names map to roles defined in `AGENTS.md`.
 
 | ID | Task | Agent | Status | Notes |
 |----|------|-------|--------|-------|
-| M-01 | Auth screens: Login, Register (Patient / Doctor) | Frontend Mobile | ⬜ Todo | |
-| M-02 | Patient: Find Doctor screen with GPS + filters | Frontend Mobile | ⬜ Todo | Google Maps API |
+| M-01 | Auth screens: Login, Register (Patient / Doctor) | Frontend Mobile | ✅ Done | |
+| M-02 | Patient: Find Doctor screen with GPS + filters | Frontend Mobile | ✅ Done | Static location for now |
 | M-03 | Patient: Doctor profile + booking flow | Frontend Mobile | ⬜ Todo | Time slot picker |
-| M-04 | Patient: My Appointments screen | Frontend Mobile | ⬜ Todo | |
-| M-05 | Patient: Medical Records + prescription PDF view | Frontend Mobile | ⬜ Todo | |
-| M-06 | Doctor: Dashboard + today's schedule | Frontend Mobile | ⬜ Todo | |
-| M-07 | Doctor: Accept/reject appointments | Frontend Mobile | ⬜ Todo | |
+| M-04 | Patient: My Appointments screen | Frontend Mobile | ✅ Done | |
+| M-05 | Patient: Medical Records + prescription PDF view | Frontend Mobile | ✅ Done | |
+| M-06 | Doctor: Dashboard + today's schedule | Frontend Mobile | ✅ Done | |
+| M-07 | Doctor: Accept/reject appointments | Frontend Mobile | ✅ Done | |
 | M-08 | FCM push notification integration (client-side) | Frontend Mobile | ⬜ Todo | Depends on B-10 |
 
 ---
