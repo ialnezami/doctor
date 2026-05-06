@@ -20,6 +20,7 @@ const doctorSchema = new mongoose.Schema({
   availabilitySlots: [slotSchema],
   ratings: [ratingSchema],
   isVerified: { type: Boolean, default: false },
+  autoAcceptAppointments: { type: Boolean, default: false },
   consultationFee: { type: Number, default: 0 },
   yearsOfExperience: { type: Number, default: 0 },
 }, { timestamps: true });
