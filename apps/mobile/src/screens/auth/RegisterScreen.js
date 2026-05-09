@@ -6,7 +6,7 @@ import useAuthStore from '../../store/authStore';
 
 export default function RegisterScreen({ navigation }) {
   const setAuth = useAuthStore(s => s.login);
-  const [form, setForm] = useState({ name:'', email:'', password:'', role:'patient', specialty:'' });
+  const [form, setForm] = useState({ name:'', email:'', password:'', role:'patient', specialty:'', labName:'' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
@@ -22,9 +22,9 @@ export default function RegisterScreen({ navigation }) {
     <ScrollView contentContainerStyle={s.container}>
       <Text style={s.title}>Create account</Text>
       <View style={s.toggle}>
-        {['patient','doctor'].map(r => (
+        {[['patient','🧑 Patient'],['doctor','👨‍⚕️ Doctor'],['laboratory','🧪 Lab']].map(([r, label]) => (
           <TouchableOpacity key={r} style={[s.tBtn, form.role===r && s.tActive]} onPress={() => set('role', r)}>
-            <Text style={[s.tLabel, form.role===r && s.tLabelActive]}>{r === 'patient' ? '🧑 Patient' : '👨‍⚕️ Doctor'}</Text>
+            <Text style={[s.tLabel, form.role===r && s.tLabelActive]}>{label}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -38,6 +38,13 @@ export default function RegisterScreen({ navigation }) {
         <View style={{ width:'100%', marginBottom:14 }}>
           <Text style={s.label}>Specialty</Text>
           <TextInput style={s.input} value={form.specialty} onChangeText={v => set('specialty',v)} placeholder="e.g. Cardiology" placeholderTextColor={C.text3} />
+        </View>
+      )}
+      {form.role === 'laboratory' && (
+        <View style={{ width:'100%', marginBottom:14 }}>
+          <Text style={s.label}>Lab Name</Text>
+          <TextInput style={s.input} value={form.labName} onChangeText={v => set('labName',v)}
+            placeholder="e.g. City Diagnostics Lab" placeholderTextColor={C.text3} />
         </View>
       )}
       {!!error && <Text style={{ color:C.rose, fontSize:13, marginBottom:10 }}>{error}</Text>}

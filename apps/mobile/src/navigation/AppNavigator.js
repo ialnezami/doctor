@@ -6,6 +6,7 @@ import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import DoctorTabs from './DoctorTabs';
 import PatientTabs from './PatientTabs';
+import LabTabs from './LabTabs';
 
 const Root = createStackNavigator();
 
@@ -21,6 +22,8 @@ export default function AppNavigator() {
           </>
         ) : user.role === 'doctor' ? (
           <Root.Screen name="DoctorTabs" component={DoctorTabs} />
+        ) : user.role === 'laboratory' ? (
+          <Root.Screen name="LabTabs" component={LabTabs} />
         ) : (
           <Root.Screen name="PatientTabs" component={PatientTabs} />
         )}
