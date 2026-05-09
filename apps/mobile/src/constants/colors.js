@@ -4,5 +4,5 @@ export default {
   mint: '#0fe3b0', mintDim: 'rgba(15,227,176,0.13)',
   amber: '#f59e0b', rose: '#f43f5e', blue: '#60a5fa',
   text: '#e8f4ff', text2: '#7ba8c4', text3: '#3d6480',
-  API_URL: 'http://localhost:3000/api',
+  API_URL: 'http://192.168.57.245:3001/api',
 };
