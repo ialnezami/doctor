@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "splash": { "backgroundColor": "#060d18" },
     "ios": { "supportsTablet": false, "bundleIdentifier": "io.mediconnect.app" },
-    "android": { "adaptiveIcon": { "backgroundColor": "#060d18" }, "package": "io.mediconnect.app" }
+    "android": { "adaptiveIcon": { "backgroundColor": "#060d18" }, "package": "io.mediconnect.app" },
+    "newArchEnabled": false
   }
 }
