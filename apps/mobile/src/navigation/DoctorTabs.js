@@ -5,6 +5,7 @@ import C from '../constants/colors';
 import DashboardScreen from '../screens/doctor/DashboardScreen';
 import AppointmentsScreen from '../screens/doctor/AppointmentsScreen';
 import DoctorLabResultsScreen from '../screens/doctor/LabResultsScreen';
+import SettingsScreen from '../screens/doctor/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
 const icon = (label, focused) => <Text style={{ fontSize: 20 }}>{label}</Text>;
@@ -15,6 +16,7 @@ export default function DoctorTabs() {
       <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ tabBarIcon: ({ focused }) => icon('🏠', focused) }} />
       <Tab.Screen name="Appointments" component={AppointmentsScreen} options={{ tabBarIcon: ({ focused }) => icon('📅', focused) }} />
       <Tab.Screen name="Lab Results" component={DoctorLabResultsScreen} options={{ tabBarIcon: ({ focused }) => icon('🔬', focused) }} />
+      <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarIcon: ({ focused }) => icon('⚙️', focused) }} />
     </Tab.Navigator>
   );
 }
