@@ -3,6 +3,37 @@ const auth = require('../middleware/auth');
 const requireRole = require('../middleware/rbac');
 const Patient = require('../models/Patient');
 
+// GET /api/patients/me
+router.get('/me', auth, requireRole('patient'), async (req, res, next) => {
+  try {
+    const patient = await Patient.findOne({ userId: req.user.id });
+    if (!patient) return res.status(404).json({ message: 'Profile not found' });
+    res.json(patient);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PATCH /api/patients/me/location
+router.patch('/me/location', auth, requireRole('patient'), async (req, res, next) => {
+  try {
+    const { city, lat, lng } = req.body;
+    if (!city) return res.status(422).json({ message: 'city is required' });
+    const update = { city };
+    if (lat != null && lng != null) {
+      update.homeLocation = { type: 'Point', coordinates: [parseFloat(lng), parseFloat(lat)] };
+    }
+    const patient = await Patient.findOneAndUpdate(
+      { userId: req.user.id },
+      { $set: update },
+      { new: true }
+    );
+    res.json(patient);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // GET /api/patients/:id — doctor or own patient
 router.get('/:id', auth, async (req, res, next) => {
   try {
