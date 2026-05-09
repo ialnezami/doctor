@@ -3,6 +3,7 @@ const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const Doctor = require('../models/Doctor');
 const Patient = require('../models/Patient');
+const Lab = require('../models/Lab');
 const { sign } = require('../utils/jwt');
 
 const validate = (req, res, next) => {
@@ -16,7 +17,7 @@ router.post('/register', [
   body('name').notEmpty(),
   body('email').isEmail(),
   body('password').isLength({ min: 8 }),
-  body('role').isIn(['doctor', 'patient']),
+  body('role').isIn(['doctor', 'patient', 'laboratory']),
 ], validate, async (req, res, next) => {
   try {
     const { name, email, password, role, specialty, dateOfBirth, location } = req.body;
@@ -34,6 +35,9 @@ router.post('/register', [
 
     if (role === 'doctor') {
       await Doctor.create({ userId: user._id, specialty: specialty || 'General' });
+    } else if (role === 'laboratory') {
+      const { labName } = req.body;
+      await Lab.create({ userId: user._id, labName: labName || name });
     } else {
       await Patient.create({ userId: user._id, dateOfBirth });
     }
