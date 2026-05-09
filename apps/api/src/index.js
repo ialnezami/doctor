@@ -16,6 +16,7 @@ app.use('/api/patients',      require('./routes/patients'));
 app.use('/api/prescriptions', require('./routes/prescriptions'));
 app.use('/api/lab-results',   require('./routes/labResults'));
 app.use('/api/share',         require('./routes/share'));
+app.use('/api/admin',         require('./routes/admin'));
 
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
