@@ -2,6 +2,7 @@ const router = require('express').Router();
 const auth = require('../middleware/auth');
 const requireRole = require('../middleware/rbac');
 const Appointment = require('../models/Appointment');
+const Doctor = require('../models/Doctor');
 
 // POST /api/appointments — patient books
 router.post('/', auth, requireRole('patient'), async (req, res, next) => {
@@ -20,6 +21,9 @@ router.post('/', auth, requireRole('patient'), async (req, res, next) => {
       return res.status(409).json({ message: 'This slot is already booked' });
     }
 
+    const doctorProfile = await Doctor.findOne({ userId: doctorId }).select('autoAcceptAppointments');
+    const status = doctorProfile?.autoAcceptAppointments ? 'confirmed' : 'pending';
+
     const appt = await Appointment.create({
       doctorId,
       patientId: req.user.id,
@@ -27,6 +31,7 @@ router.post('/', auth, requireRole('patient'), async (req, res, next) => {
       timeSlot,
       visitType,
       reason,
+      status,
     });
 
     res.status(201).json(appt);
