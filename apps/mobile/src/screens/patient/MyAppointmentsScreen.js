@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import C from '../../constants/colors';
@@ -12,7 +12,16 @@ export default function MyAppointmentsScreen() {
   const load = useCallback(() => { getAppointments().then(setAppts).catch(() => {}); }, []);
   useFocusEffect(load);
 
-  const cancel = async (id) => { await updateStatus(id,'cancelled'); load(); };
+  const cancel = (id) => {
+    Alert.alert(
+      'Cancel Appointment',
+      'Are you sure you want to cancel this appointment?',
+      [
+        { text: 'Keep', style: 'cancel' },
+        { text: 'Cancel Appointment', style: 'destructive', onPress: async () => { await updateStatus(id, 'cancelled'); load(); } },
+      ]
+    );
+  };
   const upcoming = appts.filter(a => ['pending','confirmed'].includes(a.status));
   const past = appts.filter(a => ['completed','cancelled'].includes(a.status));
 
