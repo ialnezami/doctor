@@ -13,7 +13,7 @@ function addThirtyMin(time) {
 }
 
 export default function BookAppointmentScreen({ route, navigation }) {
-  const { doctorId, doctorName, specialty, date, slot } = route.params;
+  const { doctorUserId, doctorName, specialty, date, slot } = route.params;
   const [visitType, setVisitType] = useState('initial');
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,7 +23,7 @@ export default function BookAppointmentScreen({ route, navigation }) {
     setLoading(true); setError('');
     try {
       const appt = await createAppointment({
-        doctorId,
+        doctorId: doctorUserId,
         date,
         timeSlot: { start: slot, end: addThirtyMin(slot) },
         visitType,

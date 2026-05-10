@@ -6,7 +6,6 @@ import useAuthStore from '../../store/authStore';
 
 export default function LoginScreen({ navigation }) {
   const setAuth = useAuthStore(s => s.login);
-  const [role, setRole] = useState('patient');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -28,12 +27,8 @@ export default function LoginScreen({ navigation }) {
       <Text style={s.headline}>MediConnect</Text>
       <Text style={s.sub}>Healthcare reimagined</Text>
 
-      <View style={s.toggle}>
-        {['patient','doctor'].map(r => (
-          <TouchableOpacity key={r} style={[s.toggleBtn, role===r && s.toggleActive]} onPress={() => setRole(r)}>
-            <Text style={[s.toggleLabel, role===r && s.toggleLabelActive]}>{r === 'patient' ? '🧑‍🤝‍🧑 Patient' : '👨‍⚕️ Doctor'}</Text>
-          </TouchableOpacity>
-        ))}
+      <View style={s.roles}>
+        <Text style={s.rolesTxt}>🧑‍🤝‍🧑 Patient  ·  👨‍⚕️ Doctor  ·  🧪 Lab</Text>
       </View>
 
       <Text style={s.label}>Email</Text>
@@ -59,11 +54,8 @@ const s = StyleSheet.create({
   logoText: { fontSize:28, fontWeight:'800', color:'#000' },
   headline: { fontSize:28, fontWeight:'700', color:C.text, marginBottom:4 },
   sub: { fontSize:14, color:C.text2, marginBottom:32 },
-  toggle: { flexDirection:'row', backgroundColor:C.bg2, borderRadius:10, padding:3, marginBottom:24, borderWidth:1, borderColor:C.border, width:'100%' },
-  toggleBtn: { flex:1, padding:11, borderRadius:8, alignItems:'center' },
-  toggleActive: { backgroundColor:C.bg3, borderWidth:1, borderColor:C.border2 },
-  toggleLabel: { fontSize:13, color:C.text2, fontWeight:'500' },
-  toggleLabelActive: { color:C.mint, fontWeight:'700' },
+  roles: { marginBottom:24 },
+  rolesTxt: { fontSize:13, color:C.text3 },
   label: { alignSelf:'flex-start', fontSize:11, fontWeight:'600', textTransform:'uppercase', letterSpacing:0.7, color:C.text2, marginBottom:6 },
   input: { width:'100%', backgroundColor:C.bg3, borderWidth:1, borderColor:C.border2, borderRadius:8, padding:12, color:C.text, fontSize:14, marginBottom:14 },
   btn: { width:'100%', backgroundColor:C.mint, borderRadius:8, padding:14, alignItems:'center', marginTop:6 },

@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Switch, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getDoctors, updateDoctorSettings } from '../../api/doctors';
-import useAuthStore from '../../store/authStore';
+import { getMyDoctorProfile, updateDoctorSettings } from '../../api/doctors';
 import C from '../../constants/colors';
 
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 export default function SettingsScreen() {
-  const { user } = useAuthStore();
   const [doctorId, setDoctorId] = useState(null);
   const [autoAccept, setAutoAccept] = useState(false);
   const [slots, setSlots] = useState([]);
@@ -16,15 +14,12 @@ export default function SettingsScreen() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    getDoctors().then(docs => {
-      const own = docs.find(d => (d.userId?._id || d.userId) === user.id);
-      if (own) {
-        setDoctorId(own._id);
-        setAutoAccept(own.autoAcceptAppointments || false);
-        setSlots(own.availabilitySlots || []);
-      }
+    getMyDoctorProfile().then(doc => {
+      setDoctorId(doc._id);
+      setAutoAccept(doc.autoAcceptAppointments || false);
+      setSlots(doc.availabilitySlots || []);
     }).catch(() => {});
-  }, [user.id]);
+  }, []);
 
   const save = async () => {
     if (!doctorId) return;

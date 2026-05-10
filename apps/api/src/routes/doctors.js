@@ -59,6 +59,17 @@ router.get('/', auth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// GET /api/doctors/me — doctor fetches own full profile (must be before /:id)
+router.get('/me', auth, requireRole('doctor'), async (req, res, next) => {
+  try {
+    const doctor = await Doctor.findOne({ userId: req.user.id }).populate('userId', 'name email');
+    if (!doctor) return res.status(404).json({ message: 'Doctor profile not found' });
+    res.json(doctor);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // GET /api/doctors/:id
 router.get('/:id', auth, async (req, res, next) => {
   try {

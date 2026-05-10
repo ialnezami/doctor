@@ -8,7 +8,7 @@ function toISO(d) { return d.toISOString().slice(0,10); }
 function dateLabel(d) { return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }); }
 
 export default function DoctorProfileScreen({ route, navigation }) {
-  const { doctorId } = route.params;
+  const { doctorId, doctorUserId } = route.params;
   const [doctor, setDoctor] = useState(null);
   const [selectedDate, setSelectedDate] = useState(toISO(new Date()));
   const [slots, setSlots] = useState([]);
@@ -73,7 +73,7 @@ export default function DoctorProfileScreen({ route, navigation }) {
           {slots.map(sl => (
             <TouchableOpacity key={sl.time} disabled={!sl.available}
               onPress={() => navigation.navigate('BookAppointment', {
-                doctorId,
+                doctorUserId,
                 doctorName: name,
                 specialty: doctor.specialty,
                 date: selectedDate,

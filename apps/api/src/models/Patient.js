@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 const patientSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   homeLocation: {
-    type: { type: String, default: 'Point' },
-    coordinates: { type: [Number], default: null },
+    type: { type: String, enum: ['Point'] },
+    coordinates: [Number],
   },
   city: { type: String, default: '' },
   dateOfBirth: Date,

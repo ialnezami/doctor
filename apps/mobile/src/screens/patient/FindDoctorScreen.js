@@ -56,7 +56,10 @@ export default function FindDoctorScreen({ navigation }) {
                 <Text style={s.specialty}>{d.specialty}</Text>
                 {d.consultationFee > 0 && <Text style={s.meta}>{d.consultationFee} SAR</Text>}
               </View>
-              <TouchableOpacity style={s.bookBtn} onPress={() => navigation.navigate('DoctorProfile', { doctorId: d._id })}>
+              <TouchableOpacity style={s.bookBtn} onPress={() => navigation.navigate('DoctorProfile', {
+                  doctorId: d._id,
+                  doctorUserId: d.userId?._id || d.userId,
+                })}>
                 <Text style={s.bookTxt}>View</Text>
               </TouchableOpacity>
             </View>
