@@ -15,7 +15,15 @@
       "Bash(git *)",
       "Bash(xargs kill -9)",
       "Bash(grep -E '\\\\.\\(md|json\\)$')",
-      "Bash(ipconfig getifaddr *)"
+      "Bash(ipconfig getifaddr *)",
+      "Bash(node --check apps/api/src/index.js)",
+      "Bash(node --check apps/api/src/middleware/adminAuth.js)",
+      "Bash(node --check apps/api/src/routes/admin.js)",
+      "Bash(node *)",
+      "Bash(npx expo *)",
+      "Bash(wait)",
+      "Bash(npm run *)",
+      "Bash(npm view *)"
     ]
   }
 }
