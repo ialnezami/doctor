@@ -33,7 +33,7 @@ export default function FindDoctorScreen({ navigation }) {
         <Text style={{ fontSize:16, color:C.text3 }}>⌕</Text>
         <TextInput style={s.searchInput} value={search} onChangeText={setSearch} placeholder="Search name or specialty…" placeholderTextColor={C.text3} />
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingHorizontal:16, marginBottom:12 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal:16, paddingBottom:12, gap:6 }}>
         {SPECS.map(sp => (
           <TouchableOpacity key={sp} style={[s.chip, spec===sp && s.chipActive]} onPress={() => setSpec(sp)}>
             <Text style={[s.chipTxt, spec===sp && s.chipTxtActive]}>{sp}</Text>
@@ -77,9 +77,9 @@ const s = StyleSheet.create({
   sub: { fontSize:12, color:C.text2, marginTop:2 },
   searchBox: { flexDirection:'row', alignItems:'center', margin:16, marginTop:8, backgroundColor:C.bg2, borderRadius:10, borderWidth:1, borderColor:C.border, paddingHorizontal:12 },
   searchInput: { flex:1, padding:10, color:C.text, fontSize:13 },
-  chip: { paddingHorizontal:14, paddingVertical:6, borderRadius:20, borderWidth:1, borderColor:C.border2, marginRight:8, backgroundColor:'transparent' },
+  chip: { paddingHorizontal:10, paddingVertical:5, borderRadius:16, borderWidth:1, borderColor:C.border2, backgroundColor:'transparent' },
   chipActive: { borderColor:C.mint, backgroundColor:C.bg3 },
-  chipTxt: { fontSize:12, color:C.text2 },
+  chipTxt: { fontSize:11, color:C.text2 },
   chipTxtActive: { color:C.mint, fontWeight:'600' },
   card: { flexDirection:'row', alignItems:'center', gap:12, padding:14, backgroundColor:C.card, borderRadius:12, borderWidth:1, borderColor:C.border, marginBottom:10 },
   avatar: { width:44, height:44, borderRadius:10, justifyContent:'center', alignItems:'center' },
