@@ -15,6 +15,12 @@
   },
   "dependencies": {
     "expo-status-bar": "^55.0.6",
-    "json-schema-deref-sync": "^0.14.0"
+    "json-schema-deref-sync": "^0.14.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "overrides": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
   }
 }
