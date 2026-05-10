@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import C from '../../constants/colors';
 import { getAppointments, updateStatus } from '../../api/appointments';
 
@@ -8,8 +9,8 @@ const STATUS_COLOR = { confirmed:C.mint, pending:C.amber, cancelled:C.rose, comp
 
 export default function MyAppointmentsScreen() {
   const [appts, setAppts] = useState([]);
-  const load = () => getAppointments().then(setAppts).catch(() => {});
-  useEffect(() => { load(); }, []);
+  const load = useCallback(() => { getAppointments().then(setAppts).catch(() => {}); }, []);
+  useFocusEffect(load);
 
   const cancel = async (id) => { await updateStatus(id,'cancelled'); load(); };
   const upcoming = appts.filter(a => ['pending','confirmed'].includes(a.status));
