@@ -33,7 +33,9 @@ export default function FindDoctorScreen({ navigation }) {
         <Text style={{ fontSize:16, color:C.text3 }}>⌕</Text>
         <TextInput style={s.searchInput} value={search} onChangeText={setSearch} placeholder="Search name or specialty…" placeholderTextColor={C.text3} />
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal:16, paddingBottom:12, gap:6 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}
+        style={{ height:36, marginBottom:8 }}
+        contentContainerStyle={{ paddingHorizontal:16, alignItems:'center', gap:6 }}>
         {SPECS.map(sp => (
           <TouchableOpacity key={sp} style={[s.chip, spec===sp && s.chipActive]} onPress={() => setSpec(sp)}>
             <Text style={[s.chipTxt, spec===sp && s.chipTxtActive]}>{sp}</Text>
