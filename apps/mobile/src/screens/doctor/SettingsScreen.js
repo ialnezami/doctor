@@ -2,16 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Switch, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getMyDoctorProfile, updateDoctorSettings } from '../../api/doctors';
+import { getMe } from '../../api/auth';
+import useAuthStore from '../../store/authStore';
+import AccountSection from '../../components/AccountSection';
 import C from '../../constants/colors';
 
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 export default function SettingsScreen() {
+  const { user: storeUser } = useAuthStore();
+  const [me, setMe] = useState(null);
   const [doctorId, setDoctorId] = useState(null);
   const [autoAccept, setAutoAccept] = useState(false);
   const [slots, setSlots] = useState([]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    getMe().then(setMe).catch(() => {});
+  }, []);
 
   useEffect(() => {
     getMyDoctorProfile().then(doc => {
@@ -34,6 +43,7 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={s.safe}>
       <ScrollView contentContainerStyle={s.content}>
+        <AccountSection user={me ?? storeUser} />
         <Text style={s.heading}>Settings</Text>
 
         <View style={s.card}>
