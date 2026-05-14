@@ -1,8 +1,14 @@
 import axios from 'axios';
-import C from '../constants/colors';
+import Constants from 'expo-constants';
 import useAuthStore from '../store/authStore';
 
-const client = axios.create({ baseURL: C.API_URL });
+function getBaseUrl() {
+  if (process.env.EXPO_PUBLIC_API_URL) return process.env.EXPO_PUBLIC_API_URL;
+  const host = Constants.expoConfig?.hostUri?.split(':')[0] ?? 'localhost';
+  return `http://${host}:3001/api`;
+}
+
+const client = axios.create({ baseURL: getBaseUrl() });
 
 client.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;

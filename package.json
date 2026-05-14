@@ -14,10 +14,9 @@
     "node": ">=18"
   },
   "dependencies": {
+    "expo-constants": "~18.0.13",
     "expo-status-bar": "^55.0.6",
-    "json-schema-deref-sync": "^0.14.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "json-schema-deref-sync": "^0.14.0"
   },
   "overrides": {
     "react": "19.1.0",
