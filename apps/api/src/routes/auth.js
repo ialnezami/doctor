@@ -107,4 +107,14 @@ router.patch('/change-password', auth, [
   } catch (err) { next(err); }
 });
 
+// PATCH /api/auth/fcm-token — save device push token
+router.patch('/fcm-token', auth, async (req, res, next) => {
+  try {
+    const { fcmToken } = req.body;
+    if (!fcmToken) return res.status(422).json({ message: 'fcmToken required' });
+    await User.findByIdAndUpdate(req.user.id, { fcmToken });
+    res.json({ ok: true });
+  } catch (err) { next(err); }
+});
+
 module.exports = router;

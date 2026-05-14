@@ -3,6 +3,8 @@ const auth = require('../middleware/auth');
 const requireRole = require('../middleware/rbac');
 const Appointment = require('../models/Appointment');
 const Doctor = require('../models/Doctor');
+const User = require('../models/User');
+const { sendPush } = require('../utils/fcm');
 
 // POST /api/appointments — patient books
 router.post('/', auth, requireRole('patient'), async (req, res, next) => {
@@ -97,6 +99,20 @@ router.patch('/:id/status', auth, async (req, res, next) => {
     if (notes) appt.notes = notes;
     await appt.save();
     res.json(appt);
+
+    // Fire-and-forget FCM notification to the other party
+    const notifyUserId = req.user.role === 'doctor' ? appt.patientId : appt.doctorId;
+    const notifyUser = await User.findById(notifyUserId).select('fcmToken');
+    const FCM_MESSAGES = {
+      confirmed: { title: 'Appointment Confirmed ✅', body: 'Your appointment has been confirmed.' },
+      rejected:  { title: 'Appointment Rejected',    body: 'Your appointment request was not accepted.' },
+      cancelled: { title: 'Appointment Cancelled',   body: 'An appointment has been cancelled.' },
+      completed: { title: 'Appointment Completed',   body: 'Your appointment is marked complete.' },
+    };
+    const msg = FCM_MESSAGES[appt.status];
+    if (msg && notifyUser?.fcmToken) {
+      sendPush(notifyUser.fcmToken, msg.title, msg.body, { appointmentId: appt._id.toString() });
+    }
   } catch (err) {
     next(err);
   }
