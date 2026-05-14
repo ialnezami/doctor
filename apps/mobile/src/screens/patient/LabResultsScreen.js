@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context';
 import C from '../../constants/colors';
 import { getLabResults, createShareLink } from '../../api/labResults';
+import ErrorState from '../../components/ErrorState';
 
 const FLAG = {
   normal:   { color: C.mint,  label: 'Normal',   bg: 'rgba(15,227,176,0.1)' },
@@ -94,7 +95,7 @@ export default function LabResultsScreen() {
       {loading ? (
         <ActivityIndicator style={{ marginTop:40 }} color={C.mint} />
       ) : results.length === 0 ? (
-        <View style={s.empty}><Text style={s.emptyTxt}>🧪{'\n'}No lab results yet</Text></View>
+        <ErrorState icon="🧪" title="No lab results yet" message="Your lab results will appear here once available." />
       ) : (
         <ScrollView style={{ padding:16 }} showsVerticalScrollIndicator={false}>
           {results.map(r => {

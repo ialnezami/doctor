@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, TextInput, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getDoctors } from '../../api/doctors';
+import ErrorState from '../../components/ErrorState';
 import C from '../../constants/colors';
 
 const SPECS = ['All','Cardiology','Pediatrics','Neurology','Orthopedics','General'];
@@ -44,7 +45,10 @@ export default function FindDoctorScreen({ navigation }) {
       </ScrollView>
       {loading && <ActivityIndicator color={C.mint} style={{ margin:16 }} />}
       <FlatList
-        data={doctors} keyExtractor={d => d._id} contentContainerStyle={{ padding:16, paddingTop:0 }}
+        data={doctors} keyExtractor={d => d._id} contentContainerStyle={{ padding:16, paddingTop:0, flexGrow:1 }}
+        ListEmptyComponent={!loading ? (
+          <ErrorState icon="🔍" title="No doctors found" message="Try a different name or specialty filter." />
+        ) : null}
         renderItem={({ item:d, index:i }) => {
           const name = d.userId?.name || 'Doctor';
           const initials = name.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('');
