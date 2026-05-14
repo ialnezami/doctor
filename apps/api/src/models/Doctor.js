@@ -23,6 +23,7 @@ const doctorSchema = new mongoose.Schema({
   autoAcceptAppointments: { type: Boolean, default: false },
   consultationFee: { type: Number, default: 0 },
   yearsOfExperience: { type: Number, default: 0 },
+  photoUrl: { type: String, default: '' },
 }, { timestamps: true });
 
 doctorSchema.virtual('averageRating').get(function () {

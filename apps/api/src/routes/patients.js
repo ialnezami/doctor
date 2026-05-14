@@ -2,6 +2,8 @@ const router = require('express').Router();
 const auth = require('../middleware/auth');
 const requireRole = require('../middleware/rbac');
 const Patient = require('../models/Patient');
+const upload = require('../middleware/upload');
+const { uploadBuffer } = require('../utils/cloudinary');
 const { body, validationResult } = require('express-validator');
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -92,6 +94,21 @@ router.get('/:id/notes', auth, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+// PATCH /api/patients/me/photo
+router.patch('/me/photo', auth, requireRole('patient'), upload.single('photo'), async (req, res, next) => {
+  try {
+    if (!req.file) return res.status(422).json({ message: 'photo file required' });
+    const photoUrl = await uploadBuffer(req.file.buffer, 'mediconnect/patients');
+    const patient = await Patient.findOneAndUpdate(
+      { userId: req.user.id },
+      { $set: { photoUrl } },
+      { new: true }
+    );
+    if (!patient) return res.status(404).json({ message: 'Patient profile not found' });
+    res.json({ photoUrl });
+  } catch (err) { next(err); }
 });
 
 // POST /api/patients/:id/notes — doctors only

@@ -17,6 +17,7 @@ const patientSchema = new mongoose.Schema({
     content: String,
     createdAt: { type: Date, default: Date.now },
   }],
+  photoUrl: { type: String, default: '' },
 }, { timestamps: true });
 
 patientSchema.index({ homeLocation: '2dsphere' }, { sparse: true });

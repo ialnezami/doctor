@@ -3,6 +3,8 @@ const requireRole = require('../middleware/rbac');
 const User = require('../models/User');
 const Doctor = require('../models/Doctor');
 const Appointment = require('../models/Appointment');
+const upload = require('../middleware/upload');
+const { uploadBuffer } = require('../utils/cloudinary');
 
 function generateSlots(startTime, endTime) {
   const slots = [];
@@ -157,6 +159,21 @@ router.get('/:id/slots', auth, async (req, res, next) => {
 });
 
 // POST /api/doctors/:id/slots — doctor sets availability
+// PATCH /api/doctors/:id/photo — upload profile photo
+router.patch('/:id/photo', auth, requireRole('doctor'), upload.single('photo'), async (req, res, next) => {
+  try {
+    const doctor = await Doctor.findById(req.params.id);
+    if (!doctor) return res.status(404).json({ message: 'Not found' });
+    if (doctor.userId.toString() !== req.user.id) return res.status(403).json({ message: 'Forbidden' });
+    if (!req.file) return res.status(422).json({ message: 'photo file required' });
+
+    const photoUrl = await uploadBuffer(req.file.buffer, 'mediconnect/doctors');
+    doctor.photoUrl = photoUrl;
+    await doctor.save();
+    res.json({ photoUrl });
+  } catch (err) { next(err); }
+});
+
 router.post('/:id/slots', auth, requireRole('doctor'), async (req, res, next) => {
   try {
     const doctor = await Doctor.findById(req.params.id);
