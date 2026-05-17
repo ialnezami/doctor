@@ -5,11 +5,11 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, select: false },           // optional — Google-only users have no password
-  googleId: { type: String, sparse: true, index: true }, // sparse: only index documents that have this field
+  googleId: { type: String, sparse: true, unique: true }, // sparse: only index documents that have this field
   role: { type: String, enum: ['doctor', 'patient', 'laboratory'], required: true },
   location: {
     type: { type: String, default: 'Point' },
-    coordinates: { type: [Number], default: [0, 0] },
+    coordinates: { type: [Number], default: [0, 0] }, // [lng, lat]
   },
   fcmToken: { type: String, default: '' },
   photoUrl: { type: String, default: '' },
