@@ -3,6 +3,12 @@ const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 async function verifyGoogleToken(idToken) {
+  if (!idToken) {
+    const err = new Error('idToken is required');
+    err.status = 400;
+    throw err;
+  }
+
   let ticket;
   try {
     ticket = await client.verifyIdToken({
@@ -17,6 +23,12 @@ async function verifyGoogleToken(idToken) {
   }
 
   const payload = ticket.getPayload();
+
+  if (!payload) {
+    const err = new Error('Failed to extract Google token payload');
+    err.status = 401;
+    throw err;
+  }
 
   if (!payload.sub || !payload.email || !payload.name) {
     const err = new Error('Invalid Google token payload');
