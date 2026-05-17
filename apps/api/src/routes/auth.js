@@ -6,6 +6,7 @@ const Patient = require('../models/Patient');
 const Lab = require('../models/Lab');
 const { sign } = require('../utils/jwt');
 const auth = require('../middleware/auth');
+const { verifyGoogleToken } = require('../utils/googleAuth');
 
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -115,6 +116,43 @@ router.patch('/fcm-token', auth, async (req, res, next) => {
     await User.findByIdAndUpdate(req.user.id, { fcmToken });
     res.json({ ok: true });
   } catch (err) { next(err); }
+});
+
+// POST /api/auth/google
+// Body: { idToken: string }  — Google ID token from client
+router.post('/google', [
+  body('idToken').notEmpty().withMessage('idToken is required'),
+], validate, async (req, res, next) => {
+  try {
+    const { googleId, email, name } = await verifyGoogleToken(req.body.idToken);
+
+    // 1. Already linked to a Google account — fastest path
+    let user = await User.findOne({ googleId });
+    if (user) {
+      const token = sign({ id: user._id, role: user.role });
+      return res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    }
+
+    // 2. Email exists — link this Google account to the existing user
+    user = await User.findOne({ email });
+    if (user) {
+      user.googleId = googleId;
+      await user.save();
+      const token = sign({ id: user._id, role: user.role });
+      return res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    }
+
+    // 3. New user — create patient (Google sign-up always = patient role)
+    user = await User.create({ name, email, googleId, role: 'patient' });
+    await Patient.create({ userId: user._id });
+    const token = sign({ id: user._id, role: user.role });
+    return res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+  } catch (err) {
+    if (err.status === 401 || err.status === 400) {
+      return res.status(err.status).json({ message: err.message });
+    }
+    next(err);
+  }
 });
 
 module.exports = router;
