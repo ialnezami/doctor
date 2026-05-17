@@ -9,13 +9,20 @@ async function verifyGoogleToken(idToken) {
       idToken,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
-  } catch {
+  } catch (originalErr) {
+    console.error('[googleAuth] Token verification failed:', originalErr.message);
     const err = new Error('Invalid or expired Google ID token');
     err.status = 401;
     throw err;
   }
 
   const payload = ticket.getPayload();
+
+  if (!payload.sub || !payload.email || !payload.name) {
+    const err = new Error('Invalid Google token payload');
+    err.status = 401;
+    throw err;
+  }
 
   if (!payload.email_verified) {
     const err = new Error('Google account email is not verified');
