@@ -144,10 +144,18 @@ router.post('/google', [
 
     // 3. New user — create patient (Google sign-up always = patient role)
     user = await User.create({ name, email, googleId, role: 'patient' });
-    await Patient.create({ userId: user._id });
+    try {
+      await Patient.create({ userId: user._id });
+    } catch (patientErr) {
+      await User.deleteOne({ _id: user._id });
+      throw patientErr;
+    }
     const token = sign({ id: user._id, role: user.role });
     return res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {
+    if (err.code === 11000) {
+      return res.status(409).json({ message: 'An account with this email already exists' });
+    }
     if (err.status === 401 || err.status === 400) {
       return res.status(err.status).json({ message: err.message });
     }
