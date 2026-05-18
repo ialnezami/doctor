@@ -154,7 +154,11 @@ router.post('/google', [
     return res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {
     if (err.code === 11000) {
-      return res.status(409).json({ message: 'An account with this email already exists' });
+      const field = err.keyValue && err.keyValue.googleId ? 'googleId' : 'email';
+      const message = field === 'googleId'
+        ? 'This Google account is already linked to another user'
+        : 'An account with this email already exists';
+      return res.status(409).json({ message });
     }
     if (err.status === 401 || err.status === 400) {
       return res.status(err.status).json({ message: err.message });
