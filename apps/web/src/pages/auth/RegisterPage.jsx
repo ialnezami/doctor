@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { register } from '../../api/auth';
 import useAuthStore from '../../store/authStore';
 import Button from '../../components/ui/Button';
+import GoogleSignInButton from '../../components/GoogleSignInButton';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -71,6 +72,17 @@ export default function RegisterPage() {
             {loading ? 'Creating account…' : 'Create account'}
           </Button>
         </form>
+
+        {/* Google sign-up — always creates a patient account */}
+        <div style={{ display:'flex', alignItems:'center', gap:12, margin:'20px 0 16px' }}>
+          <div style={{ flex:1, height:1, background:'var(--border)' }} />
+          <span style={{ color:'var(--text2)', fontSize:12 }}>or</span>
+          <div style={{ flex:1, height:1, background:'var(--border)' }} />
+        </div>
+        <GoogleSignInButton />
+        <p style={{ color:'var(--text2)', fontSize:12, textAlign:'center', margin:'8px 0 0' }}>
+          Google sign-up creates a patient account
+        </p>
 
         <p style={{ fontSize:12.5, color:'var(--text2)', textAlign:'center', marginTop:20 }}>
           Already have an account? <Link to="/login" style={{ color:'var(--mint)' }}>Sign in</Link>

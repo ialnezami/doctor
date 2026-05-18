@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { login } from '../../api/auth';
 import useAuthStore from '../../store/authStore';
 import Button from '../../components/ui/Button';
+import GoogleSignInButton from '../../components/GoogleSignInButton';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -76,6 +77,14 @@ export default function LoginPage() {
             {loading ? 'Signing in…' : 'Sign in →'}
           </Button>
         </form>
+
+        {/* Google sign-in */}
+        <div style={{ display:'flex', alignItems:'center', gap:12, margin:'20px 0 16px' }}>
+          <div style={{ flex:1, height:1, background:'var(--border)' }} />
+          <span style={{ color:'var(--text2)', fontSize:12 }}>or</span>
+          <div style={{ flex:1, height:1, background:'var(--border)' }} />
+        </div>
+        <GoogleSignInButton />
 
         <p style={{ fontSize:12.5, color:'var(--text2)', textAlign:'center', marginTop:22 }}>
           No account? <Link to="/register" style={{ color:'var(--mint)' }}>Create one free</Link>
