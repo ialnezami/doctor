@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 
 import C from '../../constants/colors';
 import { login } from '../../api/auth';
 import useAuthStore from '../../store/authStore';
+import useGoogleSignIn from '../../hooks/useGoogleSignIn';
 
 export default function LoginScreen({ navigation }) {
   const setAuth = useAuthStore(s => s.login);
@@ -10,6 +11,7 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { signIn: googleSignIn, loading: googleLoading, error: googleError } = useGoogleSignIn();
 
   const submit = async () => {
     setLoading(true); setError('');
@@ -44,6 +46,24 @@ export default function LoginScreen({ navigation }) {
       <TouchableOpacity onPress={() => navigation.navigate('Register')}>
         <Text style={s.link}>No account? <Text style={{ color: C.mint }}>Create one free</Text></Text>
       </TouchableOpacity>
+
+      {/* divider */}
+      <View style={{ flexDirection:'row', alignItems:'center', marginTop:24, marginBottom:12, width:'100%' }}>
+        <View style={{ flex:1, height:1, backgroundColor:C.border2 }} />
+        <Text style={{ color:C.text3, fontSize:12, marginHorizontal:10 }}>or</Text>
+        <View style={{ flex:1, height:1, backgroundColor:C.border2 }} />
+      </View>
+
+      <TouchableOpacity
+        style={[s.btn, { backgroundColor:'#fff', borderWidth:1, borderColor:C.border2 }]}
+        onPress={googleSignIn}
+        disabled={googleLoading}
+      >
+        <Text style={{ fontSize:15, fontWeight:'700', color:'#333' }}>
+          {googleLoading ? 'Signing in…' : 'G  Sign in with Google'}
+        </Text>
+      </TouchableOpacity>
+      {!!googleError && <Text style={[s.error, { marginTop:8 }]}>{googleError}</Text>}
     </ScrollView>
   );
 }

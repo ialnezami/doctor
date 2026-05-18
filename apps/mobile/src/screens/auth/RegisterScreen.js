@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 
 import C from '../../constants/colors';
 import { register } from '../../api/auth';
 import useAuthStore from '../../store/authStore';
+import useGoogleSignIn from '../../hooks/useGoogleSignIn';
 
 export default function RegisterScreen({ navigation }) {
   const setAuth = useAuthStore(s => s.login);
@@ -10,6 +11,7 @@ export default function RegisterScreen({ navigation }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+  const { signIn: googleSignIn, loading: googleLoading, error: googleError } = useGoogleSignIn();
 
   const submit = async () => {
     setLoading(true); setError('');
@@ -54,6 +56,27 @@ export default function RegisterScreen({ navigation }) {
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
         <Text style={{ fontSize:13, color:C.text2, marginTop:20 }}>Have an account? <Text style={{ color:C.mint }}>Sign in</Text></Text>
       </TouchableOpacity>
+
+      {/* divider */}
+      <View style={{ flexDirection:'row', alignItems:'center', marginTop:24, marginBottom:12, width:'100%' }}>
+        <View style={{ flex:1, height:1, backgroundColor:C.border2 }} />
+        <Text style={{ color:C.text3, fontSize:12, marginHorizontal:10 }}>or</Text>
+        <View style={{ flex:1, height:1, backgroundColor:C.border2 }} />
+      </View>
+
+      <TouchableOpacity
+        style={[s.btn, { backgroundColor:'#fff', borderWidth:1, borderColor:C.border2 }]}
+        onPress={googleSignIn}
+        disabled={googleLoading}
+      >
+        <Text style={{ fontSize:15, fontWeight:'700', color:'#333' }}>
+          {googleLoading ? 'Creating account…' : 'G  Sign up with Google'}
+        </Text>
+      </TouchableOpacity>
+      <Text style={{ color:C.text3, fontSize:11, marginTop:8, textAlign:'center' }}>
+        Google sign-up creates a patient account
+      </Text>
+      {!!googleError && <Text style={{ color:C.rose, fontSize:13, marginTop:6 }}>{googleError}</Text>}
     </ScrollView>
   );
 }
