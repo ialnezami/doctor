@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import C from '../../constants/colors';
 import { getPatientMe } from '../../api/patients';
 import { getPrescriptions } from '../../api/prescriptions';
@@ -12,6 +13,7 @@ function calcAge(dob) {
 }
 
 export default function MedicalRecordsScreen() {
+  const { t } = useTranslation();
   const [patient, setPatient] = useState(null);
   const [rxList,  setRxList]  = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,18 +41,18 @@ export default function MedicalRecordsScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
       <View style={s.header}>
-        <Text style={s.title}>Medical Records</Text>
+        <Text style={s.title}>{t('records.title')}</Text>
       </View>
       <ScrollView style={{ padding: 16 }} showsVerticalScrollIndicator={false}>
 
         {/* Health Profile */}
         <View style={s.profileCard}>
-          <Text style={s.section}>HEALTH PROFILE</Text>
+          <Text style={s.section}>{t('records.healthProfile')}</Text>
           <View style={s.vitals}>
             {[
-              ['Age',        age,                 'years'],
-              ['Blood Type', bloodType,           ''],
-              ['Allergies',  allergies.length,    'recorded'],
+              [t('records.age'),       age,              t('common.years')],
+              [t('records.bloodType'), bloodType,        ''],
+              [t('records.allergies'), allergies.length, t('common.recorded')],
             ].map(([l, v, u]) => (
               <View key={l} style={s.vital}>
                 <Text style={s.vLabel}>{l}</Text>
@@ -69,7 +71,7 @@ export default function MedicalRecordsScreen() {
               ))}
               {allergies.map(a => (
                 <View key={a} style={[s.tag, s.tagDanger]}>
-                  <Text style={[s.tagTxt, { color: C.rose }]}>{a} allergy</Text>
+                  <Text style={[s.tagTxt, { color: C.rose }]}>{a} {t('records.allergy')}</Text>
                 </View>
               ))}
             </View>
@@ -77,9 +79,9 @@ export default function MedicalRecordsScreen() {
         </View>
 
         {/* Prescriptions */}
-        <Text style={s.section}>PRESCRIPTIONS</Text>
+        <Text style={s.section}>{t('records.prescriptions')}</Text>
         {rxList.length === 0 && (
-          <Text style={{ color: C.text3, fontSize: 13, marginBottom: 16 }}>No prescriptions yet.</Text>
+          <Text style={{ color: C.text3, fontSize: 13, marginBottom: 16 }}>{t('records.noPrescriptions')}</Text>
         )}
         {rxList.map((rx, i) => {
           const meds = rx.medications?.map(m => m.name).join(', ') || '—';

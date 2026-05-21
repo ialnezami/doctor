@@ -1,0 +1,89 @@
+{
+  "common": {
+    "loading": "Chargement…",
+    "error": "Erreur",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "or": "ou",
+    "noData": "Aucune donnée",
+    "years": "ans",
+    "recorded": "enregistrées"
+  },
+  "auth": {
+    "appTagline": "La santé réinventée",
+    "email": "E-mail",
+    "emailPlaceholder": "Entrez votre e-mail",
+    "password": "Mot de passe",
+    "passwordPlaceholder": "Entrez votre mot de passe",
+    "login": {
+      "submit": "Se connecter",
+      "submitting": "Connexion…",
+      "noAccount": "Pas de compte ?",
+      "createOne": "Créez-en un gratuitement",
+      "googleSignIn": "Se connecter avec Google",
+      "invalidCredentials": "Identifiants invalides"
+    },
+    "register": {
+      "title": "Créer un compte",
+      "name": "Nom complet",
+      "namePlaceholder": "Entrez votre nom",
+      "role": "Je suis",
+      "rolePatient": "Patient",
+      "roleDoctor": "Médecin",
+      "submit": "Créer le compte",
+      "submitting": "Création…",
+      "haveAccount": "Déjà un compte ?",
+      "signIn": "Se connecter"
+    }
+  },
+  "tabs": {
+    "findDoctor": "Trouver médecin",
+    "appointments": "Rendez-vous",
+    "records": "Dossiers",
+    "labResults": "Résultats labo",
+    "profile": "Profil"
+  },
+  "findDoctor": {
+    "title": "Trouver un médecin",
+    "result_one": "1 résultat",
+    "result_other": "{{count}} résultats",
+    "searching": "Recherche…",
+    "searchPlaceholder": "Rechercher par nom ou spécialité…",
+    "noResults": "Aucun médecin trouvé",
+    "noResultsHint": "Essayez un autre nom ou filtre de spécialité.",
+    "available": "Disponible",
+    "specialties": {
+      "All": "Tous",
+      "Cardiology": "Cardiologie",
+      "Pediatrics": "Pédiatrie",
+      "Neurology": "Neurologie",
+      "Orthopedics": "Orthopédie",
+      "General": "Généraliste"
+    }
+  },
+  "records": {
+    "title": "Dossiers médicaux",
+    "healthProfile": "PROFIL DE SANTÉ",
+    "age": "Âge",
+    "bloodType": "Groupe sanguin",
+    "allergies": "Allergies",
+    "prescriptions": "ORDONNANCES",
+    "noPrescriptions": "Aucune ordonnance pour l'instant.",
+    "conditionsAllergies": "Maladies & Allergies",
+    "noProfileData": "Aucune donnée de santé. Mettez à jour votre profil.",
+    "allergy": "allergie"
+  },
+  "appointments": {
+    "title": "Mes rendez-vous"
+  },
+  "profile": {
+    "title": "Profil",
+    "language": "Langue",
+    "logout": "Se déconnecter",
+    "languages": {
+      "ar": "العربية",
+      "en": "English",
+      "fr": "Français"
+    }
+  }
+}

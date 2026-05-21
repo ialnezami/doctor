@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import C from '../../constants/colors';
 import { login } from '../../api/auth';
 import useAuthStore from '../../store/authStore';
 import useGoogleSignIn from '../../hooks/useGoogleSignIn';
 
 export default function LoginScreen({ navigation }) {
+  const { t } = useTranslation();
   const setAuth = useAuthStore(s => s.login);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,7 +21,7 @@ export default function LoginScreen({ navigation }) {
       const { token, user } = await login({ email, password });
       setAuth(user, token);
     } catch (e) {
-      setError(e.message || 'Invalid credentials');
+      setError(e.message || t('auth.login.invalidCredentials'));
     } finally { setLoading(false); }
   };
 
@@ -27,26 +29,25 @@ export default function LoginScreen({ navigation }) {
     <ScrollView contentContainerStyle={s.container}>
       <View style={s.logo}><Text style={s.logoText}>M</Text></View>
       <Text style={s.headline}>MediConnect</Text>
-      <Text style={s.sub}>Healthcare reimagined</Text>
+      <Text style={s.sub}>{t('auth.appTagline')}</Text>
 
-      <Text style={s.label}>Email</Text>
-      <TextInput style={s.input} value={email} onChangeText={setEmail} placeholder="Enter email" placeholderTextColor={C.text3} keyboardType="email-address" autoCapitalize="none" />
-      <Text style={s.label}>Password</Text>
-      <TextInput style={s.input} value={password} onChangeText={setPassword} placeholder="Enter password" placeholderTextColor={C.text3} secureTextEntry />
+      <Text style={s.label}>{t('auth.email')}</Text>
+      <TextInput style={s.input} value={email} onChangeText={setEmail} placeholder={t('auth.emailPlaceholder')} placeholderTextColor={C.text3} keyboardType="email-address" autoCapitalize="none" />
+      <Text style={s.label}>{t('auth.password')}</Text>
+      <TextInput style={s.input} value={password} onChangeText={setPassword} placeholder={t('auth.passwordPlaceholder')} placeholderTextColor={C.text3} secureTextEntry />
 
       {!!error && <Text style={s.error}>{error}</Text>}
 
       <TouchableOpacity style={s.btn} onPress={submit} disabled={loading}>
-        <Text style={s.btnText}>{loading ? 'Signing in…' : 'Sign in'}</Text>
+        <Text style={s.btnText}>{loading ? t('auth.login.submitting') : t('auth.login.submit')}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={s.link}>No account? <Text style={{ color: C.mint }}>Create one free</Text></Text>
+        <Text style={s.link}>{t('auth.login.noAccount')} <Text style={{ color: C.mint }}>{t('auth.login.createOne')}</Text></Text>
       </TouchableOpacity>
 
-      {/* divider */}
       <View style={{ flexDirection:'row', alignItems:'center', marginTop:24, marginBottom:12, width:'100%' }}>
         <View style={{ flex:1, height:1, backgroundColor:C.border2 }} />
-        <Text style={{ color:C.text3, fontSize:12, marginHorizontal:10 }}>or</Text>
+        <Text style={{ color:C.text3, fontSize:12, marginHorizontal:10 }}>{t('common.or')}</Text>
         <View style={{ flex:1, height:1, backgroundColor:C.border2 }} />
       </View>
 
@@ -56,7 +57,7 @@ export default function LoginScreen({ navigation }) {
         disabled={googleLoading}
       >
         <Text style={{ fontSize:15, fontWeight:'700', color:'#333' }}>
-          {googleLoading ? 'Signing in…' : 'G  Sign in with Google'}
+          {googleLoading ? t('auth.login.submitting') : `G  ${t('auth.login.googleSignIn')}`}
         </Text>
       </TouchableOpacity>
       {!!googleError && <Text style={[s.error, { marginTop:8 }]}>{googleError}</Text>}

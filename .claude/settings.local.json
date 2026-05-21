@@ -40,7 +40,8 @@
       "Bash(npx jest *)",
       "Bash(gh pr *)",
       "Bash(curl -s http://localhost:3001/api/health)",
-      "Bash(curl -s http://localhost:3001/)"
+      "Bash(curl -s http://localhost:3001/)",
+      "Bash(xargs ls)"
     ]
   }
 }

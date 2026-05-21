@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { login } from '../../api/auth';
 import useAuthStore from '../../store/authStore';
 import Button from '../../components/ui/Button';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
+import LanguageSwitcher from '../../components/LanguageSwitcher';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const setAuth = useAuthStore(s => s.login);
+  const { t } = useTranslation();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,8 +36,8 @@ export default function LoginPage() {
         <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 65% 55% at 20% 30%, rgba(15,227,176,0.08) 0%, transparent 60%), radial-gradient(ellipse 45% 40% at 80% 70%, rgba(96,165,250,0.06) 0%, transparent 60%)', pointerEvents:'none' }} />
         <div style={{ textAlign:'center', marginBottom:52 }}>
           <div style={{ width:60, height:60, background:'var(--mint)', borderRadius:18, display:'grid', placeItems:'center', fontSize:26, fontWeight:800, color:'#000', margin:'0 auto 18px', boxShadow:'0 0 50px rgba(15,227,176,0.25)' }}>M</div>
-          <h1 style={{ fontFamily:'var(--font-display)', fontSize:40, fontWeight:600, lineHeight:1.2 }}>Healthcare<br /><em style={{ color:'var(--mint)' }}>reimagined.</em></h1>
-          <p style={{ fontSize:14, color:'var(--text2)', marginTop:10 }}>Connect doctors and patients seamlessly.</p>
+          <h1 style={{ fontFamily:'var(--font-display)', fontSize:40, fontWeight:600, lineHeight:1.2 }}>{t('auth.appTagline')}</h1>
+          <p style={{ fontSize:14, color:'var(--text2)', marginTop:10 }}>{t('auth.appDesc')}</p>
         </div>
         {[
           { icon:'🩺', title:'Smart Scheduling', desc:'Manage appointments with zero conflicts' },
@@ -50,11 +53,12 @@ export default function LoginPage() {
 
       {/* Right panel - form */}
       <div style={{ width:420, display:'flex', flexDirection:'column', justifyContent:'center', padding:'56px 46px' }}>
-        <h2 style={{ fontFamily:'var(--font-display)', fontSize:28, fontWeight:500, marginBottom:7 }}>Welcome back</h2>
-        <p style={{ fontSize:13, color:'var(--text2)', marginBottom:26 }}>Sign in to your MediConnect account</p>
+        <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:16 }}><LanguageSwitcher /></div>
+        <h2 style={{ fontFamily:'var(--font-display)', fontSize:28, fontWeight:500, marginBottom:7 }}>{t('auth.login.title')}</h2>
+        <p style={{ fontSize:13, color:'var(--text2)', marginBottom:26 }}>{t('auth.login.subtitle')}</p>
 
         <form onSubmit={submit}>
-          {[['email','Email','email'],['password','Password','password']].map(([name, label, type]) => (
+          {[['email', t('auth.email'), 'email'],['password', t('auth.password'), 'password']].map(([name, label, type]) => (
             <div key={name} style={{ marginBottom:16 }}>
               <label style={{ display:'block', fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text2)', marginBottom:7 }}>{label}</label>
               <input type={type} required value={form[name]} onChange={e => setForm(p => ({ ...p, [name]: e.target.value }))}
@@ -63,7 +67,7 @@ export default function LoginPage() {
           ))}
           {error && <p style={{ color:'var(--rose)', fontSize:13, marginBottom:12 }}>{error}</p>}
           <Button type="submit" full disabled={loading} style={{ padding:13, fontSize:14, marginTop:8 }}>
-            {loading ? 'Signing in…' : 'Sign in →'}
+            {loading ? t('auth.login.submitting') : t('auth.login.submit')}
           </Button>
         </form>
 
@@ -76,7 +80,7 @@ export default function LoginPage() {
         <GoogleSignInButton />
 
         <p style={{ fontSize:12.5, color:'var(--text2)', textAlign:'center', marginTop:22 }}>
-          No account? <Link to="/register" style={{ color:'var(--mint)' }}>Create one free</Link>
+          {t('auth.login.noAccount')} <Link to="/register" style={{ color:'var(--mint)' }}>{t('auth.login.createOne')}</Link>
         </p>
       </div>
     </div>

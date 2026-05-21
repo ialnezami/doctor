@@ -4,6 +4,7 @@ import {
   ScrollView, StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { getDoctors } from '../../api/doctors';
 import ErrorState from '../../components/ErrorState';
 import C from '../../constants/colors';
@@ -12,6 +13,7 @@ const SPECS = ['All', 'Cardiology', 'Pediatrics', 'Neurology', 'Orthopedics', 'G
 const AVATAR_COLORS = ['#0fe3b0', '#f59e0b', '#8b5cf6', '#10b981', '#60a5fa', '#f43f5e'];
 
 export default function FindDoctorScreen({ navigation }) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [spec, setSpec]     = useState('All');
   const [doctors, setDoctors] = useState([]);
@@ -38,14 +40,14 @@ export default function FindDoctorScreen({ navigation }) {
   }, [fetchDrs]);
 
   const resultLabel = loading
-    ? 'Searching…'
-    : `${doctors.length} ${doctors.length === 1 ? 'result' : 'results'}`;
+    ? t('findDoctor.searching')
+    : t('findDoctor.result', { count: doctors.length });
 
   return (
     <SafeAreaView style={s.safe}>
       {/* Header */}
       <View style={s.header}>
-        <Text style={s.title}>Find a Doctor</Text>
+        <Text style={s.title}>{t('findDoctor.title')}</Text>
         <Text style={s.sub}>{resultLabel}</Text>
       </View>
 
@@ -56,7 +58,7 @@ export default function FindDoctorScreen({ navigation }) {
           style={s.searchInput}
           value={search}
           onChangeText={setSearch}
-          placeholder="Search name or specialty…"
+          placeholder={t('findDoctor.searchPlaceholder')}
           placeholderTextColor={C.text3}
           returnKeyType="search"
           clearButtonMode="while-editing"
@@ -77,7 +79,7 @@ export default function FindDoctorScreen({ navigation }) {
             onPress={() => setSpec(sp)}
             activeOpacity={0.7}
           >
-            <Text style={[s.chipTxt, spec === sp && s.chipTxtActive]}>{sp}</Text>
+            <Text style={[s.chipTxt, spec === sp && s.chipTxtActive]}>{t(`findDoctor.specialties.${sp}`, sp)}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -94,8 +96,8 @@ export default function FindDoctorScreen({ navigation }) {
           ListEmptyComponent={
             <ErrorState
               icon="🔍"
-              title="No doctors found"
-              message="Try a different name or specialty filter."
+              title={t('findDoctor.noResults')}
+              message={t('findDoctor.noResultsHint')}
             />
           }
           renderItem={({ item: d, index: i }) => {
@@ -126,7 +128,7 @@ export default function FindDoctorScreen({ navigation }) {
                     {hasSlots && (
                       <View style={s.availBadge}>
                         <View style={s.availDot} />
-                        <Text style={s.availTxt}>Available</Text>
+                        <Text style={s.availTxt}>{t('findDoctor.available')}</Text>
                       </View>
                     )}
                     {d.consultationFee > 0 && (
