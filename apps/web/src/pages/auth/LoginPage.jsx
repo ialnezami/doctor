@@ -8,7 +8,6 @@ import GoogleSignInButton from '../../components/GoogleSignInButton';
 export default function LoginPage() {
   const navigate = useNavigate();
   const setAuth = useAuthStore(s => s.login);
-  const [role, setRole] = useState('doctor');
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -53,16 +52,6 @@ export default function LoginPage() {
       <div style={{ width:420, display:'flex', flexDirection:'column', justifyContent:'center', padding:'56px 46px' }}>
         <h2 style={{ fontFamily:'var(--font-display)', fontSize:28, fontWeight:500, marginBottom:7 }}>Welcome back</h2>
         <p style={{ fontSize:13, color:'var(--text2)', marginBottom:26 }}>Sign in to your MediConnect account</p>
-
-        {/* Role toggle */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:3, marginBottom:22 }}>
-          {['doctor','patient'].map(r => (
-            <button key={r} onClick={() => setRole(r)}
-              style={{ padding:11, border: role===r ? '1px solid var(--border2)' : 'none', borderRadius:7, background: role===r ? 'var(--bg3)' : 'transparent', color: role===r ? 'var(--text)' : 'var(--text2)', fontWeight: role===r ? 600 : 500, fontSize:13.5, textTransform:'capitalize', transition:'all .18s' }}>
-              {r === 'doctor' ? '👨‍⚕️' : '🧑‍🤝‍🧑'} {r.charAt(0).toUpperCase() + r.slice(1)}
-            </button>
-          ))}
-        </div>
 
         <form onSubmit={submit}>
           {[['email','Email','email'],['password','Password','password']].map(([name, label, type]) => (

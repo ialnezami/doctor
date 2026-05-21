@@ -29,10 +29,6 @@ export default function LoginScreen({ navigation }) {
       <Text style={s.headline}>MediConnect</Text>
       <Text style={s.sub}>Healthcare reimagined</Text>
 
-      <View style={s.roles}>
-        <Text style={s.rolesTxt}>🧑‍🤝‍🧑 Patient  ·  👨‍⚕️ Doctor  ·  🧪 Lab</Text>
-      </View>
-
       <Text style={s.label}>Email</Text>
       <TextInput style={s.input} value={email} onChangeText={setEmail} placeholder="Enter email" placeholderTextColor={C.text3} keyboardType="email-address" autoCapitalize="none" />
       <Text style={s.label}>Password</Text>
@@ -74,8 +70,6 @@ const s = StyleSheet.create({
   logoText: { fontSize:28, fontWeight:'800', color:'#000' },
   headline: { fontSize:28, fontWeight:'700', color:C.text, marginBottom:4 },
   sub: { fontSize:14, color:C.text2, marginBottom:32 },
-  roles: { marginBottom:24 },
-  rolesTxt: { fontSize:13, color:C.text3 },
   label: { alignSelf:'flex-start', fontSize:11, fontWeight:'600', textTransform:'uppercase', letterSpacing:0.7, color:C.text2, marginBottom:6 },
   input: { width:'100%', backgroundColor:C.bg3, borderWidth:1, borderColor:C.border2, borderRadius:8, padding:12, color:C.text, fontSize:14, marginBottom:14 },
   btn: { width:'100%', backgroundColor:C.mint, borderRadius:8, padding:14, alignItems:'center', marginTop:6 },
