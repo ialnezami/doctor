@@ -1,6 +1,11 @@
 const { OAuth2Client } = require('google-auth-library');
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const client = new OAuth2Client();
+
+const ACCEPTED_AUDIENCES = [
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_IOS_CLIENT_ID,
+].filter(Boolean);
 
 async function verifyGoogleToken(idToken) {
   if (!idToken) {
@@ -13,7 +18,7 @@ async function verifyGoogleToken(idToken) {
   try {
     ticket = await client.verifyIdToken({
       idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: ACCEPTED_AUDIENCES,
     });
   } catch (originalErr) {
     console.error('[googleAuth] Token verification failed:', originalErr.message);
