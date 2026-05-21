@@ -38,7 +38,9 @@
       "Skill(gsd-ns-review)",
       "Skill(superpowers:finishing-a-development-branch)",
       "Bash(npx jest *)",
-      "Bash(gh pr *)"
+      "Bash(gh pr *)",
+      "Bash(curl -s http://localhost:3001/api/health)",
+      "Bash(curl -s http://localhost:3001/)"
     ]
   }
 }

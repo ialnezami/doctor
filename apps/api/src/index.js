@@ -26,7 +26,14 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 3000;
 
 connectDB().then(() => {
-  app.listen(PORT, () => console.log(`API running on :${PORT}`));
+  app.listen(PORT, () => {
+    const env = process.env.NODE_ENV || 'development';
+    console.log(`\n  MediConnect API`);
+    console.log(`  ➜  Local:   http://localhost:${PORT}`);
+    console.log(`  ➜  Health:  http://localhost:${PORT}/health`);
+    console.log(`  ➜  Mode:    ${env}`);
+    console.log(`  ➜  DB:      connected\n`);
+  });
 }).catch(err => {
   console.error('DB connection failed', err);
   process.exit(1);
