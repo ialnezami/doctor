@@ -2,6 +2,25 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 
+function useCountdown(expiresAt) {
+  const [remaining, setRemaining] = useState('');
+  useEffect(() => {
+    if (!expiresAt) return;
+    const tick = () => {
+      const diff = new Date(expiresAt) - Date.now();
+      if (diff <= 0) { setRemaining('Expired'); return; }
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setRemaining(`${h}h ${m}m ${s}s remaining`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [expiresAt]);
+  return remaining;
+}
+
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 const FLAG_STYLE = {
@@ -17,6 +36,7 @@ export default function ShareViewerPage() {
   const [password, setPassword] = useState('');
   const [data, setData] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const countdown = useCountdown(data?.expiresAt);
 
   const fetch = async (pwd) => {
     try {
@@ -110,7 +130,7 @@ export default function ShareViewerPage() {
       <div style={containerStyle}>
         <div style={cardStyle}>
           {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24, paddingBottom: 18, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, paddingBottom: 18, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
             <div style={{ width: 32, height: 32, background: '#0fe3b0', borderRadius: 7, display: 'grid', placeItems: 'center', fontSize: 16, fontWeight: 800, color: '#000' }}>M</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 16, fontWeight: 600 }}>MediConnect</div>
@@ -120,6 +140,13 @@ export default function ShareViewerPage() {
               <span>🔒</span> Secure link
             </div>
           </div>
+          {data.expiresAt && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#94a3b8', marginBottom: 16, padding: '10px 14px', background: 'rgba(15,227,176,0.06)', border: '1px solid rgba(15,227,176,0.18)', borderRadius: 8 }}>
+              <span>🔒</span>
+              <span>Encrypted, secure link</span>
+              {countdown && <span style={{ marginLeft: 'auto', color: '#0fe3b0', fontVariantNumeric: 'tabular-nums' }}>{countdown}</span>}
+            </div>
+          )}
 
           {resourceType === 'lab_result' && (
             <>

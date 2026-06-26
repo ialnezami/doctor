@@ -11,6 +11,4 @@ const sharedLinkSchema = new mongoose.Schema({
   revokedAt:    { type: Date, default: null },
 }, { timestamps: true });
 
-sharedLinkSchema.index({ token: 1 }, { unique: true });
-
 module.exports = mongoose.model('SharedLink', sharedLinkSchema);

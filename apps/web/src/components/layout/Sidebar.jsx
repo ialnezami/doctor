@@ -7,6 +7,7 @@ const doctorNav = [
   { label: 'Patient Records', path: '/patients' },
   { label: 'Prescriptions',   path: '/prescriptions' },
   { label: 'Lab Results',     path: '/lab-results' },
+  { label: 'Settings',        path: '/settings' },
 ];
 
 const patientNav = [
@@ -15,11 +16,15 @@ const patientNav = [
   { label: 'Medical Records', path: '/records' },
 ];
 
+const labNav = [
+  { label: 'My Uploads', path: '/lab' },
+];
+
 export default function Sidebar() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { user, logout } = useAuthStore();
-  const nav = user?.role === 'doctor' ? doctorNav : patientNav;
+  const nav = user?.role === 'doctor' ? doctorNav : user?.role === 'laboratory' ? labNav : patientNav;
   const initials = user?.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??';
 
   return (
@@ -38,7 +43,7 @@ export default function Sidebar() {
       {/* Nav */}
       <nav style={{ flex:1, padding:'8px 10px', overflowY:'auto' }}>
         <div style={{ fontSize:10, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.1em', color:'var(--text3)', padding:'0 10px 8px' }}>
-          {user?.role === 'doctor' ? 'Doctor' : 'Patient'} Menu
+          {user?.role === 'doctor' ? 'Doctor' : user?.role === 'laboratory' ? 'Lab' : 'Patient'} Menu
         </div>
         {nav.map(item => {
           const active = pathname === item.path;

@@ -9,6 +9,7 @@ import AppointmentsScreen      from '../screens/doctor/AppointmentsScreen';
 import AppointmentDetailScreen from '../screens/doctor/AppointmentDetailScreen';
 import NoteEditorScreen        from '../screens/doctor/NoteEditorScreen';
 import DoctorLabResultsScreen  from '../screens/doctor/LabResultsScreen';
+import SettingsScreen          from '../screens/doctor/SettingsScreen';
 import NotificationsScreen     from '../screens/shared/NotificationsScreen';
 
 const Tab   = createBottomTabNavigator();
@@ -22,10 +23,11 @@ function DoctorBottomTabs() {
       tabBarActiveTintColor: C.mint,
       tabBarInactiveTintColor: C.text3,
     }}>
-      <Tab.Screen name="Dashboard"    component={DashboardScreen}        options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>🏠</Text> }} />
-      <Tab.Screen name="Appointments" component={AppointmentsScreen}     options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>📅</Text> }} />
-      <Tab.Screen name="Lab Results"  component={DoctorLabResultsScreen} options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>🔬</Text> }} />
-      <Tab.Screen name="Notifications" component={NotificationsScreen}   options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>🔔</Text> }} />
+      <Tab.Screen name="Dashboard"     component={DashboardScreen}        options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>🏠</Text> }} />
+      <Tab.Screen name="Appointments"  component={AppointmentsScreen}     options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>📅</Text> }} />
+      <Tab.Screen name="Lab Results"   component={DoctorLabResultsScreen} options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>🔬</Text> }} />
+      <Tab.Screen name="Notifications" component={NotificationsScreen}    options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>🔔</Text> }} />
+      <Tab.Screen name="Settings"      component={SettingsScreen}         options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>⚙️</Text> }} />
     </Tab.Navigator>
   );
 }
@@ -33,9 +35,9 @@ function DoctorBottomTabs() {
 export default function DoctorTabs() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="DoctorHome"         component={DoctorBottomTabs} />
-      <Stack.Screen name="AppointmentDetail"  component={AppointmentDetailScreen} />
-      <Stack.Screen name="NoteEditor"         component={NoteEditorScreen} />
+      <Stack.Screen name="DoctorHome"        component={DoctorBottomTabs} />
+      <Stack.Screen name="AppointmentDetail" component={AppointmentDetailScreen} />
+      <Stack.Screen name="NoteEditor"        component={NoteEditorScreen} />
     </Stack.Navigator>
   );
 }

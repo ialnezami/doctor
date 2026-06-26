@@ -1,0 +1,71 @@
+{
+  "common": {
+    "or": "أو",
+    "years": "سنة",
+    "recorded": "مسجّلة",
+    "noData": "لا توجد بيانات"
+  },
+  "auth": {
+    "appName": "MediConnect",
+    "appTagline": "الرعاية الصحية بصورة مختلفة",
+    "appDesc": "ربط الأطباء والمرضى بسلاسة.",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "login": {
+      "title": "مرحباً بعودتك",
+      "subtitle": "تسجيل الدخول إلى حسابك",
+      "submit": "تسجيل الدخول ←",
+      "submitting": "جارٍ الدخول…",
+      "noAccount": "ليس لديك حساب؟",
+      "createOne": "أنشئ حساباً مجاناً",
+      "invalidCredentials": "بيانات غير صحيحة"
+    },
+    "register": {
+      "title": "إنشاء حساب",
+      "subtitle": "انضم إلى MediConnect اليوم",
+      "name": "الاسم الكامل",
+      "role": "أنا",
+      "rolePatient": "مريض",
+      "roleDoctor": "طبيب",
+      "submit": "إنشاء الحساب",
+      "submitting": "جارٍ الإنشاء…",
+      "haveAccount": "لديك حساب بالفعل؟",
+      "signIn": "تسجيل الدخول"
+    }
+  },
+  "nav": {
+    "findDoctor": "البحث عن طبيب",
+    "appointments": "المواعيد",
+    "records": "السجلات الطبية",
+    "labResults": "نتائج المختبر",
+    "dashboard": "لوحة التحكم",
+    "logout": "تسجيل الخروج"
+  },
+  "records": {
+    "title": "السجلات الطبية",
+    "subtitle": "سجلّك الصحي الكامل",
+    "tabs": {
+      "prescriptions": "الوصفات الطبية",
+      "labs": "نتائج المختبر",
+      "profile": "الملف الصحي"
+    },
+    "healthProfile": "الملف الصحي",
+    "age": "العمر",
+    "bloodType": "فصيلة الدم",
+    "allergies": "الحساسية",
+    "conditionsAllergies": "الأمراض والحساسيات",
+    "noProfileData": "لا توجد بيانات صحية بعد. حدّث ملفك الشخصي.",
+    "allergy": "حساسية",
+    "noPrescriptions": "لا توجد وصفات طبية بعد.",
+    "noLabResults": "لا توجد نتائج مختبر بعد.",
+    "prescriptions": "الوصفات الطبية",
+    "tests": "فحص",
+    "tests_plural": "فحوصات"
+  },
+  "language": {
+    "label": "اللغة",
+    "ar": "العربية",
+    "en": "English",
+    "fr": "Français"
+  }
+}

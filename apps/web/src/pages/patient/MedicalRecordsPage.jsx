@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react';
 import { getPrescriptions } from '../../api/prescriptions';
 import { getLabResults } from '../../api/labResults';
+import { getPatientMe } from '../../api/patients';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+
+function calcAge(dob) {
+  if (!dob) return '—';
+  return Math.floor((Date.now() - new Date(dob).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+}
 
 const FLAG_STYLE = {
   normal:   { color: 'var(--mint)',  bg: 'rgba(15,227,176,0.1)' },
@@ -14,10 +20,12 @@ const FLAG_STYLE = {
 export default function MedicalRecordsPage() {
   const [rxList, setRxList] = useState([]);
   const [labResults, setLabResults] = useState([]);
+  const [patient, setPatient] = useState(null);
   const [tab, setTab] = useState('prescriptions');
   useEffect(() => {
     getPrescriptions().then(setRxList).catch(() => {});
     getLabResults().then(setLabResults).catch(() => {});
+    getPatientMe().then(setPatient).catch(() => {});
   }, []);
 
   return (
@@ -102,22 +110,35 @@ export default function MedicalRecordsPage() {
             <Card>
               <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:12 }}>Health Profile</div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:14 }}>
-                {[['Age','27','years'],['Blood Type','A+',''],['Allergies','2','recorded']].map(([l,v,u]) => (
+                {[
+                  ['Age',       calcAge(patient?.dateOfBirth), 'years'],
+                  ['Blood Type', patient?.bloodType || '—',   ''],
+                  ['Allergies',  (patient?.allergies?.length ?? '—'), 'recorded'],
+                ].map(([l,v,u]) => (
                   <div key={l} style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r-sm)', padding:'10px 12px', textAlign:'center' }}>
                     <div style={{ fontSize:10, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text3)' }}>{l}</div>
                     <div style={{ fontFamily:'var(--font-display)', fontSize:22, fontWeight:600, margin:'3px 0' }}>{v}</div>
-                    <div style={{ fontSize:10.5, color:'var(--text2)' }}>{u}</div>
+                    {u && <div style={{ fontSize:10.5, color:'var(--text2)' }}>{u}</div>}
                   </div>
                 ))}
               </div>
-              <div style={{ height:1, background:'var(--border)', margin:'12px 0' }} />
-              <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:8 }}>Conditions</div>
-              <div style={{ display:'flex', gap:7, flexWrap:'wrap' }}>
-                {['Migraine','Anxiety'].map(c => (
-                  <span key={c} style={{ padding:'2px 9px', borderRadius:20, fontSize:10.5, fontWeight:600, background:'var(--bg3)', border:'1px solid var(--border2)', color:'var(--text2)' }}>{c}</span>
-                ))}
-                <span style={{ padding:'2px 9px', borderRadius:20, fontSize:10.5, fontWeight:600, background:'var(--rose-dim)', border:'1px solid rgba(244,63,94,0.3)', color:'var(--rose)' }}>Penicillin allergy</span>
-              </div>
+              {((patient?.conditions?.length > 0) || (patient?.allergies?.length > 0)) && (
+                <>
+                  <div style={{ height:1, background:'var(--border)', margin:'12px 0' }} />
+                  <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:8 }}>Conditions &amp; Allergies</div>
+                  <div style={{ display:'flex', gap:7, flexWrap:'wrap' }}>
+                    {(patient?.conditions || []).map(c => (
+                      <span key={c} style={{ padding:'2px 9px', borderRadius:20, fontSize:10.5, fontWeight:600, background:'var(--bg3)', border:'1px solid var(--border2)', color:'var(--text2)' }}>{c}</span>
+                    ))}
+                    {(patient?.allergies || []).map(a => (
+                      <span key={a} style={{ padding:'2px 9px', borderRadius:20, fontSize:10.5, fontWeight:600, background:'rgba(244,63,94,0.1)', border:'1px solid rgba(244,63,94,0.3)', color:'var(--rose)' }}>{a} allergy</span>
+                    ))}
+                  </div>
+                </>
+              )}
+              {!patient?.dateOfBirth && !patient?.bloodType && (
+                <p style={{ color:'var(--text3)', fontSize:13, marginTop:8 }}>No health profile data yet. Update your profile to fill this in.</p>
+              )}
             </Card>
           )}
         </div>

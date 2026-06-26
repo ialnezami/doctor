@@ -2,17 +2,22 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import AppLayout from '../components/layout/AppLayout';
 
-import LoginPage       from '../pages/auth/LoginPage';
-import RegisterPage    from '../pages/auth/RegisterPage';
-import DashboardPage   from '../pages/doctor/DashboardPage';
-import AppointmentsPage from '../pages/doctor/AppointmentsPage';
+import LoginPage          from '../pages/auth/LoginPage';
+import RegisterPage       from '../pages/auth/RegisterPage';
+import DashboardPage      from '../pages/doctor/DashboardPage';
+import AppointmentsPage   from '../pages/doctor/AppointmentsPage';
 import PatientRecordsPage from '../pages/doctor/PatientRecordsPage';
-import PrescriptionsPage from '../pages/doctor/PrescriptionsPage';
-import LabResultsPage  from '../pages/doctor/LabResultsPage';
-import FindDoctorPage  from '../pages/patient/FindDoctorPage';
+import PrescriptionsPage  from '../pages/doctor/PrescriptionsPage';
+import LabResultsPage     from '../pages/doctor/LabResultsPage';
+import DoctorSettingsPage from '../pages/doctor/DoctorSettingsPage';
+import FindDoctorPage     from '../pages/patient/FindDoctorPage';
+import DoctorProfilePage  from '../pages/patient/DoctorProfilePage';
+import BookAppointmentPage from '../pages/patient/BookAppointmentPage';
+import BookConfirmedPage  from '../pages/patient/BookConfirmedPage';
 import MyAppointmentsPage from '../pages/patient/MyAppointmentsPage';
 import MedicalRecordsPage from '../pages/patient/MedicalRecordsPage';
-import ShareViewerPage from '../pages/public/ShareViewerPage';
+import LabDashboardPage   from '../pages/lab/LabDashboardPage';
+import ShareViewerPage    from '../pages/public/ShareViewerPage';
 
 function Protected({ children, role }) {
   const { user } = useAuthStore();
@@ -31,24 +36,32 @@ export default function AppRouter() {
         <Route path="/register" element={user ? <Navigate to="/" /> : <RegisterPage />} />
 
         {/* Doctor routes */}
-        <Route path="/dashboard"    element={<Protected role="doctor"><DashboardPage /></Protected>} />
-        <Route path="/appointments" element={<Protected role="doctor"><AppointmentsPage /></Protected>} />
-        <Route path="/patients"     element={<Protected role="doctor"><PatientRecordsPage /></Protected>} />
+        <Route path="/dashboard"     element={<Protected role="doctor"><DashboardPage /></Protected>} />
+        <Route path="/appointments"  element={<Protected role="doctor"><AppointmentsPage /></Protected>} />
+        <Route path="/patients"      element={<Protected role="doctor"><PatientRecordsPage /></Protected>} />
         <Route path="/prescriptions" element={<Protected role="doctor"><PrescriptionsPage /></Protected>} />
-        <Route path="/lab-results"  element={<Protected role="doctor"><LabResultsPage /></Protected>} />
+        <Route path="/lab-results"   element={<Protected role="doctor"><LabResultsPage /></Protected>} />
+        <Route path="/settings"      element={<Protected role="doctor"><DoctorSettingsPage /></Protected>} />
 
         {/* Patient routes */}
         <Route path="/find-doctor"     element={<Protected role="patient"><FindDoctorPage /></Protected>} />
+        <Route path="/doctor/:id"      element={<Protected role="patient"><DoctorProfilePage /></Protected>} />
+        <Route path="/book/:doctorId"  element={<Protected role="patient"><BookAppointmentPage /></Protected>} />
+        <Route path="/book/confirmed"  element={<Protected role="patient"><BookConfirmedPage /></Protected>} />
         <Route path="/my-appointments" element={<Protected role="patient"><MyAppointmentsPage /></Protected>} />
         <Route path="/records"         element={<Protected role="patient"><MedicalRecordsPage /></Protected>} />
 
-        {/* Public share viewer */}
+        {/* Lab routes */}
+        <Route path="/lab" element={<Protected role="laboratory"><LabDashboardPage /></Protected>} />
+
+        {/* Public */}
         <Route path="/s/:token" element={<ShareViewerPage />} />
 
         {/* Root redirect */}
         <Route path="/" element={
           !user ? <Navigate to="/login" /> :
           user.role === 'doctor' ? <Navigate to="/dashboard" /> :
+          user.role === 'laboratory' ? <Navigate to="/lab" /> :
           <Navigate to="/find-doctor" />
         } />
         <Route path="*" element={<Navigate to="/" />} />

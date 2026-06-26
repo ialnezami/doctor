@@ -2,6 +2,7 @@ const router       = require('express').Router();
 const auth         = require('../middleware/auth');
 const requireRole  = require('../middleware/rbac');
 const Appointment  = require('../models/Appointment');
+const Doctor       = require('../models/Doctor');
 const Notification = require('../models/Notification');
 const User         = require('../models/User');
 const { sendPush } = require('../utils/push');
@@ -40,6 +41,10 @@ router.post('/', auth, requireRole('patient'), async (req, res, next) => {
       return res.status(409).json({ message: 'This slot is already booked' });
     }
 
+    // Auto-accept if doctor has autoAcceptAppointments enabled
+    const doctorProfile = await Doctor.findOne({ userId: doctorId }).select('autoAcceptAppointments');
+    const status = doctorProfile?.autoAcceptAppointments ? 'confirmed' : 'pending';
+
     const appt = await Appointment.create({
       doctorId,
       patientId: req.user.id,
@@ -47,6 +52,7 @@ router.post('/', auth, requireRole('patient'), async (req, res, next) => {
       timeSlot,
       visitType,
       reason,
+      status,
     });
 
     res.status(201).json(appt);
@@ -93,16 +99,15 @@ router.get('/:id', auth, async (req, res, next) => {
   }
 });
 
-// PATCH /api/appointments/:id/status
-// Doctor: confirmed, cancelled, completed
-// Patient: cancelled only
+// PATCH /api/appointments/:id/status — generic status update (legacy)
+// Doctor: confirmed, cancelled, completed; Patient: cancelled only
 router.patch('/:id/status', auth, async (req, res, next) => {
   try {
     const { status, notes } = req.body;
     const appt = await Appointment.findById(req.params.id);
     if (!appt) return res.status(404).json({ message: 'Not found' });
 
-    const isDoctor = req.user.role === 'doctor' && appt.doctorId.toString() === req.user.id;
+    const isDoctor  = req.user.role === 'doctor'  && appt.doctorId.toString()  === req.user.id;
     const isPatient = req.user.role === 'patient' && appt.patientId.toString() === req.user.id;
 
     if (!isDoctor && !isPatient) return res.status(403).json({ message: 'Forbidden' });
@@ -112,6 +117,19 @@ router.patch('/:id/status', auth, async (req, res, next) => {
     if (notes) appt.notes = notes;
     await appt.save();
     res.json(appt);
+
+    // Fire-and-forget FCM to the other party
+    const otherPartyId = req.user.role === 'doctor' ? appt.patientId : appt.doctorId;
+    const otherUser = await User.findById(otherPartyId).select('fcmToken');
+    const FCM_MESSAGES = {
+      confirmed: { title: 'Appointment Confirmed ✅', body: 'Your appointment has been confirmed.' },
+      cancelled: { title: 'Appointment Cancelled',   body: 'An appointment has been cancelled.' },
+      completed: { title: 'Appointment Completed',   body: 'Your appointment is marked complete.' },
+    };
+    const msg = FCM_MESSAGES[appt.status];
+    if (msg && otherUser?.fcmToken) {
+      sendPush(otherUser.fcmToken, msg.title, msg.body, { appointmentId: appt._id.toString() });
+    }
   } catch (err) {
     next(err);
   }

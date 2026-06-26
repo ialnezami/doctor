@@ -2,6 +2,73 @@ const router = require('express').Router();
 const auth = require('../middleware/auth');
 const requireRole = require('../middleware/rbac');
 const Patient = require('../models/Patient');
+const upload = require('../middleware/upload');
+const { uploadBuffer } = require('../utils/cloudinary');
+const { body, validationResult } = require('express-validator');
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(422).json({ errors: errors.array() });
+  next();
+};
+const BLOOD_TYPES = ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
+
+// GET /api/patients/me
+router.get('/me', auth, requireRole('patient'), async (req, res, next) => {
+  try {
+    const patient = await Patient.findOne({ userId: req.user.id });
+    if (!patient) return res.status(404).json({ message: 'Profile not found' });
+    res.json(patient);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PATCH /api/patients/me/location
+router.patch('/me/location', auth, requireRole('patient'), async (req, res, next) => {
+  try {
+    const { city, lat, lng } = req.body;
+    if (!city) return res.status(422).json({ message: 'city is required' });
+    const update = { city };
+    if (lat != null && lng != null) {
+      update.homeLocation = { type: 'Point', coordinates: [parseFloat(lng), parseFloat(lat)] };
+    }
+    const patient = await Patient.findOneAndUpdate(
+      { userId: req.user.id },
+      { $set: update },
+      { new: true }
+    );
+    res.json(patient);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PATCH /api/patients/me/profile — update medical profile fields
+router.patch('/me/profile', auth, requireRole('patient'), [
+  body('bloodType').optional().isIn(BLOOD_TYPES).withMessage('invalid bloodType'),
+  body('dateOfBirth').optional().isISO8601().withMessage('dateOfBirth must be ISO8601'),
+  body('allergies').optional().isArray().withMessage('allergies must be an array'),
+  body('allergies.*').optional().isString().trim(),
+  body('conditions').optional().isArray().withMessage('conditions must be an array'),
+  body('conditions.*').optional().isString().trim(),
+], validate, async (req, res, next) => {
+  try {
+    const { bloodType, dateOfBirth, allergies, conditions } = req.body;
+    const update = {};
+    if (bloodType !== undefined)   update.bloodType   = bloodType;
+    if (dateOfBirth !== undefined) update.dateOfBirth = new Date(dateOfBirth);
+    if (allergies !== undefined)   update.allergies   = allergies;
+    if (conditions !== undefined)  update.conditions  = conditions;
+
+    const patient = await Patient.findOneAndUpdate(
+      { userId: req.user.id },
+      { $set: update },
+      { new: true }
+    );
+    if (!patient) return res.status(404).json({ message: 'Profile not found' });
+    res.json(patient);
+  } catch (err) { next(err); }
+});
 
 // GET /api/patients/:id — doctor or own patient
 router.get('/:id', auth, async (req, res, next) => {
@@ -27,6 +94,21 @@ router.get('/:id/notes', auth, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+// PATCH /api/patients/me/photo
+router.patch('/me/photo', auth, requireRole('patient'), upload.single('photo'), async (req, res, next) => {
+  try {
+    if (!req.file) return res.status(422).json({ message: 'photo file required' });
+    const photoUrl = await uploadBuffer(req.file.buffer, 'mediconnect/patients');
+    const patient = await Patient.findOneAndUpdate(
+      { userId: req.user.id },
+      { $set: { photoUrl } },
+      { new: true }
+    );
+    if (!patient) return res.status(404).json({ message: 'Patient profile not found' });
+    res.json({ photoUrl });
+  } catch (err) { next(err); }
 });
 
 // POST /api/patients/:id/notes — doctors only

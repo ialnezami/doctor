@@ -1,3 +1,10 @@
 import client from './client';
 export const login = (d) => client.post('/auth/login', d);
 export const register = (d) => client.post('/auth/register', d);
+export const getMe = () => client.get('/auth/me');
+export const updateMe = (d) => client.patch('/auth/me', d);
+export const changePassword = (d) => client.patch('/auth/change-password', d);
+export async function googleSignIn(idToken) {
+  const { data } = await client.post('/auth/google', { idToken });
+  return data; // { token, user }
+}

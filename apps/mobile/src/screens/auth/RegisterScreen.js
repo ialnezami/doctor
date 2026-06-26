@@ -3,13 +3,15 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 
 import C from '../../constants/colors';
 import { register } from '../../api/auth';
 import useAuthStore from '../../store/authStore';
+import useGoogleSignIn from '../../hooks/useGoogleSignIn';
 
 export default function RegisterScreen({ navigation }) {
   const setAuth = useAuthStore(s => s.login);
-  const [form, setForm] = useState({ name:'', email:'', password:'', role:'patient', specialty:'' });
+  const [form, setForm] = useState({ name:'', email:'', password:'', role:'patient', specialty:'', labName:'' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+  const { signIn: googleSignIn, loading: googleLoading, error: googleError } = useGoogleSignIn();
 
   const submit = async () => {
     setLoading(true); setError('');
@@ -22,9 +24,9 @@ export default function RegisterScreen({ navigation }) {
     <ScrollView contentContainerStyle={s.container}>
       <Text style={s.title}>Create account</Text>
       <View style={s.toggle}>
-        {['patient','doctor'].map(r => (
+        {[['patient','🧑 Patient'],['doctor','👨‍⚕️ Doctor'],['laboratory','🧪 Lab']].map(([r, label]) => (
           <TouchableOpacity key={r} style={[s.tBtn, form.role===r && s.tActive]} onPress={() => set('role', r)}>
-            <Text style={[s.tLabel, form.role===r && s.tLabelActive]}>{r === 'patient' ? '🧑 Patient' : '👨‍⚕️ Doctor'}</Text>
+            <Text style={[s.tLabel, form.role===r && s.tLabelActive]}>{label}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -40,6 +42,13 @@ export default function RegisterScreen({ navigation }) {
           <TextInput style={s.input} value={form.specialty} onChangeText={v => set('specialty',v)} placeholder="e.g. Cardiology" placeholderTextColor={C.text3} />
         </View>
       )}
+      {form.role === 'laboratory' && (
+        <View style={{ width:'100%', marginBottom:14 }}>
+          <Text style={s.label}>Lab Name</Text>
+          <TextInput style={s.input} value={form.labName} onChangeText={v => set('labName',v)}
+            placeholder="e.g. City Diagnostics Lab" placeholderTextColor={C.text3} />
+        </View>
+      )}
       {!!error && <Text style={{ color:C.rose, fontSize:13, marginBottom:10 }}>{error}</Text>}
       <TouchableOpacity style={s.btn} onPress={submit} disabled={loading}>
         <Text style={s.btnText}>{loading ? 'Creating…' : 'Create account'}</Text>
@@ -47,6 +56,27 @@ export default function RegisterScreen({ navigation }) {
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
         <Text style={{ fontSize:13, color:C.text2, marginTop:20 }}>Have an account? <Text style={{ color:C.mint }}>Sign in</Text></Text>
       </TouchableOpacity>
+
+      {/* divider */}
+      <View style={{ flexDirection:'row', alignItems:'center', marginTop:24, marginBottom:12, width:'100%' }}>
+        <View style={{ flex:1, height:1, backgroundColor:C.border2 }} />
+        <Text style={{ color:C.text3, fontSize:12, marginHorizontal:10 }}>or</Text>
+        <View style={{ flex:1, height:1, backgroundColor:C.border2 }} />
+      </View>
+
+      <TouchableOpacity
+        style={[s.btn, { backgroundColor:'#fff', borderWidth:1, borderColor:C.border2 }]}
+        onPress={googleSignIn}
+        disabled={googleLoading}
+      >
+        <Text style={{ fontSize:15, fontWeight:'700', color:'#333' }}>
+          {googleLoading ? 'Creating account…' : 'G  Sign up with Google'}
+        </Text>
+      </TouchableOpacity>
+      <Text style={{ color:C.text3, fontSize:11, marginTop:8, textAlign:'center' }}>
+        Google sign-up creates a patient account
+      </Text>
+      {!!googleError && <Text style={{ color:C.rose, fontSize:13, marginTop:6 }}>{googleError}</Text>}
     </ScrollView>
   );
 }

@@ -2,10 +2,25 @@
   "expo": {
     "name": "MediConnect",
     "slug": "mediconnect",
+    "scheme": "mediconnect",
     "version": "1.0.0",
     "orientation": "portrait",
-    "splash": { "backgroundColor": "#060d18" },
-    "ios": { "supportsTablet": false, "bundleIdentifier": "io.mediconnect.app" },
-    "android": { "adaptiveIcon": { "backgroundColor": "#060d18" }, "package": "io.mediconnect.app" }
+    "splash": {
+      "backgroundColor": "#060d18"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "io.mediconnect.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#060d18"
+      },
+      "package": "io.mediconnect.app"
+    },
+    "newArchEnabled": false,
+    "plugins": [
+      "expo-web-browser"
+    ]
   }
 }

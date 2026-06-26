@@ -2,10 +2,16 @@ const router = require('express').Router();
 const auth = require('../middleware/auth');
 const requireRole = require('../middleware/rbac');
 const LabResult = require('../models/LabResult');
+const Lab = require('../models/Lab');
 
-// L-02: create lab result (doctor only)
-router.post('/', auth, requireRole('doctor'), async (req, res, next) => {
+// L-02: create lab result (doctor or approved laboratory)
+router.post('/', auth, requireRole('doctor', 'laboratory'), async (req, res, next) => {
   try {
+    if (req.user.role === 'laboratory') {
+      const lab = await Lab.findOne({ userId: req.user.id });
+      if (!lab?.isApproved) return res.status(403).json({ message: 'Lab account pending approval' });
+    }
+
     const { patientId, appointmentId, labName, tests, reportFile, status, issuedAt } = req.body;
     const result = await LabResult.create({
       patientId,
@@ -46,6 +52,16 @@ router.get('/search', auth, async (req, res, next) => {
       .limit(50)
       .populate('patientId', 'name email')
       .populate('doctorId', 'name email');
+    res.json(results);
+  } catch (err) { next(err); }
+});
+
+// GET /api/lab-results/my-uploads — lab sees only their uploads
+router.get('/my-uploads', auth, requireRole('laboratory'), async (req, res, next) => {
+  try {
+    const results = await LabResult.find({ doctorId: req.user.id })
+      .sort({ createdAt: -1 })
+      .populate('patientId', 'name');
     res.json(results);
   } catch (err) { next(err); }
 });

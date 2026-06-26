@@ -1,0 +1,19 @@
+{
+  "common": { "or": "ou", "years": "ans", "recorded": "enregistrées", "noData": "Aucune donnée" },
+  "auth": {
+    "appName": "MediConnect", "appTagline": "La santé réinventée", "appDesc": "Connectez médecins et patients facilement.",
+    "email": "E-mail", "password": "Mot de passe",
+    "login": { "title": "Bon retour", "subtitle": "Connectez-vous à votre compte", "submit": "Se connecter →", "submitting": "Connexion…", "noAccount": "Pas de compte ?", "createOne": "Créez-en un gratuitement", "invalidCredentials": "Identifiants invalides" },
+    "register": { "title": "Créer un compte", "subtitle": "Rejoignez MediConnect", "name": "Nom complet", "role": "Je suis", "rolePatient": "Patient", "roleDoctor": "Médecin", "submit": "Créer le compte", "submitting": "Création…", "haveAccount": "Déjà un compte ?", "signIn": "Se connecter" }
+  },
+  "nav": { "findDoctor": "Trouver médecin", "appointments": "Rendez-vous", "records": "Dossiers médicaux", "labResults": "Résultats labo", "dashboard": "Tableau de bord", "logout": "Se déconnecter" },
+  "records": {
+    "title": "Dossiers médicaux", "subtitle": "Votre historique de santé complet",
+    "tabs": { "prescriptions": "Ordonnances", "labs": "Résultats labo", "profile": "Profil de santé" },
+    "healthProfile": "Profil de santé", "age": "Âge", "bloodType": "Groupe sanguin", "allergies": "Allergies",
+    "conditionsAllergies": "Maladies & Allergies", "noProfileData": "Aucune donnée de santé. Mettez à jour votre profil.",
+    "allergy": "allergie", "noPrescriptions": "Aucune ordonnance.", "noLabResults": "Aucun résultat.",
+    "prescriptions": "Ordonnances", "tests": "analyse", "tests_plural": "analyses"
+  },
+  "language": { "label": "Langue", "ar": "العربية", "en": "English", "fr": "Français" }
+}
