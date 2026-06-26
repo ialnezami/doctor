@@ -8,6 +8,7 @@ import DashboardScreen         from '../screens/doctor/DashboardScreen';
 import AppointmentsScreen      from '../screens/doctor/AppointmentsScreen';
 import AppointmentDetailScreen from '../screens/doctor/AppointmentDetailScreen';
 import NoteEditorScreen        from '../screens/doctor/NoteEditorScreen';
+import ReviewsScreen           from '../screens/doctor/ReviewsScreen';
 import DoctorLabResultsScreen  from '../screens/doctor/LabResultsScreen';
 import SettingsScreen          from '../screens/doctor/SettingsScreen';
 import NotificationsScreen     from '../screens/shared/NotificationsScreen';
@@ -38,6 +39,7 @@ export default function DoctorTabs() {
       <Stack.Screen name="DoctorHome"        component={DoctorBottomTabs} />
       <Stack.Screen name="AppointmentDetail" component={AppointmentDetailScreen} />
       <Stack.Screen name="NoteEditor"        component={NoteEditorScreen} />
+      <Stack.Screen name="Reviews"           component={ReviewsScreen} />
     </Stack.Navigator>
   );
 }
