@@ -11,6 +11,7 @@ import MedicalRecordsScreen      from '../screens/patient/MedicalRecordsScreen';
 import LabResultsScreen          from '../screens/patient/LabResultsScreen';
 import ProfileScreen             from '../screens/patient/ProfileScreen';
 import ConsultationSummaryScreen from '../screens/patient/ConsultationSummaryScreen';
+import WriteReviewScreen         from '../screens/patient/WriteReviewScreen';
 import NotificationsScreen       from '../screens/shared/NotificationsScreen';
 
 const Tab   = createBottomTabNavigator();
@@ -39,6 +40,7 @@ export default function PatientTabs() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="PatientHome"         component={PatientBottomTabs} />
       <Stack.Screen name="ConsultationSummary" component={ConsultationSummaryScreen} />
+      <Stack.Screen name="WriteReview"         component={WriteReviewScreen} />
     </Stack.Navigator>
   );
 }
