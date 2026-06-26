@@ -3,8 +3,11 @@ const requireRole = require('../middleware/rbac');
 const User = require('../models/User');
 const Doctor = require('../models/Doctor');
 const Appointment = require('../models/Appointment');
+const Review = require('../models/Review');
 const upload = require('../middleware/upload');
 const { uploadBuffer } = require('../utils/cloudinary');
+
+const PAGE_SIZE = 20;
 
 function generateSlots(startTime, endTime) {
   const slots = [];
@@ -113,6 +116,35 @@ router.get('/:id/available-slots', auth, async (req, res, next) => {
 
     const result = allSlots.map(time => ({ time, available: !bookedTimes.has(time) }));
     res.json(result);
+  } catch (err) { next(err); }
+});
+
+// GET /api/doctors/:id/reviews — public, paginated
+router.get('/:id/reviews', async (req, res, next) => {
+  try {
+    const mongoose = require('mongoose');
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid doctor id' });
+    }
+    const doctor = await Doctor.findOne({ userId: req.params.id }).select('averageRating reviewCount');
+    if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
+
+    const page  = Math.max(1, parseInt(req.query.page) || 1);
+    const skip  = (page - 1) * PAGE_SIZE;
+    const total = await Review.countDocuments({ doctorId: req.params.id });
+    const reviews = await Review.find({ doctorId: req.params.id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(PAGE_SIZE)
+      .populate('patientId', 'name');
+
+    res.json({
+      reviews,
+      averageRating: doctor.averageRating,
+      reviewCount:   doctor.reviewCount,
+      page,
+      totalPages:    Math.ceil(total / PAGE_SIZE) || 1,
+    });
   } catch (err) { next(err); }
 });
 
