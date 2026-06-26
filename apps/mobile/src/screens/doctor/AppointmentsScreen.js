@@ -6,9 +6,9 @@ import { getAppointments, updateStatus } from '../../api/appointments';
 
 const STATUS_COLOR = { confirmed: C.mint, pending: C.amber, cancelled: C.rose, completed: C.blue };
 
-export default function AppointmentsScreen() {
+export default function AppointmentsScreen({ navigation }) {
   const [appts, setAppts] = useState([]);
-  const load = () => getAppointments().then(setAppts).catch(() => {});
+  const load = () => getAppointments().then(r => setAppts(Array.isArray(r) ? r : r.data || [])).catch(() => {});
   useEffect(() => { load(); }, []);
 
   const handle = async (id, status) => { await updateStatus(id, status); load(); };
@@ -43,16 +43,16 @@ export default function AppointmentsScreen() {
           </View>
         ) : null}
         renderItem={({ item:a }) => (
-          <View style={s.card}>
+          <TouchableOpacity style={s.card} onPress={() => navigation?.navigate('AppointmentDetail', { appointmentId: a._id })}>
             <Text style={[s.time, { color: STATUS_COLOR[a.status] || C.mint }]}>{a.timeSlot?.start}</Text>
             <View style={{ flex:1 }}>
               <Text style={s.patName}>{a.patientId?.name}</Text>
               <Text style={s.meta}>{new Date(a.date).toLocaleDateString()} · {a.visitType}</Text>
             </View>
-            <View style={[s.chip, { backgroundColor: STATUS_COLOR[a.status] + '22' }]}>
-              <Text style={{ fontSize:10, fontWeight:'700', color: STATUS_COLOR[a.status] }}>{a.status}</Text>
+            <View style={[s.chip, { backgroundColor: (STATUS_COLOR[a.status] || C.mint) + '22' }]}>
+              <Text style={{ fontSize:10, fontWeight:'700', color: STATUS_COLOR[a.status] || C.mint }}>{a.status}</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         )}
       />
     </SafeAreaView>

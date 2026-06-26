@@ -1,7 +1,27 @@
-const router = require('express').Router();
-const auth = require('../middleware/auth');
-const requireRole = require('../middleware/rbac');
-const Appointment = require('../models/Appointment');
+const router       = require('express').Router();
+const auth         = require('../middleware/auth');
+const requireRole  = require('../middleware/rbac');
+const Appointment  = require('../models/Appointment');
+const Notification = require('../models/Notification');
+const User         = require('../models/User');
+const { sendPush } = require('../utils/push');
+
+async function notifyUser(recipientId, type, payload) {
+  const notif = await Notification.create({ recipientId, type, payload });
+  const user  = await User.findById(recipientId).select('fcmToken');
+  if (user?.fcmToken) {
+    const titles = {
+      appointment_requested:  'New appointment request',
+      appointment_confirmed:  'Appointment confirmed',
+      consultation_validated: 'Consultation summary ready',
+      notes_viewed:           'Doctor reviewed your consultation',
+    };
+    await sendPush(user.fcmToken, titles[type], payload.message || '', {
+      appointmentId: String(payload.appointmentId),
+    });
+  }
+  return notif;
+}
 
 // POST /api/appointments — patient books
 router.post('/', auth, requireRole('patient'), async (req, res, next) => {
@@ -95,6 +115,67 @@ router.patch('/:id/status', auth, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+// PATCH /api/appointments/:id/confirm — doctor confirms a pending appointment
+router.patch('/:id/confirm', auth, requireRole('doctor'), async (req, res, next) => {
+  try {
+    const appt = await Appointment.findOne({ _id: req.params.id, doctorId: req.user.id });
+    if (!appt) return res.status(404).json({ message: 'Not found' });
+    if (appt.status !== 'pending') return res.status(409).json({ message: 'Can only confirm pending appointments' });
+
+    appt.status = 'confirmed';
+    await appt.save();
+
+    await notifyUser(appt.patientId, 'appointment_confirmed', {
+      appointmentId: appt._id,
+      message: 'Your appointment has been confirmed',
+    });
+
+    res.json(appt);
+  } catch (err) { next(err); }
+});
+
+// PATCH /api/appointments/:id/validate — doctor validates, compiles shared notes, notifies patient
+router.patch('/:id/validate', auth, requireRole('doctor'), async (req, res, next) => {
+  try {
+    const appt = await Appointment.findOneAndUpdate(
+      { _id: req.params.id, doctorId: req.user.id, status: { $ne: 'validated' } },
+      { status: 'validated' },
+      { new: true }
+    );
+    if (!appt) return res.status(404).json({ message: 'Not found or already validated' });
+
+    const ConsultationNote = require('../models/ConsultationNote');
+    const sharedNotes = await ConsultationNote.find({ appointmentId: appt._id, visibility: 'shared' }).sort({ createdAt: 1 });
+    const summary = sharedNotes.map(n => n.content);
+
+    await notifyUser(appt.patientId, 'consultation_validated', {
+      appointmentId: appt._id,
+      message: 'Your consultation summary is ready',
+      summary,
+    });
+
+    res.json({ appointment: appt, summary });
+  } catch (err) { next(err); }
+});
+
+// PATCH /api/appointments/:id/cancel — patient or doctor cancels
+router.patch('/:id/cancel', auth, async (req, res, next) => {
+  try {
+    const appt = await Appointment.findById(req.params.id);
+    if (!appt) return res.status(404).json({ message: 'Not found' });
+
+    const isParty =
+      appt.patientId.toString() === req.user.id ||
+      appt.doctorId.toString() === req.user.id;
+    if (!isParty) return res.status(403).json({ message: 'Forbidden' });
+    if (appt.status === 'validated') return res.status(409).json({ message: 'Cannot cancel a validated appointment' });
+
+    appt.status = 'cancelled';
+    await appt.save();
+    res.json(appt);
+  } catch (err) { next(err); }
 });
 
 module.exports = router;
