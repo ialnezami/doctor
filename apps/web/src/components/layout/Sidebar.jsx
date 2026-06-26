@@ -8,6 +8,7 @@ const doctorNav = [
   { label: 'Prescriptions',   path: '/prescriptions' },
   { label: 'Lab Results',     path: '/lab-results' },
   { label: 'Settings',        path: '/settings' },
+  { label: 'My Reviews ⭐',   path: '/reviews' },
 ];
 
 const patientNav = [
