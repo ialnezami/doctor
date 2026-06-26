@@ -93,12 +93,12 @@ Target: real-time features, richer doctor-patient communication, reviews.
 - [ ] Session recording (optional, consent required)
 - [ ] Waiting room UI with estimated wait time
 
-### 2.3 Doctor Reviews & Ratings
-- [ ] Patient submits rating (1–5) + text review after validated appointment
-- [ ] One review per appointment (enforced server-side)
-- [ ] Doctor aggregate rating stored on Doctor model
-- [ ] Doctor can flag abusive reviews for moderation
-- [ ] Reviews visible on doctor's public profile
+### 2.3 Doctor Reviews & Ratings ✅
+- [x] Patient submits rating (1–5) + text review after validated appointment
+- [x] One review per appointment (enforced server-side)
+- [x] Doctor aggregate rating stored on Doctor model
+- [x] Doctor can flag abusive reviews for moderation
+- [x] Reviews visible on doctor's public profile
 
 ### 2.4 Appointment Reminders
 - [ ] Scheduled FCM push 24h before appointment
