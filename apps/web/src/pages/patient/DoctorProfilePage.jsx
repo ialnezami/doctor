@@ -1,41 +1,48 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getDoctor, getAvailableSlots } from '../../api/doctors';
+import { getDoctorReviews } from '../../api/reviews';
 import Button from '../../components/ui/Button';
 
-function dateLabel(d) {
-  return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
-}
-function toISO(d) {
-  return d.toISOString().slice(0,10);
+function dateLabel(d) { return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }); }
+function toISO(d) { return d.toISOString().slice(0,10); }
+
+function Stars({ rating, size = 16 }) {
+  const full = Math.round(rating);
+  return (
+    <span style={{ fontSize: size, letterSpacing: 2 }}>
+      {[1,2,3,4,5].map(n => (
+        <span key={n} style={{ color: n <= full ? 'var(--amber)' : 'var(--border2)' }}>★</span>
+      ))}
+    </span>
+  );
 }
 
 export default function DoctorProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [doctor, setDoctor] = useState(null);
+  const [doctor, setDoctor]             = useState(null);
   const [selectedDate, setSelectedDate] = useState(toISO(new Date()));
-  const [slots, setSlots] = useState([]);
+  const [slots, setSlots]               = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
+  const [reviewData, setReviewData]     = useState({ reviews: [], averageRating: 0, reviewCount: 0 });
 
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() + i); return d;
   });
 
   useEffect(() => { getDoctor(id).then(setDoctor).catch(() => {}); }, [id]);
-
+  useEffect(() => { getDoctorReviews(id, 1).then(setReviewData).catch(() => {}); }, [id]);
   useEffect(() => {
     setSlotsLoading(true);
-    getAvailableSlots(id, selectedDate)
-      .then(setSlots)
-      .catch(() => setSlots([]))
-      .finally(() => setSlotsLoading(false));
+    getAvailableSlots(id, selectedDate).then(setSlots).catch(() => setSlots([])).finally(() => setSlotsLoading(false));
   }, [id, selectedDate]);
 
   if (!doctor) return <div style={{ padding:40, color:'var(--text2)' }}>Loading…</div>;
 
   const user = doctor.userId || {};
   const name = user.name || 'Doctor';
+  const { reviews, averageRating, reviewCount } = reviewData;
 
   return (
     <div style={{ padding:26, maxWidth:680 }}>
@@ -53,6 +60,13 @@ export default function DoctorProfilePage() {
               {doctor.yearsOfExperience > 0 && <span>{doctor.yearsOfExperience} years experience</span>}
               {doctor.clinicAddress && <span>📍 {doctor.clinicAddress}</span>}
             </div>
+            {reviewCount > 0 && (
+              <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:10 }}>
+                <Stars rating={averageRating} />
+                <span style={{ fontSize:15, fontWeight:700, color:'var(--amber)' }}>{averageRating}</span>
+                <span style={{ fontSize:12, color:'var(--text3)' }}>({reviewCount} reviews)</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -60,8 +74,7 @@ export default function DoctorProfilePage() {
       <div style={{ fontSize:13, fontWeight:600, marginBottom:10 }}>Pick a date</div>
       <div style={{ display:'flex', gap:8, marginBottom:20, overflowX:'auto', paddingBottom:4 }}>
         {days.map(d => {
-          const iso = toISO(d);
-          const active = iso === selectedDate;
+          const iso = toISO(d); const active = iso === selectedDate;
           return (
             <button key={iso} onClick={() => setSelectedDate(iso)}
               style={{ flexShrink:0, padding:'8px 14px', borderRadius:'var(--r-sm)', border:`1px solid ${active ? 'var(--mint)' : 'var(--border2)'}`, background: active ? 'var(--mint-dim)' : 'var(--bg2)', color: active ? 'var(--mint)' : 'var(--text2)', fontSize:12, cursor:'pointer', whiteSpace:'nowrap' }}>
@@ -74,7 +87,7 @@ export default function DoctorProfilePage() {
       <div style={{ fontSize:13, fontWeight:600, marginBottom:10 }}>Available times</div>
       {slotsLoading && <p style={{ fontSize:12, color:'var(--text3)' }}>Loading slots…</p>}
       {!slotsLoading && slots.length === 0 && <p style={{ fontSize:12, color:'var(--text3)' }}>No availability on this day.</p>}
-      <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+      <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:28 }}>
         {slots.map(s => (
           <button key={s.time} disabled={!s.available}
             onClick={() => navigate(`/book/${id}?date=${selectedDate}&slot=${s.time}`)}
@@ -83,6 +96,30 @@ export default function DoctorProfilePage() {
           </button>
         ))}
       </div>
+
+      {reviews.length > 0 && (
+        <div>
+          <div style={{ fontSize:13, fontWeight:600, marginBottom:14 }}>Reviews</div>
+          {reviews.slice(0,5).map(r => {
+            const pname = r.patientId?.name || 'Patient';
+            const initials = pname.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('');
+            const display = `${pname.split(' ')[0]} ${pname.split(' ')[1]?.[0] || ''}.`;
+            return (
+              <div key={r._id} style={{ display:'flex', gap:12, padding:'12px 14px', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r-sm)', marginBottom:8 }}>
+                <div style={{ width:36, height:36, borderRadius:'50%', background:'var(--mint-dim)', display:'grid', placeItems:'center', fontSize:12, fontWeight:700, color:'var(--mint)', flexShrink:0 }}>{initials}</div>
+                <div style={{ flex:1 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
+                    <span style={{ fontSize:13, fontWeight:500 }}>{display}</span>
+                    <Stars rating={r.rating} />
+                    <span style={{ fontSize:11, color:'var(--text3)', marginLeft:'auto' }}>{new Date(r.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  {r.comment && <div style={{ fontSize:13, color:'var(--text2)', lineHeight:1.5 }}>{r.comment}</div>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
