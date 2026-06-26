@@ -76,6 +76,28 @@
   "appointments": {
     "title": "My Appointments"
   },
+  "reviews": {
+    "title": "Reviews",
+    "writeReview": "Write a Review",
+    "leaveReview": "Leave a review",
+    "rating": "Rating",
+    "comment": "Comment (optional)",
+    "commentPlaceholder": "Share your experience…",
+    "submit": "Submit Review",
+    "submitting": "Submitting…",
+    "successTitle": "Review Submitted",
+    "successMsg": "Thank you for your feedback.",
+    "noReviews": "No reviews yet.",
+    "averageRating": "Average rating",
+    "reviewCount_one": "{{count}} review",
+    "reviewCount_other": "{{count}} reviews",
+    "flag": "Report",
+    "flagReason": "Reason (optional)",
+    "flagConfirm": "Report this review?",
+    "flagSuccess": "Review reported.",
+    "windowClosed": "Review window has closed (7 days).",
+    "alreadyReviewed": "You already reviewed this appointment."
+  },
   "profile": {
     "title": "Profile",
     "language": "Language",

@@ -76,6 +76,28 @@
   "appointments": {
     "title": "Mes rendez-vous"
   },
+  "reviews": {
+    "title": "Avis",
+    "writeReview": "Laisser un avis",
+    "leaveReview": "Laisser un avis",
+    "rating": "Note",
+    "comment": "Commentaire (optionnel)",
+    "commentPlaceholder": "Partagez votre expérience…",
+    "submit": "Soumettre l'avis",
+    "submitting": "Envoi…",
+    "successTitle": "Avis soumis",
+    "successMsg": "Merci pour votre retour.",
+    "noReviews": "Aucun avis pour l'instant.",
+    "averageRating": "Note moyenne",
+    "reviewCount_one": "{{count}} avis",
+    "reviewCount_other": "{{count}} avis",
+    "flag": "Signaler",
+    "flagReason": "Motif (optionnel)",
+    "flagConfirm": "Signaler cet avis ?",
+    "flagSuccess": "Avis signalé.",
+    "windowClosed": "La fenêtre de 7 jours est expirée.",
+    "alreadyReviewed": "Vous avez déjà noté ce rendez-vous."
+  },
   "profile": {
     "title": "Profil",
     "language": "Langue",

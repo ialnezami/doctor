@@ -76,6 +76,28 @@
   "appointments": {
     "title": "مواعيدي"
   },
+  "reviews": {
+    "title": "التقييمات",
+    "writeReview": "اكتب تقييماً",
+    "leaveReview": "اترك تقييماً",
+    "rating": "التقييم",
+    "comment": "تعليق (اختياري)",
+    "commentPlaceholder": "شاركنا تجربتك…",
+    "submit": "إرسال التقييم",
+    "submitting": "جارٍ الإرسال…",
+    "successTitle": "تم إرسال التقييم",
+    "successMsg": "شكراً على ملاحظاتك.",
+    "noReviews": "لا توجد تقييمات بعد.",
+    "averageRating": "متوسط التقييم",
+    "reviewCount_one": "تقييم واحد",
+    "reviewCount_other": "{{count}} تقييمات",
+    "flag": "الإبلاغ",
+    "flagReason": "السبب (اختياري)",
+    "flagConfirm": "هل تريد الإبلاغ عن هذا التقييم؟",
+    "flagSuccess": "تم الإبلاغ عن التقييم.",
+    "windowClosed": "انتهت مدة التقييم (7 أيام).",
+    "alreadyReviewed": "لقد قيّمت هذا الموعد مسبقاً."
+  },
   "profile": {
     "title": "الملف الشخصي",
     "language": "اللغة",
