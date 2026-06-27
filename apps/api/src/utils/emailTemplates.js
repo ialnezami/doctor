@@ -11,7 +11,7 @@ function esc(s) {
 
 function base(title, body) {
   return `<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1e293b">
-<h2 style="color:#0ea5e9">${title}</h2>
+<h2 style="color:#0ea5e9">${esc(title)}</h2>
 ${body}
 <hr style="margin:24px 0;border:none;border-top:1px solid #e2e8f0"/>
 <p style="font-size:12px;color:#94a3b8">MediConnect &mdash; Your health, connected.</p>
