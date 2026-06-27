@@ -100,11 +100,11 @@ Target: real-time features, richer doctor-patient communication, reviews.
 - [x] Doctor can flag abusive reviews for moderation
 - [x] Reviews visible on doctor's public profile
 
-### 2.4 Appointment Reminders
-- [ ] Scheduled FCM push 24h before appointment
-- [ ] Scheduled push 1h before appointment
-- [ ] Patient can opt out of reminders per appointment
-- [ ] Doctor receives daily digest of upcoming appointments
+### 2.4 Appointment Reminders ✅
+- [x] Scheduled FCM push 24h before appointment
+- [x] Scheduled push 1h before appointment
+- [x] Patient can opt out of reminders per appointment
+- [x] Doctor receives daily digest of upcoming appointments
 
 ### 2.5 Enhanced Notifications
 - [ ] Notification preferences (push / in-app / email per type)
