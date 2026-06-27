@@ -6,11 +6,27 @@ import client from '../../api/client';
 
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
+const TIMEZONES = [
+  { label: 'UTC',                 value: 'UTC' },
+  { label: 'Riyadh (AST +3)',     value: 'Asia/Riyadh' },
+  { label: 'Dubai (GST +4)',      value: 'Asia/Dubai' },
+  { label: 'Kuwait (AST +3)',     value: 'Asia/Kuwait' },
+  { label: 'Cairo (EET +2)',      value: 'Africa/Cairo' },
+  { label: 'London (GMT)',        value: 'Europe/London' },
+  { label: 'Paris (CET +1)',      value: 'Europe/Paris' },
+  { label: 'New York (ET -5)',    value: 'America/New_York' },
+  { label: 'Los Angeles (PT -8)', value: 'America/Los_Angeles' },
+  { label: 'Karachi (PKT +5)',    value: 'Asia/Karachi' },
+  { label: 'Mumbai (IST +5:30)', value: 'Asia/Kolkata' },
+  { label: 'Singapore (SGT +8)', value: 'Asia/Singapore' },
+];
+
 export default function DoctorSettingsPage() {
   const { user } = useAuthStore();
   const [doctorId, setDoctorId] = useState(null);
   const [autoAccept, setAutoAccept] = useState(false);
   const [slots, setSlots] = useState([]);
+  const [timezone, setTimezone] = useState('UTC');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -21,6 +37,7 @@ export default function DoctorSettingsPage() {
         setDoctorId(profile._id);
         setAutoAccept(profile.autoAcceptAppointments || false);
         setSlots(profile.availabilitySlots || []);
+        setTimezone(profile.timezone || 'UTC');
       }
     }).catch(() => {});
   }, [user.id]);
@@ -33,7 +50,7 @@ export default function DoctorSettingsPage() {
     if (!doctorId) return;
     setSaving(true);
     try {
-      await updateDoctorSettings(doctorId, { autoAcceptAppointments: autoAccept, availabilitySlots: slots });
+      await updateDoctorSettings(doctorId, { autoAcceptAppointments: autoAccept, availabilitySlots: slots, timezone });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {}
@@ -55,6 +72,26 @@ export default function DoctorSettingsPage() {
             <span style={{ position:'absolute', top:3, left: autoAccept ? 23 : 3, width:18, height:18, borderRadius:9, background:'#fff', transition:'left .2s', display:'block' }} />
           </button>
         </div>
+      </div>
+
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: 20, marginBottom: 20 }}>
+        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>Daily Digest Timezone</div>
+        <div style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 10 }}>
+          Your morning schedule summary arrives at 7:00 AM in this timezone.
+        </div>
+        <select
+          value={timezone}
+          onChange={e => setTimezone(e.target.value)}
+          style={{
+            width: '100%', padding: '8px 10px', borderRadius: 6,
+            border: '1px solid var(--border)', background: 'var(--bg3)',
+            color: 'var(--text)', fontSize: 13, cursor: 'pointer',
+          }}
+        >
+          {TIMEZONES.map(tz => (
+            <option key={tz.value} value={tz.value}>{tz.label}</option>
+          ))}
+        </select>
       </div>
 
       <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:20, marginBottom:20 }}>

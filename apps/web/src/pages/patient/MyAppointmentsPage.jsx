@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAppointments, updateStatus } from '../../api/appointments';
+import { getAppointments, updateStatus, toggleReminderOptOut } from '../../api/appointments';
 import { submitReview } from '../../api/reviews';
 import { useNavigate } from 'react-router-dom';
 import StatusChip from '../../components/ui/StatusChip';
@@ -117,6 +117,29 @@ export default function MyAppointmentsPage() {
           <button onClick={() => setReviewModal(a)} style={{ display: 'block', width: '100%', padding: '8px 14px', background: 'var(--mint-dim)', border: 'none', borderTop: '1px solid var(--border)', color: 'var(--mint)', fontWeight: 700, fontSize: 12, cursor: 'pointer', textAlign: 'center' }}>
             ⭐ Leave a review
           </button>
+        )}
+        {!isPast && a.status === 'confirmed' && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px', borderTop: '1px solid var(--border)', fontSize: 12, color: 'var(--text2)' }}>
+            <span>Disable reminders</span>
+            <button
+              onClick={async () => {
+                await toggleReminderOptOut(a._id, !a.remindersDisabled);
+                load();
+              }}
+              style={{
+                width: 38, height: 20, borderRadius: 10,
+                background: a.remindersDisabled ? 'var(--rose, #f43f5e)' : 'var(--border2, #334155)',
+                border: 'none', cursor: 'pointer', position: 'relative', transition: 'background .2s'
+              }}
+            >
+              <span style={{
+                position: 'absolute', top: 2,
+                left: a.remindersDisabled ? 20 : 2,
+                width: 16, height: 16, borderRadius: 8,
+                background: '#fff', transition: 'left .2s', display: 'block',
+              }} />
+            </button>
+          </div>
         )}
       </div>
     );
