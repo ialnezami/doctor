@@ -21,7 +21,7 @@ async function dailyFetch(path, options = {}) {
 
 function computeRoomExp(appointmentDate) {
   const d = new Date(appointmentDate);
-  d.setHours(23, 59, 59, 999);
+  d.setUTCHours(23, 59, 59, 999);
   return Math.floor(d.getTime() / 1000);
 }
 
@@ -55,17 +55,22 @@ router.post('/:id/video/token', auth, async (req, res) => {
 
     if (!appt.videoRoomName) {
       const roomName = `appt-${appt._id}`;
-      await dailyFetch('/rooms', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: roomName,
-          privacy: 'private',
-          properties: {
-            exp: computeRoomExp(appt.date),
-            enable_recording: false,
-          },
-        }),
-      });
+      try {
+        await dailyFetch('/rooms', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: roomName,
+            privacy: 'private',
+            properties: {
+              exp: computeRoomExp(appt.date),
+              enable_recording: false,
+            },
+          }),
+        });
+      } catch (err) {
+        if (err.dailyStatus !== 409) throw err;
+        // Room already exists on Daily.co — idempotent, continue
+      }
       appt.videoRoomName = roomName;
       await appt.save();
     }
