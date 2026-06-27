@@ -16,8 +16,13 @@ const notificationSchema = new mongoose.Schema({
   },
   payload: { type: mongoose.Schema.Types.Mixed, default: {} },
   read:    { type: Boolean, default: false },
+  expireAt: {
+    type: Date,
+    default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+  },
 }, { timestamps: true });
 
 notificationSchema.index({ recipientId: 1, createdAt: -1 });
+notificationSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model('Notification', notificationSchema);

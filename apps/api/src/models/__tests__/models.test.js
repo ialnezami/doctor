@@ -24,6 +24,18 @@ describe('Notification model type enum', () => {
   });
 });
 
+describe('Notification model expireAt TTL', () => {
+  it('has expireAt field defaulting to ~30 days from now', () => {
+    const Notification = require('../Notification');
+    const path = Notification.schema.paths.expireAt;
+    expect(path).toBeDefined();
+    const defaultVal = path.defaultValue();
+    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+    expect(defaultVal.getTime()).toBeGreaterThan(Date.now() + thirtyDaysMs - 5000);
+    expect(defaultVal.getTime()).toBeLessThan(Date.now() + thirtyDaysMs + 5000);
+  });
+});
+
 describe('User model notificationPrefs', () => {
   it('has pushEnabled default true', () => {
     const User = require('../User');
