@@ -8,11 +8,19 @@ const User         = require('../models/User');
 const { sendPush } = require('../utils/push');
 const { getReminderQueue }      = require('../queues/reminderQueue');
 const { computeReminderDelays } = require('../utils/reminderDelays');
+const { sendEmail }             = require('../utils/email');
+const { appointmentConfirmedEmail, consultationValidatedEmail } = require('../utils/emailTemplates');
 
-async function notifyUser(recipientId, type, payload) {
+async function notifyUser(recipientId, type, payload, emailData) {
   const notif = await Notification.create({ recipientId, type, payload });
-  const user  = await User.findById(recipientId).select('fcmToken');
-  if (user?.fcmToken) {
+  const user  = await User.findById(recipientId).select('fcmToken email name notificationPrefs');
+  if (!user) return notif;
+
+  const prefs        = user.notificationPrefs || {};
+  const pushEnabled  = prefs.pushEnabled  !== false;
+  const emailEnabled = prefs.emailEnabled !== false;
+
+  if (pushEnabled && user.fcmToken) {
     const titles = {
       appointment_requested:  'New appointment request',
       appointment_confirmed:  'Appointment confirmed',
@@ -23,6 +31,11 @@ async function notifyUser(recipientId, type, payload) {
       appointmentId: String(payload.appointmentId),
     });
   }
+
+  if (emailEnabled && emailData) {
+    await sendEmail(emailData.to, emailData.subject, emailData.html);
+  }
+
   return notif;
 }
 
@@ -189,10 +202,22 @@ router.patch('/:id/confirm', auth, requireRole('doctor'), async (req, res, next)
 
     await scheduleReminders(appt);
 
+    const patientForEmail = await User.findById(appt.patientId).select('email name');
+    const doctorUser      = await User.findById(req.user.id).select('name');
+    const apptDate        = new Date(appt.date).toISOString().split('T')[0];
     await notifyUser(appt.patientId, 'appointment_confirmed', {
       appointmentId: appt._id,
-      message: 'Your appointment has been confirmed',
-    });
+      message: 'Your appointment has been confirmed.',
+    }, patientForEmail?.email ? {
+      to:      patientForEmail.email,
+      subject: 'Appointment Confirmed — MediConnect',
+      html:    appointmentConfirmedEmail(
+        patientForEmail.name || 'Patient',
+        `Dr. ${doctorUser?.name || 'Your doctor'}`,
+        apptDate,
+        appt.timeSlot?.start || '',
+      ),
+    } : undefined);
 
     res.json(appt);
   } catch (err) { next(err); }
@@ -212,11 +237,22 @@ router.patch('/:id/validate', auth, requireRole('doctor'), async (req, res, next
     const sharedNotes = await ConsultationNote.find({ appointmentId: appt._id, visibility: 'shared' }).sort({ createdAt: 1 });
     const summary = sharedNotes.map(n => n.content);
 
+    const patientForEmail2 = await User.findById(appt.patientId).select('email name');
+    const doctorUser2      = await User.findById(req.user.id).select('name');
+    const apptDate2        = new Date(appt.date).toISOString().split('T')[0];
     await notifyUser(appt.patientId, 'consultation_validated', {
       appointmentId: appt._id,
-      message: 'Your consultation summary is ready',
+      message: 'Your consultation summary is ready.',
       summary,
-    });
+    }, patientForEmail2?.email ? {
+      to:      patientForEmail2.email,
+      subject: 'Consultation Summary Ready — MediConnect',
+      html:    consultationValidatedEmail(
+        patientForEmail2.name || 'Patient',
+        `Dr. ${doctorUser2?.name || 'Your doctor'}`,
+        apptDate2,
+      ),
+    } : undefined);
 
     res.json({ appointment: appt, summary });
   } catch (err) { next(err); }
@@ -270,3 +306,4 @@ module.exports = router;
 
 router.scheduleReminders = scheduleReminders;
 router.cancelReminders   = cancelReminders;
+router.notifyUser        = notifyUser;
