@@ -51,6 +51,18 @@ export default function MyAppointmentsScreen({ navigation }) {
           </View>
           {!isPast && (
             <>
+              {a.status === 'confirmed' && (
+                <TouchableOpacity
+                  style={[s.cancelBtn, { backgroundColor: 'rgba(124,58,237,0.13)', borderColor: 'rgba(124,58,237,0.25)', marginRight: 4 }]}
+                  onPress={() => navigation.navigate('VideoCall', {
+                    appointmentId: a._id,
+                    otherPartyName: a.doctorId?.name || 'Doctor',
+                    role: 'patient',
+                  })}
+                >
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: '#a78bfa' }}>🎥</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 style={[s.cancelBtn, { backgroundColor: 'rgba(15,227,176,0.13)', borderColor: 'rgba(15,227,176,0.25)', marginRight: 4 }]}
                 onPress={() => navigation.navigate('Chat', { appointmentId: a._id, otherPartyName: a.doctorId?.name || 'Doctor' })}

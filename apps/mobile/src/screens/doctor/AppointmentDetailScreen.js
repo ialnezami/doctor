@@ -115,6 +115,19 @@ export default function AppointmentDetailScreen({ route, navigation }) {
           </TouchableOpacity>
         )}
 
+        {(appt?.status === 'confirmed' || appt?.status === 'in_progress') && (
+          <TouchableOpacity
+            style={[s.actionBtn, { backgroundColor: '#7c3aed22', borderColor: '#7c3aed', marginBottom: 6 }]}
+            onPress={() => navigation.navigate('VideoCall', {
+              appointmentId,
+              otherPartyName: appt?.patientId?.name || 'Patient',
+              role: 'doctor',
+            })}
+          >
+            <Text style={[s.actionBtnText, { color: '#a78bfa' }]}>🎥 Join Video</Text>
+          </TouchableOpacity>
+        )}
+
         {appt?.status !== 'cancelled' && (
           <TouchableOpacity
             style={[s.actionBtn, { backgroundColor: C.mint + '22', borderColor: C.mint, marginBottom: 6 }]}
