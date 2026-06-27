@@ -4,6 +4,7 @@ import { View, Text, Switch, TouchableOpacity, ScrollView, StyleSheet } from 're
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getMyDoctorProfile, updateDoctorSettings } from '../../api/doctors';
 import { getMe } from '../../api/auth';
+import { getNotificationPrefs, updateNotificationPrefs } from '../../api/users';
 import useAuthStore from '../../store/authStore';
 import AccountSection from '../../components/AccountSection';
 import C from '../../constants/colors';
@@ -34,6 +35,8 @@ export default function SettingsScreen() {
   const [timezone, setTimezone] = useState('UTC');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [pushEnabled,  setPushEnabled]  = useState(true);
+  const [emailEnabled, setEmailEnabled] = useState(true);
 
   useEffect(() => {
     getMe().then(setMe).catch(() => {});
@@ -48,11 +51,21 @@ export default function SettingsScreen() {
     }).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    getNotificationPrefs().then(data => {
+      if (data?.notificationPrefs) {
+        setPushEnabled(data.notificationPrefs.pushEnabled);
+        setEmailEnabled(data.notificationPrefs.emailEnabled);
+      }
+    }).catch(() => {});
+  }, []);
+
   const save = async () => {
     if (!doctorId) return;
     setSaving(true);
     try {
       await updateDoctorSettings(doctorId, { autoAcceptAppointments: autoAccept, availabilitySlots: slots, timezone });
+      await updateNotificationPrefs({ pushEnabled, emailEnabled });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {} finally { setSaving(false); }
@@ -86,6 +99,36 @@ export default function SettingsScreen() {
               <Picker.Item key={tz.value} label={tz.label} value={tz.value} />
             ))}
           </Picker>
+        </View>
+
+        <View style={{ marginTop: 16, backgroundColor: C.bg3, borderRadius: 8, borderWidth: 1, borderColor: C.border, padding: 12 }}>
+          <Text style={{ fontSize: 13, fontWeight: '500', color: C.text, marginBottom: 12 }}>
+            Notification Channels
+          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <Text style={{ fontSize: 12, color: C.text2 }}>Push notifications</Text>
+            <Switch
+              value={pushEnabled}
+              onValueChange={async (val) => {
+                setPushEnabled(val);
+                await updateNotificationPrefs({ pushEnabled: val }).catch(() => setPushEnabled(!val));
+              }}
+              trackColor={{ false: C.border, true: C.mint }}
+              thumbColor="#fff"
+            />
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ fontSize: 12, color: C.text2 }}>Email notifications</Text>
+            <Switch
+              value={emailEnabled}
+              onValueChange={async (val) => {
+                setEmailEnabled(val);
+                await updateNotificationPrefs({ emailEnabled: val }).catch(() => setEmailEnabled(!val));
+              }}
+              trackColor={{ false: C.border, true: C.mint }}
+              thumbColor="#fff"
+            />
+          </View>
         </View>
 
         <Text style={s.sectionLabel}>Availability</Text>

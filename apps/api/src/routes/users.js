@@ -4,6 +4,15 @@ const router = require('express').Router();
 const auth   = require('../middleware/auth');
 const User   = require('../models/User');
 
+// GET /api/users/me/notification-prefs
+router.get('/me/notification-prefs', auth, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).select('notificationPrefs');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ notificationPrefs: user.notificationPrefs || { pushEnabled: true, emailEnabled: true } });
+  } catch (err) { next(err); }
+});
+
 // PATCH /api/users/me/notification-prefs
 router.patch('/me/notification-prefs', auth, async (req, res, next) => {
   try {

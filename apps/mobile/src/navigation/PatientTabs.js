@@ -15,6 +15,7 @@ import WriteReviewScreen         from '../screens/patient/WriteReviewScreen';
 import NotificationsScreen       from '../screens/shared/NotificationsScreen';
 import ChatScreen                from '../screens/shared/ChatScreen';
 import VideoCallScreen           from '../screens/shared/VideoCallScreen';
+import PatientSettingsScreen     from '../screens/patient/SettingsScreen';
 
 const Tab   = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -33,6 +34,7 @@ function PatientBottomTabs() {
       <Tab.Screen name="Records"       component={MedicalRecordsScreen} options={{ tabBarLabel: t('tabs.records'),       tabBarIcon: () => <Text style={{ fontSize: 20 }}>📋</Text> }} />
       <Tab.Screen name="Notifications" component={NotificationsScreen}  options={{ tabBarLabel: t('tabs.notifications'), tabBarIcon: () => <Text style={{ fontSize: 20 }}>🔔</Text> }} />
       <Tab.Screen name="Profile"       component={ProfileScreen}        options={{ tabBarLabel: t('tabs.profile'),      tabBarIcon: () => <Text style={{ fontSize: 20 }}>👤</Text> }} />
+      <Tab.Screen name="Settings"      component={PatientSettingsScreen} options={{ tabBarLabel: 'Settings',            tabBarIcon: () => <Text style={{ fontSize: 20 }}>⚙️</Text> }} />
     </Tab.Navigator>
   );
 }
