@@ -16,6 +16,7 @@ import BookAppointmentPage from '../pages/patient/BookAppointmentPage';
 import BookConfirmedPage  from '../pages/patient/BookConfirmedPage';
 import MyAppointmentsPage from '../pages/patient/MyAppointmentsPage';
 import MedicalRecordsPage from '../pages/patient/MedicalRecordsPage';
+import PatientSettingsPage from '../pages/patient/PatientSettingsPage';
 import ReviewsPage        from '../pages/doctor/ReviewsPage';
 import LabDashboardPage   from '../pages/lab/LabDashboardPage';
 import ShareViewerPage    from '../pages/public/ShareViewerPage';
@@ -58,6 +59,7 @@ export default function AppRouter() {
         <Route path="/records"         element={<Protected role="patient"><MedicalRecordsPage /></Protected>} />
         <Route path="/my-appointments/:id/video" element={<Protected role="patient"><VideoCallPage /></Protected>} />
         <Route path="/my-appointments/:id/chat" element={<Protected role="patient"><ChatPage /></Protected>} />
+        <Route path="/patient-settings" element={<Protected role="patient"><PatientSettingsPage /></Protected>} />
 
         {/* Lab routes */}
         <Route path="/lab" element={<Protected role="laboratory"><LabDashboardPage /></Protected>} />

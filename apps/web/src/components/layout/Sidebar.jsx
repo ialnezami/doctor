@@ -15,6 +15,7 @@ const patientNav = [
   { label: 'Find a Doctor',   path: '/find-doctor' },
   { label: 'My Appointments', path: '/my-appointments', badge: true },
   { label: 'Medical Records', path: '/records' },
+  { label: 'Settings',        path: '/patient-settings' },
 ];
 
 const labNav = [

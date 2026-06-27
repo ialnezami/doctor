@@ -3,6 +3,7 @@ import { updateDoctorSettings } from '../../api/doctors';
 import useAuthStore from '../../store/authStore';
 import Button from '../../components/ui/Button';
 import client from '../../api/client';
+import { getNotificationPrefs, updateNotificationPrefs } from '../../api/users';
 
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
@@ -29,6 +30,8 @@ export default function DoctorSettingsPage() {
   const [timezone, setTimezone] = useState('UTC');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(true);
+  const [emailEnabled, setEmailEnabled] = useState(true);
 
   useEffect(() => {
     client.get('/doctors').then(docs => {
@@ -38,6 +41,13 @@ export default function DoctorSettingsPage() {
         setAutoAccept(profile.autoAcceptAppointments || false);
         setSlots(profile.availabilitySlots || []);
         setTimezone(profile.timezone || 'UTC');
+      }
+    }).catch(() => {});
+
+    getNotificationPrefs().then(data => {
+      if (data?.notificationPrefs) {
+        setPushEnabled(data.notificationPrefs.pushEnabled);
+        setEmailEnabled(data.notificationPrefs.emailEnabled);
       }
     }).catch(() => {});
   }, [user.id]);
@@ -92,6 +102,35 @@ export default function DoctorSettingsPage() {
             <option key={tz.value} value={tz.value}>{tz.label}</option>
           ))}
         </select>
+      </div>
+
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: 20, marginBottom: 20 }}>
+        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 14 }}>Notification Channels</div>
+        {[
+          { label: 'Push notifications', value: pushEnabled, key: 'pushEnabled', set: setPushEnabled },
+          { label: 'Email notifications', value: emailEnabled, key: 'emailEnabled', set: setEmailEnabled },
+        ].map(({ label, value, key, set }) => (
+          <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontSize: 13, color: 'var(--text2)' }}>{label}</span>
+            <button
+              onClick={async () => {
+                set(!value);
+                await updateNotificationPrefs({ [key]: !value }).catch(() => set(value));
+              }}
+              style={{
+                width: 38, height: 20, borderRadius: 10,
+                background: value ? 'var(--accent, #0ea5e9)' : 'var(--border2, #334155)',
+                border: 'none', cursor: 'pointer', position: 'relative', transition: 'background .2s',
+              }}
+            >
+              <span style={{
+                position: 'absolute', top: 2, left: value ? 20 : 2,
+                width: 16, height: 16, borderRadius: 8,
+                background: '#fff', transition: 'left .2s', display: 'block',
+              }} />
+            </button>
+          </div>
+        ))}
       </div>
 
       <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:20, marginBottom:20 }}>
