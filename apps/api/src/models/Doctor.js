@@ -19,6 +19,7 @@ const doctorSchema = new mongoose.Schema({
   consultationFee:        { type: Number, default: 0 },
   yearsOfExperience:      { type: Number, default: 0 },
   photoUrl:               { type: String, default: '' },
+  timezone:               { type: String, default: 'UTC' },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Doctor', doctorSchema);

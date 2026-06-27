@@ -4,7 +4,14 @@ const notificationSchema = new mongoose.Schema({
   recipientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   type: {
     type: String,
-    enum: ['appointment_requested', 'appointment_confirmed', 'consultation_validated', 'notes_viewed'],
+    enum: [
+      'appointment_requested',
+      'appointment_confirmed',
+      'consultation_validated',
+      'notes_viewed',
+      'appointment_reminder',
+      'daily_digest',
+    ],
     required: true,
   },
   payload: { type: mongoose.Schema.Types.Mixed, default: {} },
