@@ -21,11 +21,11 @@ const { nextLocalSevenAmDelay } = require('../utils/reminderDelays');
  */
 async function processOrchestratorJob(_job) {
   try {
-    const doctors = await Doctor.find({}).populate('userId', '_id fcmToken');
+    const doctors = await Doctor.find({}).populate('userId', '_id fcmToken email');
     const queue = getDigestQueue();
 
     for (const doctor of doctors) {
-      if (!doctor.userId?.fcmToken) continue;
+      if (!doctor.userId?.fcmToken && !doctor.userId?.email) continue;
 
       const timezone = doctor.timezone || 'UTC';
       const delay = nextLocalSevenAmDelay(timezone);

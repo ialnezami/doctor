@@ -65,16 +65,20 @@ async function processReminderJob(job) {
   if (emailEnabled && reminderType === '24h' && user?.email) {
     const apptDate = new Date(appt.date).toISOString().split('T')[0];
     const doctorUser = await User.findById(appt.doctorId).select('name');
-    await sendEmail(
-      user.email,
-      'Appointment Reminder — MediConnect',
-      appointmentReminderEmail(
-        user.name || 'Patient',
-        `Dr. ${doctorUser?.name || 'Your doctor'}`,
-        apptDate,
-        appt.timeSlot?.start || '',
-      ),
-    );
+    try {
+      await sendEmail(
+        user.email,
+        'Appointment Reminder — MediConnect',
+        appointmentReminderEmail(
+          user.name || 'Patient',
+          `Dr. ${doctorUser?.name || 'Your doctor'}`,
+          apptDate,
+          appt.timeSlot?.start || '',
+        ),
+      );
+    } catch (emailErr) {
+      console.error('[reminders] email send failed (notification already saved):', emailErr.message);
+    }
   }
 }
 

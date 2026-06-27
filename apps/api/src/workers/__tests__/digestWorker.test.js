@@ -28,7 +28,7 @@ const { processOrchestratorJob, processDigestSendJob } = require('../digestWorke
 beforeEach(() => jest.clearAllMocks());
 
 describe('processOrchestratorJob', () => {
-  it('enqueues digest-send only for doctors with fcmToken', async () => {
+  it('enqueues digest-send for doctors with fcmToken or email', async () => {
     const mockAdd = jest.fn().mockResolvedValue({});
     getDigestQueue.mockReturnValue({ add: mockAdd });
     Doctor.find = jest.fn().mockReturnValue({
