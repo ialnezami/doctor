@@ -18,23 +18,28 @@ const { nextLocalSevenAmDelay } = require('../utils/reminderDelays');
  * @param {object} _job - BullMQ job (unused)
  */
 async function processOrchestratorJob(_job) {
-  const doctors = await Doctor.find({}).populate('userId', '_id fcmToken');
-  const queue = getDigestQueue();
+  try {
+    const doctors = await Doctor.find({}).populate('userId', '_id fcmToken');
+    const queue = getDigestQueue();
 
-  for (const doctor of doctors) {
-    if (!doctor.userId?.fcmToken) continue;
+    for (const doctor of doctors) {
+      if (!doctor.userId?.fcmToken) continue;
 
-    const timezone = doctor.timezone || 'UTC';
-    const delay = nextLocalSevenAmDelay(timezone);
+      const timezone = doctor.timezone || 'UTC';
+      const delay = nextLocalSevenAmDelay(timezone);
 
-    await queue.add(
-      'digest-send',
-      {
-        doctorUserId:    String(doctor.userId._id),
-        doctorTimezone:  timezone,
-      },
-      { delay }
-    );
+      await queue.add(
+        'digest-send',
+        {
+          doctorUserId:    String(doctor.userId._id),
+          doctorTimezone:  timezone,
+        },
+        { delay }
+      );
+    }
+  } catch (err) {
+    console.error('[digest] orchestrator failed:', err.message);
+    throw err; // re-throw so BullMQ marks job as failed
   }
 }
 
@@ -48,7 +53,11 @@ async function processDigestSendJob(job) {
   const { doctorUserId, doctorTimezone } = job.data;
 
   const user = await User.findById(doctorUserId).select('_id fcmToken');
-  if (!user?.fcmToken) return;
+  if (!user) {
+    console.warn('[digest] user not found for doctorUserId:', doctorUserId);
+    return;
+  }
+  if (!user.fcmToken) return;
 
   const tz = doctorTimezone || 'UTC';
   const now = DateTime.now().setZone(tz);

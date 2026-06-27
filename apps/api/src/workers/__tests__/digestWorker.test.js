@@ -87,4 +87,13 @@ describe('processDigestSendJob', () => {
     await processDigestSendJob({ data: { doctorUserId: 'u1', doctorTimezone: 'UTC' } });
     expect(sendPush).not.toHaveBeenCalled();
   });
+
+  it('skips when user not found', async () => {
+    User.findById = jest.fn().mockReturnValue({
+      select: jest.fn().mockResolvedValue(null),
+    });
+    await processDigestSendJob({ data: { doctorUserId: 'u1', doctorTimezone: 'UTC' } });
+    expect(sendPush).not.toHaveBeenCalled();
+    expect(Notification.create).not.toHaveBeenCalled();
+  });
 });
