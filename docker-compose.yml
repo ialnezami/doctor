@@ -12,6 +12,17 @@ services:
     networks:
       - mediconnect-net
 
+  redis:
+    image: redis:7-alpine
+    container_name: mediconnect-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    networks:
+      - mediconnect-net
+
   api:
     build:
       context: ./apps/api
@@ -21,8 +32,11 @@ services:
       - '3000:3000'
     env_file:
       - .env
+    environment:
+      - REDIS_URL=redis://redis:6379
     depends_on:
       - mongo
+      - redis
     networks:
       - mediconnect-net
 
@@ -32,3 +46,4 @@ networks:
 
 volumes:
   mongo-data:
+  redis-data:
