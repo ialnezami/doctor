@@ -65,7 +65,6 @@ export default function SettingsScreen() {
     setSaving(true);
     try {
       await updateDoctorSettings(doctorId, { autoAcceptAppointments: autoAccept, availabilitySlots: slots, timezone });
-      await updateNotificationPrefs({ pushEnabled, emailEnabled });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {} finally { setSaving(false); }

@@ -65,3 +65,17 @@ test('skips email when no emailData provided', async () => {
   await notifyUser('u1', 'appointment_confirmed', { appointmentId: 'a1' });
   expect(sendEmail).not.toHaveBeenCalled();
 });
+
+test('sends push when pushEnabled is true', async () => {
+  mockUser(); // default: pushEnabled: true
+  Notification.create = jest.fn().mockResolvedValue({});
+  await notifyUser('u1', 'appointment_confirmed', { appointmentId: 'a1', message: 'Confirmed' });
+  expect(sendPush).toHaveBeenCalled();
+});
+
+test('notifies when notificationPrefs is undefined (legacy user)', async () => {
+  mockUser({ notificationPrefs: undefined });
+  Notification.create = jest.fn().mockResolvedValue({});
+  await notifyUser('u1', 'appointment_confirmed', { appointmentId: 'a1', message: 'Confirmed' });
+  expect(sendPush).toHaveBeenCalled();
+});

@@ -121,7 +121,7 @@ router.post('/:apptId/read', auth, async (req, res, next) => {
     const shouldNotify = !existing || (Date.now() - new Date(existing.readAt).getTime() >= COOLDOWN_MS);
     if (shouldNotify) {
       const doctorUser = await User.findById(req.user.id).select('name');
-      const patient    = await User.findById(appt.patientId).select('fcmToken');
+      const patient    = await User.findById(appt.patientId).select('fcmToken notificationPrefs');
       await Notification.create({
         recipientId: appt.patientId,
         type: 'notes_viewed',
@@ -130,7 +130,8 @@ router.post('/:apptId/read', auth, async (req, res, next) => {
           message: `Dr. ${doctorUser?.name || 'Your doctor'} reviewed your consultation`,
         },
       });
-      if (patient?.fcmToken) {
+      const patientPrefs = patient?.notificationPrefs || {};
+      if (patient?.fcmToken && patientPrefs.pushEnabled !== false) {
         await sendPush(
           patient.fcmToken,
           'Consultation reviewed',

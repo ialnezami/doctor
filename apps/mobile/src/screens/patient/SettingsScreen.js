@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Switch, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getNotificationPrefs, updateNotificationPrefs } from '../../api/users';
-import useAuthStore from '../../store/authStore';
 import C from '../../constants/colors';
 
 export default function PatientSettingsScreen() {
-  const { user } = useAuthStore();
   const [pushEnabled,  setPushEnabled]  = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(true);
 
