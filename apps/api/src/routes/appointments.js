@@ -6,6 +6,8 @@ const Doctor       = require('../models/Doctor');
 const Notification = require('../models/Notification');
 const User         = require('../models/User');
 const { sendPush } = require('../utils/push');
+const { getReminderQueue }      = require('../queues/reminderQueue');
+const { computeReminderDelays } = require('../utils/reminderDelays');
 
 async function notifyUser(recipientId, type, payload) {
   const notif = await Notification.create({ recipientId, type, payload });
@@ -22,6 +24,40 @@ async function notifyUser(recipientId, type, payload) {
     });
   }
   return notif;
+}
+
+async function scheduleReminders(appt) {
+  try {
+    const queue = getReminderQueue();
+    const { delay24h, delay1h } = computeReminderDelays(appt.date);
+
+    const job24h = await queue.add(
+      'reminder-24h',
+      { appointmentId: String(appt._id), reminderType: '24h' },
+      { delay: delay24h, jobId: `reminder-${appt._id}-24h` }
+    );
+    const job1h = await queue.add(
+      'reminder-1h',
+      { appointmentId: String(appt._id), reminderType: '1h' },
+      { delay: delay1h,  jobId: `reminder-${appt._id}-1h`  }
+    );
+
+    appt.reminder24hJobId = job24h.id;
+    appt.reminder1hJobId  = job1h.id;
+    await appt.save();
+  } catch (err) {
+    console.error('[reminders] enqueue failed:', String(appt._id), err.message);
+  }
+}
+
+async function cancelReminders(appt) {
+  try {
+    const queue = getReminderQueue();
+    if (appt.reminder24hJobId) await queue.remove(appt.reminder24hJobId);
+    if (appt.reminder1hJobId)  await queue.remove(appt.reminder1hJobId);
+  } catch (err) {
+    console.error('[reminders] cancel failed:', err.message);
+  }
 }
 
 // POST /api/appointments — patient books
@@ -54,6 +90,10 @@ router.post('/', auth, requireRole('patient'), async (req, res, next) => {
       reason,
       status,
     });
+
+    if (appt.status === 'confirmed') {
+      await scheduleReminders(appt);
+    }
 
     res.status(201).json(appt);
   } catch (err) {
@@ -145,6 +185,8 @@ router.patch('/:id/confirm', auth, requireRole('doctor'), async (req, res, next)
     appt.status = 'confirmed';
     await appt.save();
 
+    await scheduleReminders(appt);
+
     await notifyUser(appt.patientId, 'appointment_confirmed', {
       appointmentId: appt._id,
       message: 'Your appointment has been confirmed',
@@ -190,10 +232,39 @@ router.patch('/:id/cancel', auth, async (req, res, next) => {
     if (!isParty) return res.status(403).json({ message: 'Forbidden' });
     if (appt.status === 'validated') return res.status(409).json({ message: 'Cannot cancel a validated appointment' });
 
+    await cancelReminders(appt);
+
     appt.status = 'cancelled';
     await appt.save();
     res.json(appt);
   } catch (err) { next(err); }
 });
 
+// PATCH /api/appointments/:id/reminders-opt-out — patient toggles per-appointment reminders
+router.patch('/:id/reminders-opt-out', auth, requireRole('patient'), async (req, res, next) => {
+  try {
+    const { disabled } = req.body;
+    if (typeof disabled !== 'boolean') {
+      return res.status(400).json({ message: 'disabled must be a boolean' });
+    }
+
+    const appt = await Appointment.findById(req.params.id);
+    if (!appt) return res.status(404).json({ message: 'Not found' });
+    if (appt.patientId.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    if (appt.status !== 'confirmed' || new Date(appt.date) <= new Date()) {
+      return res.status(400).json({ message: 'Reminders can only be toggled for future confirmed appointments' });
+    }
+
+    appt.remindersDisabled = disabled;
+    await appt.save();
+
+    res.json({ remindersDisabled: appt.remindersDisabled });
+  } catch (err) { next(err); }
+});
+
 module.exports = router;
+
+router.scheduleReminders = scheduleReminders;
+router.cancelReminders   = cancelReminders;
