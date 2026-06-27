@@ -2,6 +2,10 @@ jest.mock('../../models/Appointment');
 jest.mock('../../models/Notification');
 jest.mock('../../models/User');
 jest.mock('../../utils/push');
+jest.mock('../../utils/email');
+jest.mock('../../utils/emailTemplates', () => ({
+  appointmentReminderEmail: jest.fn().mockReturnValue('<p>reminder</p>'),
+}));
 jest.mock('../../queues/reminderQueue', () => ({
   getConnection: jest.fn(),
   getReminderQueue: jest.fn(),
@@ -11,6 +15,7 @@ const Appointment  = require('../../models/Appointment');
 const Notification = require('../../models/Notification');
 const User         = require('../../models/User');
 const { sendPush } = require('../../utils/push');
+const { sendEmail } = require('../../utils/email');
 
 const { processReminderJob } = require('../reminderWorker');
 
@@ -73,4 +78,46 @@ test('creates Notification and sends FCM push when eligible', async () => {
     expect.stringContaining('10:00'),
     expect.objectContaining({ appointmentId: 'a1', reminderType: '24h' })
   );
+});
+
+test('sends email for 24h reminder when emailEnabled', async () => {
+  Appointment.findById = jest.fn().mockResolvedValue({
+    _id: 'a1', status: 'confirmed', remindersDisabled: false, patientId: 'p1',
+    date: new Date(Date.now() + 2 * 3600 * 1000), timeSlot: { start: '10:00' },
+    doctorId: 'd1',
+  });
+  User.findById = jest.fn().mockReturnValue({
+    select: jest.fn().mockResolvedValue({
+      fcmToken: 'tok1', email: 'p@test.com', name: 'Alice',
+      notificationPrefs: { pushEnabled: true, emailEnabled: true },
+    }),
+  });
+  Notification.create = jest.fn().mockResolvedValue({});
+  sendPush.mockResolvedValue();
+  sendEmail.mockResolvedValue();
+
+  await processReminderJob({ data: { appointmentId: 'a1', reminderType: '24h' } });
+
+  expect(sendEmail).toHaveBeenCalledWith('p@test.com', expect.stringContaining('Reminder'), '<p>reminder</p>');
+});
+
+test('skips email for 1h reminder even when emailEnabled', async () => {
+  Appointment.findById = jest.fn().mockResolvedValue({
+    _id: 'a1', status: 'confirmed', remindersDisabled: false, patientId: 'p1',
+    date: new Date(Date.now() + 2 * 3600 * 1000), timeSlot: { start: '10:00' },
+    doctorId: 'd1',
+  });
+  User.findById = jest.fn().mockReturnValue({
+    select: jest.fn().mockResolvedValue({
+      fcmToken: 'tok1', email: 'p@test.com', name: 'Alice',
+      notificationPrefs: { pushEnabled: true, emailEnabled: true },
+    }),
+  });
+  Notification.create = jest.fn().mockResolvedValue({});
+  sendPush.mockResolvedValue();
+  sendEmail.mockResolvedValue();
+
+  await processReminderJob({ data: { appointmentId: 'a1', reminderType: '1h' } });
+
+  expect(sendEmail).not.toHaveBeenCalled();
 });

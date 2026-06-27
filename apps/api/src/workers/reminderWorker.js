@@ -3,6 +3,8 @@ const Appointment  = require('../models/Appointment');
 const Notification = require('../models/Notification');
 const User         = require('../models/User');
 const { sendPush } = require('../utils/push');
+const { sendEmail } = require('../utils/email');
+const { appointmentReminderEmail } = require('../utils/emailTemplates');
 const { getConnection } = require('../queues/reminderQueue');
 
 const THIRTY_MIN_MS = 30 * 60 * 1000;
@@ -39,8 +41,13 @@ async function processReminderJob(job) {
     },
   });
 
-  const user = await User.findById(appt.patientId).select('fcmToken');
-  if (user?.fcmToken) {
+  const user = await User.findById(appt.patientId).select('fcmToken email name notificationPrefs');
+
+  const prefs = user?.notificationPrefs || {};
+  const pushEnabled  = prefs.pushEnabled  !== false;
+  const emailEnabled = prefs.emailEnabled !== false;
+
+  if (pushEnabled && user?.fcmToken) {
     try {
       await sendPush(
         user.fcmToken,
@@ -53,6 +60,21 @@ async function processReminderJob(job) {
       // the job and duplicate the Notification record already saved above.
       console.error('[reminders] FCM push failed (notification already saved):', fcmErr.message);
     }
+  }
+
+  if (emailEnabled && reminderType === '24h' && user?.email) {
+    const apptDate = new Date(appt.date).toISOString().split('T')[0];
+    const doctorUser = await User.findById(appt.doctorId).select('name');
+    await sendEmail(
+      user.email,
+      'Appointment Reminder — MediConnect',
+      appointmentReminderEmail(
+        user.name || 'Patient',
+        `Dr. ${doctorUser?.name || 'Your doctor'}`,
+        apptDate,
+        appt.timeSlot?.start || '',
+      ),
+    );
   }
 }
 

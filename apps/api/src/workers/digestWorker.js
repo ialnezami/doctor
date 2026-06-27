@@ -7,6 +7,8 @@ const User         = require('../models/User');
 const Appointment  = require('../models/Appointment');
 const Notification = require('../models/Notification');
 const { sendPush } = require('../utils/push');
+const { sendEmail } = require('../utils/email');
+const { dailyDigestEmail } = require('../utils/emailTemplates');
 const { getConnection, getDigestQueue } = require('../queues/reminderQueue');
 const { nextLocalSevenAmDelay } = require('../utils/reminderDelays');
 
@@ -52,12 +54,16 @@ async function processOrchestratorJob(_job) {
 async function processDigestSendJob(job) {
   const { doctorUserId, doctorTimezone } = job.data;
 
-  const user = await User.findById(doctorUserId).select('_id fcmToken');
+  const user = await User.findById(doctorUserId).select('_id fcmToken email name notificationPrefs');
   if (!user) {
     console.warn('[digest] user not found for doctorUserId:', doctorUserId);
     return;
   }
-  if (!user.fcmToken) return;
+  if (!user.fcmToken && !user.email) return;
+
+  const prefs = user.notificationPrefs || {};
+  const pushEnabled  = prefs.pushEnabled  !== false;
+  const emailEnabled = prefs.emailEnabled !== false;
 
   const tz = doctorTimezone || 'UTC';
   const now = DateTime.now().setZone(tz);
@@ -80,7 +86,18 @@ async function processDigestSendJob(job) {
     payload:     { count, message },
   });
 
-  await sendPush(user.fcmToken, 'Daily Schedule', message, {});
+  if (pushEnabled && user.fcmToken) {
+    await sendPush(user.fcmToken, 'Daily Schedule', message, {});
+  }
+
+  if (emailEnabled && user.email) {
+    const dateStr = DateTime.now().setZone(tz).toISODate();
+    await sendEmail(
+      user.email,
+      'Your Daily Schedule — MediConnect',
+      dailyDigestEmail(user.name || 'Doctor', count, dateStr),
+    );
+  }
 }
 
 /**

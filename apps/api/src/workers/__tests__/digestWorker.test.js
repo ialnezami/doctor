@@ -3,6 +3,10 @@ jest.mock('../../models/User');
 jest.mock('../../models/Appointment');
 jest.mock('../../models/Notification');
 jest.mock('../../utils/push');
+jest.mock('../../utils/email');
+jest.mock('../../utils/emailTemplates', () => ({
+  dailyDigestEmail: jest.fn().mockReturnValue('<p>digest</p>'),
+}));
 jest.mock('../../queues/reminderQueue', () => ({
   getConnection: jest.fn(),
   getDigestQueue: jest.fn(),
@@ -16,6 +20,7 @@ const User         = require('../../models/User');
 const Appointment  = require('../../models/Appointment');
 const Notification = require('../../models/Notification');
 const { sendPush } = require('../../utils/push');
+const { sendEmail } = require('../../utils/email');
 const { getDigestQueue } = require('../../queues/reminderQueue');
 
 const { processOrchestratorJob, processDigestSendJob } = require('../digestWorker');
@@ -95,5 +100,22 @@ describe('processDigestSendJob', () => {
     await processDigestSendJob({ data: { doctorUserId: 'u1', doctorTimezone: 'UTC' } });
     expect(sendPush).not.toHaveBeenCalled();
     expect(Notification.create).not.toHaveBeenCalled();
+  });
+
+  it('sends email when emailEnabled and appointments exist', async () => {
+    User.findById = jest.fn().mockReturnValue({
+      select: jest.fn().mockResolvedValue({
+        _id: 'u1', fcmToken: 'tok1', email: 'dr@test.com', name: 'Dr. Ali',
+        notificationPrefs: { pushEnabled: true, emailEnabled: true },
+      }),
+    });
+    Appointment.countDocuments = jest.fn().mockResolvedValue(2);
+    Notification.create = jest.fn().mockResolvedValue({});
+    sendPush.mockResolvedValue();
+    sendEmail.mockResolvedValue();
+
+    await processDigestSendJob({ data: { doctorUserId: 'u1', doctorTimezone: 'UTC' } });
+
+    expect(sendEmail).toHaveBeenCalledWith('dr@test.com', expect.stringContaining('Schedule'), '<p>digest</p>');
   });
 });
