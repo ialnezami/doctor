@@ -25,6 +25,7 @@ const appointmentSchema = new mongoose.Schema({
   },
   reason: String,
   notes: String,
+  videoRoomName: { type: String, default: '' },
 }, { timestamps: true });
 
 // Prevent querying a cancelled or completed slot as "booked"
