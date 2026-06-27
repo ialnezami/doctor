@@ -41,12 +41,18 @@ async function processReminderJob(job) {
 
   const user = await User.findById(appt.patientId).select('fcmToken');
   if (user?.fcmToken) {
-    await sendPush(
-      user.fcmToken,
-      titles[reminderType],
-      bodies[reminderType],
-      { appointmentId: String(appt._id), reminderType }
-    );
+    try {
+      await sendPush(
+        user.fcmToken,
+        titles[reminderType],
+        bodies[reminderType],
+        { appointmentId: String(appt._id), reminderType }
+      );
+    } catch (fcmErr) {
+      // FCM failure must not bubble up — doing so would cause BullMQ to retry
+      // the job and duplicate the Notification record already saved above.
+      console.error('[reminders] FCM push failed (notification already saved):', fcmErr.message);
+    }
   }
 }
 

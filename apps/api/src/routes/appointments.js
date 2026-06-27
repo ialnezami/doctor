@@ -31,16 +31,18 @@ async function scheduleReminders(appt) {
     const queue = getReminderQueue();
     const { delay24h, delay1h } = computeReminderDelays(appt.date);
 
-    const job24h = await queue.add(
-      'reminder-24h',
-      { appointmentId: String(appt._id), reminderType: '24h' },
-      { delay: delay24h, jobId: `reminder-${appt._id}-24h` }
-    );
-    const job1h = await queue.add(
-      'reminder-1h',
-      { appointmentId: String(appt._id), reminderType: '1h' },
-      { delay: delay1h,  jobId: `reminder-${appt._id}-1h`  }
-    );
+    const [job24h, job1h] = await Promise.all([
+      queue.add(
+        'reminder-24h',
+        { appointmentId: String(appt._id), reminderType: '24h' },
+        { delay: delay24h, jobId: `reminder-${appt._id}-24h` }
+      ),
+      queue.add(
+        'reminder-1h',
+        { appointmentId: String(appt._id), reminderType: '1h' },
+        { delay: delay1h, jobId: `reminder-${appt._id}-1h` }
+      ),
+    ]);
 
     appt.reminder24hJobId = job24h.id;
     appt.reminder1hJobId  = job1h.id;
