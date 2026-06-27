@@ -1,10 +1,10 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import C from '../../constants/colors';
-import { getAppointments, updateStatus } from '../../api/appointments';
+import { getAppointments, updateStatus, toggleReminderOptOut } from '../../api/appointments';
 
 const STATUS_COLOR = { confirmed: C.mint, pending: C.amber, cancelled: C.rose, completed: C.blue, validated: C.mint };
 
@@ -75,6 +75,20 @@ export default function MyAppointmentsScreen({ navigation }) {
             </>
           )}
         </View>
+        {a.status === 'confirmed' && new Date(a.date) > new Date() && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: 1, borderTopColor: C.border }}>
+            <Text style={{ fontSize: 11, color: C.text2 }}>Disable reminders</Text>
+            <Switch
+              value={!!a.remindersDisabled}
+              onValueChange={async (val) => {
+                await toggleReminderOptOut(a._id, val);
+                load();
+              }}
+              trackColor={{ false: C.border, true: C.rose }}
+              thumbColor="#fff"
+            />
+          </View>
+        )}
         {eligible && (
           <TouchableOpacity
             style={s.reviewBtn}

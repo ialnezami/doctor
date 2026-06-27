@@ -19,3 +19,7 @@ export const deleteNote = (apptId, noteId)          => client.delete(`/appointme
 
 // Read tracking
 export const markRead   = (apptId)                  => client.post(`/appointments/${apptId}/read`).then(r => r.data);
+
+// Reminder opt-out
+export const toggleReminderOptOut = (id, disabled) =>
+  client.patch(`/appointments/${id}/reminders-opt-out`, { disabled }).then(r => r.data);
