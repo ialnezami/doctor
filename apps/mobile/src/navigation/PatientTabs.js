@@ -13,6 +13,7 @@ import ProfileScreen             from '../screens/patient/ProfileScreen';
 import ConsultationSummaryScreen from '../screens/patient/ConsultationSummaryScreen';
 import WriteReviewScreen         from '../screens/patient/WriteReviewScreen';
 import NotificationsScreen       from '../screens/shared/NotificationsScreen';
+import ChatScreen                from '../screens/shared/ChatScreen';
 
 const Tab   = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -41,6 +42,7 @@ export default function PatientTabs() {
       <Stack.Screen name="PatientHome"         component={PatientBottomTabs} />
       <Stack.Screen name="ConsultationSummary" component={ConsultationSummaryScreen} />
       <Stack.Screen name="WriteReview"         component={WriteReviewScreen} />
+      <Stack.Screen name="Chat"                component={ChatScreen} />
     </Stack.Navigator>
   );
 }

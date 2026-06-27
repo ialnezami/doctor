@@ -93,6 +93,14 @@ export default function MyAppointmentsPage() {
             <div style={{ fontSize: 11.5, color: 'var(--text2)', marginTop: 2 }}>{new Date(a.date).toLocaleDateString()} · {a.timeSlot?.start}</div>
           </div>
           <StatusChip status={a.status} />
+          {!isPast && (
+            <button
+              onClick={() => navigate(`/my-appointments/${a._id}/chat`, { state: { otherPartyName: a.doctorId?.name || 'Doctor' } })}
+              style={{ background: 'var(--mint-dim)', border: '1px solid rgba(15,227,176,0.3)', borderRadius: 6, padding: '5px 9px', color: 'var(--mint)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+            >
+              💬
+            </button>
+          )}
           {!isPast
             ? <Button variant="danger" style={{ padding: '5px 9px', fontSize: 11 }} onClick={() => cancel(a._id)}>Cancel</Button>
             : <Button variant="ghost" style={{ padding: '5px 9px', fontSize: 11 }} onClick={() => navigate('/records')}>Records</Button>}

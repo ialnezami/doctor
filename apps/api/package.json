@@ -19,14 +19,17 @@
     "google-auth-library": "^10.6.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.0",
-    "multer": "^2.1.1"
+    "multer": "^2.1.1",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "jest": "^29.7.0",
     "nodemon": "^3.0.2"
   },
   "nodemonConfig": {
-    "watch": ["src"],
+    "watch": [
+      "src"
+    ],
     "ext": "js,json",
     "delay": 500
   }

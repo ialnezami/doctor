@@ -12,6 +12,7 @@ import ReviewsScreen           from '../screens/doctor/ReviewsScreen';
 import DoctorLabResultsScreen  from '../screens/doctor/LabResultsScreen';
 import SettingsScreen          from '../screens/doctor/SettingsScreen';
 import NotificationsScreen     from '../screens/shared/NotificationsScreen';
+import ChatScreen              from '../screens/shared/ChatScreen';
 
 const Tab   = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -40,6 +41,7 @@ export default function DoctorTabs() {
       <Stack.Screen name="AppointmentDetail" component={AppointmentDetailScreen} />
       <Stack.Screen name="NoteEditor"        component={NoteEditorScreen} />
       <Stack.Screen name="Reviews"           component={ReviewsScreen} />
+      <Stack.Screen name="Chat"              component={ChatScreen} />
     </Stack.Navigator>
   );
 }

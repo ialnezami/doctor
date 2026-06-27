@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getAppointments, updateStatus } from '../../api/appointments';
 import StatusChip from '../../components/ui/StatusChip';
 import Button from '../../components/ui/Button';
@@ -6,6 +7,7 @@ import Button from '../../components/ui/Button';
 const FILTERS = ['all','pending','confirmed','completed','cancelled'];
 
 export default function AppointmentsPage() {
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [filter, setFilter] = useState('all');
 
@@ -58,6 +60,14 @@ export default function AppointmentsPage() {
                   <div style={{ fontSize:11.5, color:'var(--text2)', marginTop:2 }}>{new Date(a.date).toLocaleDateString()} · {a.visitType}</div>
                 </div>
                 <StatusChip status={a.status} />
+                {a.status !== 'cancelled' && (
+                  <button
+                    onClick={() => navigate(`/appointments/${a._id}/chat`, { state: { otherPartyName: a.patientId?.name || 'Patient' } })}
+                    style={{ background: 'var(--mint-dim)', border: '1px solid rgba(15,227,176,0.3)', borderRadius: 6, padding: '3px 9px', color: 'var(--mint)', fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >
+                    💬 Chat
+                  </button>
+                )}
               </div>
             ))}
           </div>

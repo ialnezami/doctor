@@ -115,6 +115,15 @@ export default function AppointmentDetailScreen({ route, navigation }) {
           </TouchableOpacity>
         )}
 
+        {appt?.status !== 'cancelled' && (
+          <TouchableOpacity
+            style={[s.actionBtn, { backgroundColor: C.mint + '22', borderColor: C.mint, marginBottom: 6 }]}
+            onPress={() => navigation.navigate('Chat', { appointmentId, otherPartyName: appt?.patientId?.name || 'Patient' })}
+          >
+            <Text style={[s.actionBtnText, { color: C.mint }]}>💬 Chat</Text>
+          </TouchableOpacity>
+        )}
+
         {appt?.status === 'pending' && (
           <TouchableOpacity style={[s.actionBtn, { backgroundColor: C.blue + '22', borderColor: C.blue }]} onPress={handleConfirm}>
             <Text style={[s.actionBtnText, { color: C.blue }]}>Confirm Appointment</Text>

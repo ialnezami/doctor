@@ -50,9 +50,17 @@ export default function MyAppointmentsScreen({ navigation }) {
             <Text style={{ fontSize: 10, fontWeight: '700', color: STATUS_COLOR[a.status] || C.mint }}>{a.status}</Text>
           </View>
           {!isPast && (
-            <TouchableOpacity style={s.cancelBtn} onPress={() => cancel(a._id)}>
-              <Text style={s.cancelTxt}>Cancel</Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity
+                style={[s.cancelBtn, { backgroundColor: 'rgba(15,227,176,0.13)', borderColor: 'rgba(15,227,176,0.25)', marginRight: 4 }]}
+                onPress={() => navigation.navigate('Chat', { appointmentId: a._id, otherPartyName: a.doctorId?.name || 'Doctor' })}
+              >
+                <Text style={{ fontSize: 11, fontWeight: '600', color: C.mint }}>💬</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.cancelBtn} onPress={() => cancel(a._id)}>
+                <Text style={s.cancelTxt}>Cancel</Text>
+              </TouchableOpacity>
+            </>
           )}
         </View>
         {eligible && (

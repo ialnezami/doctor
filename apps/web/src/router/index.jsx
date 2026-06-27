@@ -19,6 +19,7 @@ import MedicalRecordsPage from '../pages/patient/MedicalRecordsPage';
 import ReviewsPage        from '../pages/doctor/ReviewsPage';
 import LabDashboardPage   from '../pages/lab/LabDashboardPage';
 import ShareViewerPage    from '../pages/public/ShareViewerPage';
+import ChatPage           from '../pages/shared/ChatPage';
 
 function Protected({ children, role }) {
   const { user } = useAuthStore();
@@ -44,6 +45,7 @@ export default function AppRouter() {
         <Route path="/lab-results"   element={<Protected role="doctor"><LabResultsPage /></Protected>} />
         <Route path="/settings"      element={<Protected role="doctor"><DoctorSettingsPage /></Protected>} />
         <Route path="/reviews"       element={<Protected role="doctor"><ReviewsPage /></Protected>} />
+        <Route path="/appointments/:id/chat" element={<Protected role="doctor"><ChatPage /></Protected>} />
 
         {/* Patient routes */}
         <Route path="/find-doctor"     element={<Protected role="patient"><FindDoctorPage /></Protected>} />
@@ -52,6 +54,7 @@ export default function AppRouter() {
         <Route path="/book/confirmed"  element={<Protected role="patient"><BookConfirmedPage /></Protected>} />
         <Route path="/my-appointments" element={<Protected role="patient"><MyAppointmentsPage /></Protected>} />
         <Route path="/records"         element={<Protected role="patient"><MedicalRecordsPage /></Protected>} />
+        <Route path="/my-appointments/:id/chat" element={<Protected role="patient"><ChatPage /></Protected>} />
 
         {/* Lab routes */}
         <Route path="/lab" element={<Protected role="laboratory"><LabDashboardPage /></Protected>} />
