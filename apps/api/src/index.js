@@ -5,6 +5,8 @@ const cors    = require('cors');
 const connectDB    = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 const { initSocket } = require('./socket');
+const { startReminderWorker }                          = require('./workers/reminderWorker');
+const { startDigestWorker, registerDigestOrchestrator } = require('./workers/digestWorker');
 
 const app = express();
 
@@ -44,6 +46,16 @@ connectDB().then(() => {
     console.log(`  ➜  Mode:    ${env}`);
     console.log(`  ➜  DB:      connected\n`);
   });
+
+  if (process.env.REDIS_URL) {
+    startReminderWorker();
+    startDigestWorker();
+    registerDigestOrchestrator().catch(err =>
+      console.error('[digest] orchestrator registration failed:', err.message)
+    );
+  } else {
+    console.warn('[reminders] REDIS_URL not set — reminder workers disabled');
+  }
 }).catch(err => {
   console.error('DB connection failed', err);
   process.exit(1);
