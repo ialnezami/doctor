@@ -116,8 +116,10 @@ router.post('/:apptId/read', auth, async (req, res, next) => {
       { upsert: true, new: true }
     );
 
-    // Notify patient only on first read
-    if (!existing) {
+    // Notify patient on first read OR re-read after 24 h cooldown
+    const COOLDOWN_MS = 24 * 60 * 60 * 1000;
+    const shouldNotify = !existing || (Date.now() - new Date(existing.readAt).getTime() >= COOLDOWN_MS);
+    if (shouldNotify) {
       const doctorUser = await User.findById(req.user.id).select('name');
       const patient    = await User.findById(appt.patientId).select('fcmToken');
       await Notification.create({
