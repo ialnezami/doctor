@@ -93,6 +93,14 @@ export default function MyAppointmentsPage() {
             <div style={{ fontSize: 11.5, color: 'var(--text2)', marginTop: 2 }}>{new Date(a.date).toLocaleDateString()} · {a.timeSlot?.start}</div>
           </div>
           <StatusChip status={a.status} />
+          {!isPast && a.status === 'confirmed' && (
+            <button
+              onClick={() => navigate(`/my-appointments/${a._id}/video`, { state: { otherPartyName: a.doctorId?.name || 'Doctor' } })}
+              style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: 6, padding: '5px 9px', color: '#a78bfa', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+            >
+              🎥
+            </button>
+          )}
           {!isPast && (
             <button
               onClick={() => navigate(`/my-appointments/${a._id}/chat`, { state: { otherPartyName: a.doctorId?.name || 'Doctor' } })}

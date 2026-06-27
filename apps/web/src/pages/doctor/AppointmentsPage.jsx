@@ -60,6 +60,14 @@ export default function AppointmentsPage() {
                   <div style={{ fontSize:11.5, color:'var(--text2)', marginTop:2 }}>{new Date(a.date).toLocaleDateString()} · {a.visitType}</div>
                 </div>
                 <StatusChip status={a.status} />
+                {(a.status === 'confirmed' || a.status === 'in_progress') && (
+                  <button
+                    onClick={() => navigate(`/appointments/${a._id}/video`, { state: { otherPartyName: a.patientId?.name || 'Patient' } })}
+                    style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: 6, padding: '3px 9px', color: '#a78bfa', fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >
+                    🎥 Video
+                  </button>
+                )}
                 {a.status !== 'cancelled' && (
                   <button
                     onClick={() => navigate(`/appointments/${a._id}/chat`, { state: { otherPartyName: a.patientId?.name || 'Patient' } })}
