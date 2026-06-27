@@ -106,11 +106,11 @@ Target: real-time features, richer doctor-patient communication, reviews.
 - [x] Patient can opt out of reminders per appointment
 - [x] Doctor receives daily digest of upcoming appointments
 
-### 2.5 Enhanced Notifications
-- [ ] Notification preferences (push / in-app / email per type)
-- [ ] Email notifications via SendGrid / Resend
-- [ ] Notification history older than 30 days auto-archived
-- [ ] Read-event cooldown: re-notify patient if same doctor re-opens after 24h
+### 2.5 Enhanced Notifications ✅
+- [x] Notification preferences (push / email global toggles per user)
+- [x] Email notifications via Resend
+- [x] Notification history older than 30 days auto-archived (MongoDB TTL)
+- [x] Read-event cooldown: re-notify patient if same doctor re-opens after 24h
 
 ---
 
