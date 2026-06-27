@@ -23,3 +23,16 @@ describe('Notification model type enum', () => {
     expect(enumValues).toContain('daily_digest');
   });
 });
+
+describe('User model notificationPrefs', () => {
+  it('has pushEnabled default true', () => {
+    const User = require('../User');
+    const prefs = User.schema.paths['notificationPrefs.pushEnabled'];
+    expect(prefs.defaultValue).toBe(true);
+  });
+  it('has emailEnabled default true', () => {
+    const User = require('../User');
+    const prefs = User.schema.paths['notificationPrefs.emailEnabled'];
+    expect(prefs.defaultValue).toBe(true);
+  });
+});

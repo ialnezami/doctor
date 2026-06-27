@@ -13,6 +13,10 @@ const userSchema = new mongoose.Schema({
   },
   fcmToken: { type: String, default: null },
   photoUrl: { type: String, default: '' },
+  notificationPrefs: {
+    pushEnabled:  { type: Boolean, default: true },
+    emailEnabled: { type: Boolean, default: true },
+  },
 }, { timestamps: true });
 
 userSchema.index({ location: '2dsphere' });
