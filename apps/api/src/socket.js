@@ -13,6 +13,13 @@ function escapeText(str) {
     .replace(/"/g, '&quot;');
 }
 
+let _io;
+
+function getIO() {
+  if (!_io) throw new Error('Socket not initialized');
+  return _io;
+}
+
 function initSocket(httpServer) {
   const io = new Server(httpServer, {
     cors: { origin: '*', methods: ['GET', 'POST'] },
@@ -103,7 +110,8 @@ function initSocket(httpServer) {
     });
   });
 
+  _io = io;
   return io;
 }
 
-module.exports = { initSocket };
+module.exports = { initSocket, getIO };

@@ -3,6 +3,7 @@ const crypto      = require('crypto');
 const mongoose    = require('mongoose');
 const auth        = require('../middleware/auth');
 const Appointment = require('../models/Appointment');
+const { getIO }   = require('../socket');
 
 /* POST /api/appointments/:id/video/token
  * Returns a Jitsi room URL for the appointment.
@@ -35,6 +36,15 @@ router.post('/:id/video/token', auth, async (req, res) => {
 
     const server  = process.env.JITSI_SERVER || 'meet.jit.si';
     const roomUrl = `https://${server}/${appt.videoRoomName}`;
+
+    try {
+      getIO().to(`chat:${req.params.id}`).emit('video_call_started', {
+        appointmentId: req.params.id,
+        callerRole: req.user.role,
+        roomUrl,
+      });
+    } catch { /* non-fatal — socket may not be initialized yet in tests */ }
+
     res.json({ roomUrl });
   } catch (err) {
     console.error('[video] room error:', err);

@@ -24,6 +24,7 @@ export default function ChatPage() {
   const [hasMore, setHasMore]             = useState(true);
   const [otherLastRead, setOtherLastRead] = useState(null);
   const [cancelled, setCancelled]         = useState(false);
+  const [incomingCall, setIncomingCall]   = useState(null);
 
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
@@ -75,6 +76,10 @@ export default function ChatPage() {
       if (err === 'Appointment is cancelled') setCancelled(true);
     });
 
+    socket.on('video_call_started', ({ callerRole }) => {
+      setIncomingCall(callerRole);
+    });
+
     return () => socket.disconnect();
   }, [appointmentId, token]);
 
@@ -111,6 +116,27 @@ export default function ChatPage() {
 
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'100vh' }} onFocus={markRead}>
+      {incomingCall && (
+        <div style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, background:'var(--mint,#0fe3b0)', color:'#000', padding:'12px 20px', display:'flex', alignItems:'center', justifyContent:'space-between', boxShadow:'0 2px 12px rgba(0,0,0,0.3)' }}>
+          <span style={{ fontWeight:600, fontSize:14 }}>
+            {incomingCall === 'doctor' ? 'Doctor' : 'Patient'} started the video call
+          </span>
+          <div style={{ display:'flex', gap:10 }}>
+            <button
+              onClick={() => { setIncomingCall(null); navigate(`/appointments/${appointmentId}/video`, { state: { otherPartyName } }); }}
+              style={{ background:'#000', color:'var(--mint,#0fe3b0)', border:'none', borderRadius:6, padding:'6px 16px', fontWeight:700, cursor:'pointer', fontSize:13 }}
+            >
+              Join
+            </button>
+            <button
+              onClick={() => setIncomingCall(null)}
+              style={{ background:'rgba(0,0,0,0.15)', color:'#000', border:'none', borderRadius:6, padding:'6px 12px', cursor:'pointer', fontSize:13 }}
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
       <div style={{ position:'sticky', top:0, zIndex:10, background:'rgba(6,13,24,0.95)', backdropFilter:'blur(14px)', borderBottom:'1px solid var(--border)', padding:'12px 20px', display:'flex', alignItems:'center', gap:12 }}>
         <button onClick={() => navigate(-1)} style={{ background:'none', border:'none', color:'var(--mint)', cursor:'pointer', fontSize:14 }}>
           {t('chat.back')}

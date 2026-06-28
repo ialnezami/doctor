@@ -59,6 +59,8 @@ export default function VideoCallPage() {
 
         const api = new window.JitsiMeetExternalAPI(domain, {
           roomName: room,
+          width: '100%',
+          height: '100%',
           parentNode: containerRef.current,
           configOverwrite: {
             prejoinPageEnabled:   false,
@@ -160,7 +162,7 @@ export default function VideoCallPage() {
             </div>
           )}
 
-          <div ref={containerRef} style={{ width:'100%', height:'100%' }} />
+          <div ref={containerRef} style={{ position:'absolute', inset:0 }} />
         </div>
 
         {/* Notes panel — doctor only */}

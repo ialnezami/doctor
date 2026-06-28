@@ -82,6 +82,25 @@ export default function ChatScreen({ route, navigation }) {
       Alert.alert('Chat error', err);
     });
 
+    socket.on('video_call_started', ({ callerRole }) => {
+      const callerLabel = callerRole === 'doctor' ? 'Doctor' : 'Patient';
+      Alert.alert(
+        'Video Call',
+        `${callerLabel} has started the video call`,
+        [
+          {
+            text: 'Join',
+            onPress: () => navigation.navigate('VideoCall', {
+              appointmentId,
+              otherPartyName: route.params.otherPartyName,
+              role: user.role,
+            }),
+          },
+          { text: 'Dismiss', style: 'cancel' },
+        ]
+      );
+    });
+
     return () => {
       socket.disconnect();
     };
