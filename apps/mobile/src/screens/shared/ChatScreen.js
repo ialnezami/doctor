@@ -163,7 +163,8 @@ export default function ChatScreen({ route, navigation }) {
   };
 
   const renderItem = ({ item: msg }) => {
-    const mine = String(msg.senderId) === String(user.id) || msg.senderId?._id === user.id;
+    const senderStr = msg.senderId?._id ? String(msg.senderId._id) : String(msg.senderId ?? '');
+    const mine = senderStr === String(user.id);
     const ts   = new Date(msg.createdAt);
     const seen = mine && otherLastRead && otherLastRead > new Date(msg.createdAt);
 

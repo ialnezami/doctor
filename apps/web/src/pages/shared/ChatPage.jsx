@@ -138,7 +138,8 @@ export default function ChatPage() {
         )}
 
         {messages.map((msg, idx) => {
-          const mine  = msg.senderId === user.id || msg.senderId?._id === user.id;
+          const senderStr = msg.senderId?._id ? String(msg.senderId._id) : String(msg.senderId ?? '');
+          const mine  = senderStr === String(user.id);
           const ts    = new Date(msg.createdAt);
           const isLast = idx === messages.length - 1;
           const seen  = mine && isLast && otherLastRead && otherLastRead > new Date(msg.createdAt);

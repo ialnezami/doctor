@@ -15,23 +15,29 @@ async function dailyFetch(path, options = {}) {
     },
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw Object.assign(new Error(data.error || `Daily.co ${res.status}`), { dailyStatus: res.status });
+  if (!res.ok) {
+    console.error('[daily] API error', res.status, JSON.stringify(data));
+    throw Object.assign(new Error(data.error || `Daily.co ${res.status}`), { dailyStatus: res.status, dailyBody: data });
+  }
   return data;
 }
 
 function computeRoomExp(appointmentDate) {
   const d = new Date(appointmentDate);
   d.setUTCHours(23, 59, 59, 999);
-  return Math.floor(d.getTime() / 1000);
+  // Daily.co rejects exp in the past — always guarantee at least 1 h from now
+  const floor = Date.now() + 60 * 60 * 1000;
+  return Math.floor(Math.max(d.getTime(), floor) / 1000);
 }
 
 function computeTokenExp(appointmentDate, timeSlotEnd) {
   const [hours, minutes] = timeSlotEnd.split(':').map(Number);
   const endDate = new Date(appointmentDate);
   endDate.setHours(hours, minutes, 0, 0);
-  const endMs = endDate.getTime() + 90 * 60 * 1000;
-  const capMs = Date.now()        + 4  * 60 * 60 * 1000;
-  return Math.floor(Math.min(endMs, capMs) / 1000);
+  const endMs  = endDate.getTime() + 90 * 60 * 1000;
+  const capMs  = Date.now()        +  4 * 60 * 60 * 1000;
+  const floor  = Date.now()        +      60 * 60 * 1000; // always at least 1 h
+  return Math.floor(Math.max(Math.min(endMs, capMs), floor) / 1000);
 }
 
 /* POST /api/appointments/:id/video/token */
