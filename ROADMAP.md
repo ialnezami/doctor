@@ -137,30 +137,30 @@ Target: real-time features, richer doctor-patient communication, reviews.
 
 ---
 
-## Phase 4 — AI & Clinical Intelligence 🔲
+## Phase 4 — AI & Clinical Intelligence ✅
 
-### 4.1 AI Symptom Checker
-- [ ] Pre-appointment symptom input form for patient
-- [ ] Claude API integration — triage suggestions (not diagnosis)
-- [ ] Suggested specialties based on symptoms
-- [ ] Symptom summary attached to appointment for doctor review
-- [ ] Clear disclaimer: AI output is not medical advice
+### 4.1 AI Symptom Checker ✅
+- [x] Pre-appointment symptom input form for patient
+- [x] Claude API integration — triage suggestions (not diagnosis)
+- [x] Suggested specialties based on symptoms (category + urgency returned by Claude)
+- [x] Symptom summary attached to appointment for doctor review
+- [x] Clear disclaimer: AI output is not medical advice
 
-### 4.2 Clinical Note Assistance
-- [ ] Doctor types notes → AI suggests ICD-10 codes
-- [ ] Auto-summarize long consultation notes into patient-friendly language
-- [ ] Flag missing information (e.g. missing follow-up instructions)
-- [ ] Prompt caching for cost efficiency (Anthropic SDK)
+### 4.2 Clinical Note Assistance ✅
+- [x] Doctor types notes → AI suggests ICD-10 codes
+- [x] Auto-summarize long consultation notes into patient-friendly language
+- [x] Flag missing information (e.g. missing follow-up instructions)
+- [x] Prompt caching for cost efficiency (Anthropic SDK)
 
-### 4.3 Smart Scheduling
-- [ ] AI suggests optimal appointment slots based on doctor history + patient preference
-- [ ] Detect scheduling conflicts across recurring appointments
-- [ ] Auto-reschedule suggestions when doctor cancels
+### 4.3 Smart Scheduling ✅
+- [x] AI suggests optimal appointment slots based on doctor history + patient preference
+- [-] Detect scheduling conflicts across recurring appointments — deferred (no recurring model)
+- [x] Auto-reschedule suggestions when doctor cancels
 
-### 4.4 Lab Result Interpretation
-- [ ] Flag abnormal values automatically
-- [ ] Plain-language explanation of results for patient
-- [ ] Trend analysis across multiple results of the same type
+### 4.4 Lab Result Interpretation ✅
+- [x] Flag abnormal values automatically (flag field: normal/high/low/critical per test)
+- [x] Plain-language explanation of results for patient (Claude Haiku via BullMQ async worker)
+- [-] Trend analysis across multiple results — deferred to Phase 6
 
 ---
 

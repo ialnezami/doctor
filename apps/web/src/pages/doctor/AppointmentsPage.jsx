@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getAppointments, updateStatus } from '../../api/appointments';
@@ -47,6 +47,178 @@ function SymptomCard({ appt, t }) {
       <p style={{ fontSize: 11, color: 'var(--text2)', marginTop: 10 }}>
         {t('appointments.symptoms.aiDisclaimer')}
       </p>
+    </div>
+  );
+}
+
+// ── AI Assist card for a single consultation note ─────────────────────────────
+function NoteAiAssistCard({ apptId, note, onAnalysisComplete }) {
+  const [analyzing, setAnalyzing] = useState(false);
+  const [error, setError]         = useState(null);
+  const pollRef = useRef(null);
+
+  const stopPolling = () => {
+    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+  };
+
+  // Clean up on unmount
+  useEffect(() => () => stopPolling(), []);
+
+  const handleAnalyze = async () => {
+    setAnalyzing(true);
+    setError(null);
+    stopPolling();
+
+    try {
+      await api.post(`/appointments/${apptId}/notes/${note._id}/analyze`);
+    } catch {
+      setAnalyzing(false);
+      setError('Failed to queue analysis. Please try again.');
+      return;
+    }
+
+    // Poll GET /appointments/:apptId/notes every 2 s for up to 10 s
+    let attempts = 0;
+    pollRef.current = setInterval(async () => {
+      attempts++;
+      try {
+        const res = await api.get(`/appointments/${apptId}/notes`);
+        const fresh = res.data?.notes?.find(n => n._id === note._id);
+        if (fresh?.aiAssist?.processedAt) {
+          stopPolling();
+          setAnalyzing(false);
+          onAnalysisComplete(fresh);
+          return;
+        }
+      } catch (_) {}
+      if (attempts >= 5) {
+        stopPolling();
+        setAnalyzing(false);
+        setError('Analysis is taking longer than expected. Refresh to check results.');
+      }
+    }, 2000);
+  };
+
+  const aiAssist = note.aiAssist;
+  const hasResult = Boolean(aiAssist?.processedAt);
+
+  return (
+    <div style={{ marginTop: 12, padding: 14, background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)' }}>
+      {/* Note content preview */}
+      <div style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 6, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {note.content?.slice(0, 120)}{note.content?.length > 120 ? '…' : ''}
+      </div>
+
+      {!hasResult && (
+        <button
+          onClick={handleAnalyze}
+          disabled={analyzing}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            background: 'var(--mint-dim)', border: '1px solid rgba(15,227,176,0.3)',
+            borderRadius: 6, padding: '5px 12px', color: 'var(--mint)',
+            fontSize: 12, fontWeight: 600, cursor: analyzing ? 'not-allowed' : 'pointer',
+            opacity: analyzing ? 0.6 : 1,
+          }}
+        >
+          {analyzing ? (
+            <><span style={{ display: 'inline-block', width: 10, height: 10, border: '2px solid var(--mint)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} /> Analyzing…</>
+          ) : 'AI Assist'}
+        </button>
+      )}
+
+      {error && <div style={{ fontSize: 12, color: '#ef4444', marginTop: 6 }}>{error}</div>}
+
+      {hasResult && (
+        <div style={{ marginTop: 10 }}>
+          {/* ICD-10 codes */}
+          {aiAssist.icdCodes?.length > 0 && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 6 }}>ICD-10 Codes</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {aiAssist.icdCodes.map((entry, i) => (
+                  <span key={i} title={entry.description} style={{
+                    background: 'rgba(15,227,176,0.1)', border: '1px solid rgba(15,227,176,0.25)',
+                    borderRadius: 6, padding: '3px 8px', fontSize: 11, color: 'var(--mint)', fontWeight: 600,
+                  }}>
+                    {entry.code}
+                    <span style={{ fontWeight: 400, color: 'var(--text2)', marginLeft: 4, fontSize: 10 }}>{entry.description}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Patient summary */}
+          {aiAssist.patientSummary && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 4 }}>Patient-Friendly Summary</div>
+              <div style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.6, padding: 10, background: 'rgba(255,255,255,0.03)', borderRadius: 6, borderLeft: '3px solid var(--mint)' }}>
+                {aiAssist.patientSummary}
+              </div>
+            </div>
+          )}
+
+          {/* Flags */}
+          {aiAssist.flags?.length > 0 && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 4 }}>Missing Information</div>
+              {aiAssist.flags.map((flag, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#f59e0b', marginBottom: 3 }}>
+                  <span>⚠</span><span>{flag}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ fontSize: 10, color: 'var(--text2)', fontStyle: 'italic', marginTop: 6 }}>
+            AI-generated — not a substitute for clinical judgment.
+          </div>
+
+          {/* Re-analyze */}
+          <button
+            onClick={handleAnalyze}
+            disabled={analyzing}
+            style={{ marginTop: 8, background: 'none', border: '1px solid var(--border2)', borderRadius: 6, padding: '3px 10px', color: 'var(--text2)', fontSize: 11, cursor: 'pointer' }}
+          >
+            Re-analyze
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Notes panel: lists notes + AI Assist for each ────────────────────────────
+function NotesPanel({ apptId, t }) {
+  const [notes, setNotes]     = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await api.get(`/appointments/${apptId}/notes`);
+      setNotes(res.data?.notes || []);
+    } catch (_) {}
+    setLoading(false);
+  }, [apptId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleAnalysisComplete = useCallback((updatedNote) => {
+    setNotes(prev => prev.map(n => n._id === updatedNote._id ? updatedNote : n));
+  }, []);
+
+  if (loading) return <div style={{ fontSize: 12, color: 'var(--text2)', padding: '12px 0' }}>Loading notes…</div>;
+  if (!notes.length) return <div style={{ fontSize: 12, color: 'var(--text2)', padding: '12px 0' }}>No notes yet.</div>;
+
+  return (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 10 }}>
+        Consultation Notes &amp; AI Assist
+      </div>
+      {notes.map(note => (
+        <NoteAiAssistCard key={note._id} apptId={apptId} note={note} onAnalysisComplete={handleAnalysisComplete} />
+      ))}
     </div>
   );
 }
@@ -210,6 +382,7 @@ export default function AppointmentsPage() {
               </div>
             )}
             <SymptomCard appt={selectedAppointment} t={t} />
+            <NotesPanel apptId={selectedAppointment._id} t={t} />
           </div>
         )}
       </div>

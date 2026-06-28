@@ -9,9 +9,36 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 
 const GRADIENTS = ['linear-gradient(135deg,#0fe3b0,#0891b2)','linear-gradient(135deg,#f59e0b,#ef4444)','linear-gradient(135deg,#8b5cf6,#3b82f6)'];
 
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
 function isReviewEligible(appt) {
   if (appt.status !== 'validated') return false;
   return Date.now() - new Date(appt.updatedAt).getTime() <= 7 * 24 * 60 * 60 * 1000;
+}
+
+function RescheduleSuggestions({ suggestions }) {
+  if (!Array.isArray(suggestions) || suggestions.length === 0) return null;
+  return (
+    <div style={{ padding: '10px 14px', borderTop: '1px solid var(--border)', background: 'rgba(15,227,176,0.04)' }}>
+      <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--mint)', marginBottom: 8 }}>
+        Suggested alternatives
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {suggestions.map((sg, idx) => (
+          <div key={idx} style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '7px 12px', minWidth: 160 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{DAY_NAMES[sg.dayOfWeek]}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--mint)' }}>{sg.time}</span>
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text2)', lineHeight: 1.4 }}>{sg.reason}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 8, fontStyle: 'italic' }}>
+        AI-powered suggestion — availability may vary
+      </div>
+    </div>
+  );
 }
 
 function StarPicker({ value, onChange }) {
@@ -124,6 +151,9 @@ export default function MyAppointmentsPage() {
           <button onClick={() => setReviewModal(a)} style={{ display: 'block', width: '100%', padding: '8px 14px', background: 'var(--mint-dim)', border: 'none', borderTop: '1px solid var(--border)', color: 'var(--mint)', fontWeight: 700, fontSize: 12, cursor: 'pointer', textAlign: 'center' }}>
             {t('myAppts.leaveReview')}
           </button>
+        )}
+        {isPast && a.status === 'cancelled' && (
+          <RescheduleSuggestions suggestions={a.rescheduleSuggestions} />
         )}
         {!isPast && a.status === 'confirmed' && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px', borderTop: '1px solid var(--border)', fontSize: 12, color: 'var(--text2)' }}>

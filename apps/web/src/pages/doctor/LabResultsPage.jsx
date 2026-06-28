@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getLabResults, searchLabResults, addLabNotes, createShareLink, revokeShareLink } from '../../api/labResults';
+import { getLabResults, getLabResult, searchLabResults, addLabNotes, interpret, createShareLink, revokeShareLink } from '../../api/labResults';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -110,6 +110,53 @@ function ShareModal({ result, onClose, t }) {
 const labelStyle = { display:'block', fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text2)', marginBottom:7 };
 const inputStyle = { width:'100%', background:'var(--bg3)', border:'1px solid var(--border2)', borderRadius:8, padding:'10px 13px', color:'var(--text)', fontSize:13.5, outline:'none', boxSizing:'border-box' };
 
+// Per-result AI interpretation state: { loading, summary, error }
+function useLabInterpretation() {
+  const [aiState, setAiState] = useState({});
+  const pollTimers = useRef({});
+
+  const startInterpret = async (result) => {
+    const id = result._id;
+    setAiState(prev => ({ ...prev, [id]: { loading: true, summary: null, error: null } }));
+    try {
+      await interpret(id);
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Failed to queue interpretation';
+      setAiState(prev => ({ ...prev, [id]: { loading: false, summary: null, error: msg } }));
+      return;
+    }
+
+    let attempts = 0;
+    const MAX_ATTEMPTS = 5;
+    const poll = async () => {
+      attempts += 1;
+      try {
+        const updated = await getLabResult(id);
+        if (updated?.aiInterpretation?.processedAt) {
+          setAiState(prev => ({
+            ...prev,
+            [id]: { loading: false, summary: updated.aiInterpretation.summary, error: null },
+          }));
+          return;
+        }
+      } catch {} // ignore transient poll errors
+      if (attempts < MAX_ATTEMPTS) {
+        pollTimers.current[id] = setTimeout(poll, 2000);
+      } else {
+        setAiState(prev => ({
+          ...prev,
+          [id]: { loading: false, summary: null, error: 'Interpretation is taking longer than expected. Try again shortly.' },
+        }));
+      }
+    };
+    pollTimers.current[id] = setTimeout(poll, 2000);
+  };
+
+  useEffect(() => () => Object.values(pollTimers.current).forEach(clearTimeout), []);
+
+  return { aiState, startInterpret };
+}
+
 export default function LabResultsPage() {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
@@ -119,6 +166,7 @@ export default function LabResultsPage() {
   const [savingNotes, setSavingNotes] = useState(false);
   const [search, setSearch] = useState('');
   const [shareTarget, setShareTarget] = useState(null);
+  const { aiState, startInterpret } = useLabInterpretation();
 
   const load = () => getLabResults().then(setResults).catch(() => {});
   useEffect(() => { load(); }, []);
@@ -256,6 +304,46 @@ export default function LabResultsPage() {
                 </table>
                 </div>
               </Card>
+
+              {/* AI Interpretation panel — visible to doctor for context */}
+              {selected.status === 'ready' && (() => {
+                const ai = aiState[selected._id];
+                if (ai?.summary) {
+                  return (
+                    <div style={{ marginBottom:18, padding:14, borderRadius:10, border:'1px solid var(--mint)', background:'rgba(15,227,176,0.06)' }}>
+                      <div style={{ fontSize:10.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--mint)', marginBottom:8 }}>
+                        AI Explanation (patient-facing)
+                      </div>
+                      <p style={{ margin:0, fontSize:13.5, color:'var(--text)', lineHeight:'1.6' }}>{ai.summary}</p>
+                      <p style={{ margin:'8px 0 0', fontSize:11, color:'var(--text3)', fontStyle:'italic' }}>
+                        AI-generated explanation — consult your doctor for medical advice.
+                      </p>
+                    </div>
+                  );
+                }
+                if (ai?.error) {
+                  return (
+                    <div style={{ marginBottom:18, padding:12, borderRadius:10, border:'1px solid var(--rose)', background:'rgba(244,63,94,0.06)', fontSize:13, color:'var(--rose)' }}>
+                      {ai.error}
+                    </div>
+                  );
+                }
+                if (ai?.loading) {
+                  return (
+                    <div style={{ marginBottom:18, padding:12, borderRadius:10, border:'1px solid var(--border)', background:'var(--bg3)', fontSize:13, color:'var(--text2)', display:'flex', alignItems:'center', gap:8 }}>
+                      <span style={{ animation:'spin 1s linear infinite', display:'inline-block' }}>⟳</span>
+                      Generating AI explanation…
+                    </div>
+                  );
+                }
+                return (
+                  <div style={{ marginBottom:18 }}>
+                    <Button variant="ghost" style={{ fontSize:12 }} onClick={() => startInterpret(selected)}>
+                      ✨ Generate AI Explanation
+                    </Button>
+                  </div>
+                );
+              })()}
 
               {/* Doctor notes */}
               <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:8 }}>
