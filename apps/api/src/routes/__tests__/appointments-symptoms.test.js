@@ -69,3 +69,13 @@ test('returns 409 if appointment is validated', async () => {
     .send({ symptomText: 'headache' });
   expect(res.status).toBe(409);
 });
+
+test('returns 409 if appointment is in_progress', async () => {
+  Appointment.findById = jest.fn().mockResolvedValue({
+    _id: 'appt1', patientId: 'pat1', status: 'in_progress', save: jest.fn(),
+  });
+  const res = await request(app)
+    .patch('/api/appointments/appt1/symptoms')
+    .send({ symptomText: 'headache' });
+  expect(res.status).toBe(409);
+});

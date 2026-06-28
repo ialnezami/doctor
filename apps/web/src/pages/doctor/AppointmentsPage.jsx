@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAppointments, updateStatus } from '../../api/appointments';
+import api from '../../api/client';
 import StatusChip from '../../components/ui/StatusChip';
 import Button from '../../components/ui/Button';
 
@@ -54,8 +55,31 @@ export default function AppointmentsPage() {
   const [filter, setFilter] = useState('all');
   const [selectedAppointment, setSelectedAppointment] = useState(null);
 
-  const load = () => getAppointments().then(setAppointments).catch(() => {});
-  useEffect(() => { load(); }, []);
+  const load = useCallback(() => getAppointments().then(setAppointments).catch(() => {}), []);
+  useEffect(() => { load(); }, [load]);
+
+  // Poll for AI analysis completion when the selected appointment has pending analysis
+  useEffect(() => {
+    if (!selectedAppointment?.symptomText) return;
+    if (selectedAppointment?.symptomAnalysis?.processedAt) return;
+
+    let attempts = 0;
+    const MAX_ATTEMPTS = 12; // 12 × 5s = 60s max
+
+    const interval = setInterval(async () => {
+      attempts++;
+      try {
+        const fresh = await api.get(`/appointments/${selectedAppointment._id}`);
+        if (fresh.data?.symptomAnalysis?.processedAt) {
+          setSelectedAppointment(fresh.data);
+          clearInterval(interval);
+        }
+      } catch (_) { /* ignore transient errors */ }
+      if (attempts >= MAX_ATTEMPTS) clearInterval(interval);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [selectedAppointment?._id, selectedAppointment?.symptomAnalysis?.processedAt]);
 
   const handleStatus = async (id, status) => {
     await updateStatus(id, status);

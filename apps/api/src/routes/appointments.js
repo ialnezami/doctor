@@ -320,8 +320,8 @@ router.patch('/:id/symptoms', auth, async (req, res, next) => {
     if (String(appt.patientId) !== req.user.id) {
       return res.status(403).json({ message: 'Not your appointment' });
     }
-    if (['validated', 'cancelled'].includes(appt.status)) {
-      return res.status(409).json({ message: 'Cannot update symptoms for a validated or cancelled appointment' });
+    if (!['pending', 'confirmed'].includes(appt.status)) {
+      return res.status(409).json({ message: 'Cannot update symptoms for this appointment' });
     }
 
     appt.symptomText = symptomText.trim();
