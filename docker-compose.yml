@@ -40,6 +40,18 @@ services:
     networks:
       - mediconnect-net
 
+  web:
+    build:
+      context: ./apps/web
+    container_name: mediconnect-web
+    restart: unless-stopped
+    ports:
+      - '80:80'
+    depends_on:
+      - api
+    networks:
+      - mediconnect-net
+
 networks:
   mediconnect-net:
     driver: bridge
