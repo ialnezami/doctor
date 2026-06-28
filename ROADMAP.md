@@ -255,6 +255,33 @@ Target: real-time features, richer doctor-patient communication, reviews.
 
 ---
 
+## Phase 8 — Doctor Equipment Marketplace 💡
+
+Doctor-only marketplace for browsing and ordering medical equipment and supplies.
+
+### 8.1 Product Catalog
+- [ ] Equipment listings (name, description, images, price, category)
+- [ ] Category browsing and search (by specialty, equipment type)
+- [ ] Product detail page with specs and availability
+- [ ] Supplier / vendor information per product
+
+### 8.2 Order Management
+- [ ] Doctor places order (select product, quantity, delivery address)
+- [ ] Order status lifecycle: `pending → confirmed → shipped → delivered`
+- [ ] Doctor order history and tracking
+- [ ] Order cancellation (while pending)
+
+### 8.3 Admin / Supplier Side
+- [ ] Admin can add, edit, deactivate product listings
+- [ ] Admin manages incoming orders and updates status
+- [ ] Basic inventory tracking (stock count per product)
+
+### 8.4 Notifications
+- [ ] Doctor notified when order status changes (push + email)
+- [ ] Low-stock alerts for admin
+
+---
+
 ## Current Milestone Summary
 
 | Phase | Status | Completion |
@@ -266,3 +293,4 @@ Target: real-time features, richer doctor-patient communication, reviews.
 | Phase 5 — Admin & Compliance | 🔲 Planned | 0% |
 | Phase 6 — Scale & Reliability | 🔲 Planned | 0% |
 | Phase 7 — Ecosystem Expansion | 💡 Idea | 0% |
+| Phase 8 — Doctor Equipment Marketplace | 💡 Idea | 0% |
