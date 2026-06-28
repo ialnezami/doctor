@@ -1,0 +1,349 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import StatusChip from '../../components/ui/StatusChip';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { getPatientByUserId } from '../../api/patients';
+import { getAppointments } from '../../api/appointments';
+import { getPrescriptions } from '../../api/prescriptions';
+import { searchLabResults } from '../../api/labResults';
+
+function calcAge(dob) {
+  if (!dob) return null;
+  return Math.floor((Date.now() - new Date(dob).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+}
+
+function refCode(id) {
+  return '#P-' + String(id).slice(-4).toUpperCase();
+}
+
+function initials(name) {
+  return name?.split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
+}
+
+const TABS = ['overview', 'appointments', 'prescriptions', 'labs'];
+const TAB_LABELS = { overview: 'Overview', appointments: 'Appointments', prescriptions: 'Prescriptions', labs: 'Lab Results' };
+
+export default function PatientDetailPage() {
+  const { userId } = useParams();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const isMobile = useIsMobile();
+
+  const [tab, setTab] = useState('overview');
+  const [profile, setProfile] = useState(null);
+  const [patientName, setPatientName] = useState('');
+  const [appointments, setAppointments] = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [labResults, setLabResults] = useState([]);
+  const [expandedAppt, setExpandedAppt] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.allSettled([
+      getPatientByUserId(userId).then(setProfile),
+      getAppointments({ patientId: userId }).then(data => {
+        const list = Array.isArray(data) ? data : data?.data ?? [];
+        setAppointments([...list].sort((a, b) => new Date(b.date) - new Date(a.date)));
+        if (list[0]?.patientId?.name) setPatientName(list[0].patientId.name);
+      }),
+      getPrescriptions({ patientId: userId }).then(data => {
+        const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+        setPrescriptions([...list].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+      }),
+      searchLabResults({ patientId: userId }).then(data => {
+        const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+        setLabResults([...list].sort((a, b) => new Date(b.issuedAt || b.createdAt) - new Date(a.issuedAt || a.createdAt)));
+      }),
+    ]).finally(() => setLoading(false));
+  }, [userId]);
+
+  const displayName = patientName || profile?.userId?.name || '…';
+  const age = profile?.dateOfBirth ? calcAge(profile.dateOfBirth) : null;
+
+  const activeAppt = appointments.find(a => ['confirmed', 'in_progress'].includes(a.status));
+
+  return (
+    <div>
+      {/* Sticky header */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(6,13,24,0.92)', backdropFilter: 'blur(14px)', borderBottom: '1px solid var(--border)', padding: isMobile ? '12px 14px' : '14px 26px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+          <button onClick={() => navigate('/patients')} style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 12px', color: 'var(--text2)', fontSize: 12, cursor: 'pointer' }}>
+            ← Patients
+          </button>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 9, background: 'linear-gradient(135deg,var(--mint),#0891b2)', display: 'grid', placeItems: 'center', fontSize: 13, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                {initials(displayName)}
+              </div>
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 500 }}>{displayName}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--text2)' }}>
+                  {[age ? `${age}y` : null, profile?.bloodType || null, refCode(userId)].filter(Boolean).join(' · ')}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {activeAppt && (
+              <>
+                <button
+                  onClick={() => navigate(`/appointments/${activeAppt._id}/chat`, { state: { otherPartyName: displayName } })}
+                  style={{ background: 'var(--mint-dim)', border: '1px solid rgba(15,227,176,0.3)', borderRadius: 8, padding: '7px 13px', color: 'var(--mint)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Chat
+                </button>
+                {activeAppt.status === 'confirmed' && (
+                  <button
+                    onClick={() => navigate(`/appointments/${activeAppt._id}/video`, { state: { otherPartyName: displayName } })}
+                    style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: 8, padding: '7px 13px', color: '#a78bfa', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    🎥 Video
+                  </button>
+                )}
+              </>
+            )}
+            <Button style={{ padding: '7px 14px', fontSize: 12 }} onClick={() => navigate('/prescriptions', { state: { patientId: userId, patientName: displayName } })}>
+              + Prescribe
+            </Button>
+          </div>
+        </div>
+
+        {/* Allergy banner */}
+        {(profile?.allergies?.length > 0) && (
+          <div style={{ marginTop: 10, background: 'rgba(244,63,94,0.1)', border: '1px solid rgba(244,63,94,0.3)', borderRadius: 8, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 15 }}>⚠️</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--rose)' }}>Allergies: </span>
+            <span style={{ fontSize: 12, color: 'var(--rose)' }}>{profile.allergies.join(', ')}</span>
+          </div>
+        )}
+      </div>
+
+      <div style={{ padding: isMobile ? 14 : 26 }}>
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 4, marginBottom: 22, borderBottom: '1px solid var(--border)', paddingBottom: 12, flexWrap: 'wrap' }}>
+          {TABS.map(key => (
+            <button key={key} onClick={() => setTab(key)}
+              style={{ padding: '6px 16px', borderRadius: 8, border: '1px solid', cursor: 'pointer', fontSize: 13, fontWeight: 500, transition: 'all .12s',
+                background: tab === key ? 'var(--mint-dim)' : 'transparent',
+                borderColor: tab === key ? 'rgba(15,227,176,0.2)' : 'transparent',
+                color: tab === key ? 'var(--mint)' : 'var(--text2)' }}>
+              {TAB_LABELS[key]}
+              {key === 'appointments' && appointments.length > 0 && (
+                <span style={{ marginLeft: 6, background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 20, padding: '1px 6px', fontSize: 10.5, color: 'var(--text2)' }}>{appointments.length}</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {loading && <div style={{ color: 'var(--text2)', fontSize: 13 }}>Loading…</div>}
+
+        {!loading && tab === 'overview' && (
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+            {/* Health profile */}
+            <Card>
+              <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 14 }}>Health Profile</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                {[
+                  ['Date of Birth', profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString() : '—'],
+                  ['Age', age ? `${age} years` : '—'],
+                  ['Blood Type', profile?.bloodType || '—'],
+                  ['Ref', refCode(userId)],
+                ].map(([label, value]) => (
+                  <div key={label} style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 12px' }}>
+                    <div style={{ fontSize: 10.5, color: 'var(--text3)', marginBottom: 3 }}>{label}</div>
+                    <div style={{ fontSize: 13.5, fontWeight: 600 }}>{value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {profile?.conditions?.length > 0 && (
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text2)', marginBottom: 8 }}>Conditions</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {profile.conditions.map(c => (
+                      <span key={c} style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'var(--bg3)', border: '1px solid var(--border2)', color: 'var(--text2)' }}>{c}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {profile?.allergies?.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--rose)', marginBottom: 8 }}>⚠ Allergies</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {profile.allergies.map(a => (
+                      <span key={a} style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(244,63,94,0.1)', border: '1px solid rgba(244,63,94,0.3)', color: 'var(--rose)' }}>{a} ⚠</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {!profile && <p style={{ fontSize: 12, color: 'var(--text3)' }}>No profile data available.</p>}
+            </Card>
+
+            {/* Summary stats */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {[
+                ['Total Appointments', appointments.length],
+                ['Prescriptions', prescriptions.length],
+                ['Lab Results', labResults.length],
+                ['Last Visit', appointments[0] ? new Date(appointments[0].date).toLocaleDateString() : '—'],
+              ].map(([label, value]) => (
+                <div key={label} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 13, color: 'var(--text2)' }}>{label}</span>
+                  <span style={{ fontSize: 16, fontWeight: 700 }}>{value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {!loading && tab === 'appointments' && (
+          <div>
+            {appointments.length === 0 && <p style={{ fontSize: 13, color: 'var(--text3)' }}>No appointments found.</p>}
+            {appointments.map(a => {
+              const isExpanded = expandedAppt === a._id;
+              const isActive = ['confirmed', 'in_progress'].includes(a.status);
+              return (
+                <div key={a._id}
+                  style={{ background: 'var(--bg2)', border: `1px solid ${isActive ? 'var(--mint)' : 'var(--border)'}`, borderRadius: 10, marginBottom: 10, overflow: 'hidden', transition: 'border-color .15s' }}>
+                  <div onClick={() => setExpandedAppt(isExpanded ? null : a._id)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', cursor: 'pointer' }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: isActive ? 'var(--mint)' : 'var(--text3)', flexShrink: 0, boxShadow: isActive ? '0 0 0 3px var(--mint-dim)' : 'none' }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 13, fontWeight: 500, textTransform: 'capitalize' }}>{a.visitType || 'Consultation'}</span>
+                        <StatusChip status={a.status} />
+                      </div>
+                      <div style={{ fontSize: 11.5, color: 'var(--text2)', marginTop: 3 }}>
+                        {new Date(a.date).toLocaleDateString()} {a.timeSlot?.start ? `· ${a.timeSlot.start}` : ''}
+                        {a.reason ? ` · ${a.reason}` : ''}
+                      </div>
+                    </div>
+                    <span style={{ color: 'var(--text3)', fontSize: 12 }}>{isExpanded ? '▲' : '▼'}</span>
+                  </div>
+
+                  {isExpanded && (
+                    <div style={{ borderTop: '1px solid var(--border)', padding: '14px 16px' }}>
+                      {a.reason && (
+                        <div style={{ marginBottom: 10 }}>
+                          <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text2)', marginBottom: 4 }}>Reason</div>
+                          <div style={{ fontSize: 13, color: 'var(--text)' }}>{a.reason}</div>
+                        </div>
+                      )}
+                      <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text2)', marginBottom: 8 }}>Appointment ID</div>
+                      <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text3)', marginBottom: 14 }}>{a._id}</div>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <button
+                          onClick={() => navigate(`/appointments/${a._id}/chat`, { state: { otherPartyName: displayName } })}
+                          style={{ background: 'var(--mint-dim)', border: '1px solid rgba(15,227,176,0.3)', borderRadius: 7, padding: '6px 13px', color: 'var(--mint)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          Chat
+                        </button>
+                        {a.status === 'confirmed' && (
+                          <button
+                            onClick={() => navigate(`/appointments/${a._id}/video`, { state: { otherPartyName: displayName } })}
+                            style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: 7, padding: '6px 13px', color: '#a78bfa', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                          >
+                            🎥 Video Call
+                          </button>
+                        )}
+                        <button
+                          onClick={() => navigate('/prescriptions', { state: { patientId: userId, patientName: displayName, appointmentId: a._id } })}
+                          style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 7, padding: '6px 13px', color: 'var(--text)', fontSize: 12, cursor: 'pointer' }}
+                        >
+                          + Prescription
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {!loading && tab === 'prescriptions' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
+              <Button style={{ padding: '7px 14px', fontSize: 12 }} onClick={() => navigate('/prescriptions', { state: { patientId: userId, patientName: displayName } })}>
+                + New Prescription
+              </Button>
+            </div>
+            {prescriptions.length === 0 && <p style={{ fontSize: 13, color: 'var(--text3)' }}>No prescriptions yet.</p>}
+            {prescriptions.map(rx => (
+              <Card key={rx._id} style={{ marginBottom: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                  <div style={{ fontSize: 11.5, color: 'var(--text2)' }}>
+                    {new Date(rx.createdAt).toLocaleDateString()}
+                    {rx.validUntil ? ` · Valid until ${new Date(rx.validUntil).toLocaleDateString()}` : ''}
+                  </div>
+                </div>
+                {rx.medications?.length > 0 && (
+                  <div style={{ marginBottom: 8 }}>
+                    {rx.medications.map((m, i) => (
+                      <div key={i} style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 7, padding: '8px 12px', marginBottom: 6 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>{m.name}</div>
+                        {(m.dosage || m.frequency || m.duration) && (
+                          <div style={{ fontSize: 11.5, color: 'var(--text2)', marginTop: 2 }}>
+                            {[m.dosage, m.frequency, m.duration].filter(Boolean).join(' · ')}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {rx.instructions && <div style={{ fontSize: 12, color: 'var(--text2)' }}>{rx.instructions}</div>}
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {!loading && tab === 'labs' && (
+          <div>
+            {labResults.length === 0 && <p style={{ fontSize: 13, color: 'var(--text3)' }}>No lab results found.</p>}
+            {labResults.map(lr => {
+              const hasCritical = lr.tests?.some(t => t.flag === 'critical');
+              const hasAbnormal = lr.tests?.some(t => ['high', 'low'].includes(t.flag));
+              return (
+                <Card key={lr._id} style={{ marginBottom: 12, borderColor: hasCritical ? 'rgba(244,63,94,0.4)' : undefined }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <div>
+                      <div style={{ fontSize: 13.5, fontWeight: 600 }}>{lr.labName || 'Lab Result'}</div>
+                      <div style={{ fontSize: 11.5, color: 'var(--text2)', marginTop: 2 }}>
+                        {lr.issuedAt ? new Date(lr.issuedAt).toLocaleDateString() : new Date(lr.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                    {hasCritical && <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--rose)', background: 'rgba(244,63,94,0.1)', border: '1px solid rgba(244,63,94,0.3)', borderRadius: 6, padding: '3px 9px' }}>CRITICAL</span>}
+                    {!hasCritical && hasAbnormal && <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--amber)', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: 6, padding: '3px 9px' }}>ABNORMAL</span>}
+                  </div>
+                  {lr.tests?.length > 0 && (
+                    <div style={{ display: 'grid', gap: 4 }}>
+                      {lr.tests.map((test, i) => {
+                        const flagColor = test.flag === 'critical' ? 'var(--rose)' : test.flag === 'normal' ? 'var(--mint)' : 'var(--amber)';
+                        return (
+                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: 'var(--bg3)', borderRadius: 6 }}>
+                            <span style={{ fontSize: 12 }}>{test.name}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              {test.value && <span style={{ fontSize: 12, color: 'var(--text2)' }}>{test.value}{test.unit ? ` ${test.unit}` : ''}</span>}
+                              {test.flag && <span style={{ fontSize: 10.5, fontWeight: 600, color: flagColor }}>{test.flag.toUpperCase()}</span>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {lr.notes && <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>{lr.notes}</div>}
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

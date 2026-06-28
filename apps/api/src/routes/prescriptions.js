@@ -28,6 +28,8 @@ router.get('/', auth, async (req, res, next) => {
       ? { doctorId: req.user.id }
       : { patientId: req.user.id };
 
+    if (req.user.role === 'doctor' && req.query.patientId) filter.patientId = req.query.patientId;
+
     const rxList = await Prescription.find(filter)
       .populate('doctorId', 'name')
       .populate('patientId', 'name')

@@ -6,7 +6,8 @@ import LoginPage          from '../pages/auth/LoginPage';
 import RegisterPage       from '../pages/auth/RegisterPage';
 import DashboardPage      from '../pages/doctor/DashboardPage';
 import AppointmentsPage   from '../pages/doctor/AppointmentsPage';
-import PatientRecordsPage from '../pages/doctor/PatientRecordsPage';
+import PatientRecordsPage  from '../pages/doctor/PatientRecordsPage';
+import PatientDetailPage   from '../pages/doctor/PatientDetailPage';
 import PrescriptionsPage  from '../pages/doctor/PrescriptionsPage';
 import LabResultsPage     from '../pages/doctor/LabResultsPage';
 import DoctorSettingsPage from '../pages/doctor/DoctorSettingsPage';
@@ -42,7 +43,8 @@ export default function AppRouter() {
         {/* Doctor routes */}
         <Route path="/dashboard"     element={<Protected role="doctor"><DashboardPage /></Protected>} />
         <Route path="/appointments"  element={<Protected role="doctor"><AppointmentsPage /></Protected>} />
-        <Route path="/patients"      element={<Protected role="doctor"><PatientRecordsPage /></Protected>} />
+        <Route path="/patients"            element={<Protected role="doctor"><PatientRecordsPage /></Protected>} />
+        <Route path="/patients/:userId"    element={<Protected role="doctor"><PatientDetailPage /></Protected>} />
         <Route path="/prescriptions" element={<Protected role="doctor"><PrescriptionsPage /></Protected>} />
         <Route path="/lab-results"   element={<Protected role="doctor"><LabResultsPage /></Protected>} />
         <Route path="/settings"      element={<Protected role="doctor"><DoctorSettingsPage /></Protected>} />

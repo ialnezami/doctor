@@ -125,6 +125,7 @@ router.get('/', auth, async (req, res, next) => {
       : { patientId: req.user.id };
 
     if (req.query.status) filter.status = req.query.status;
+    if (req.user.role === 'doctor' && req.query.patientId) filter.patientId = req.query.patientId;
 
     const appointments = await Appointment.find(filter)
       .populate('doctorId', 'name')
