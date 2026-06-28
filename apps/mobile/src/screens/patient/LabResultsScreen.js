@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, Modal, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import C from '../../constants/colors';
-import { getLabResults, createShareLink } from '../../api/labResults';
+import { getLabResults, getLabResult, interpret, createShareLink } from '../../api/labResults';
 import ErrorState from '../../components/ErrorState';
 
 const FLAG = {
@@ -75,14 +75,70 @@ function ShareModal({ result, onClose }) {
   );
 }
 
+// Per-card AI interpretation state: { [resultId]: { loading, summary, error } }
+function useLabInterpretation() {
+  const [state, setState] = useState({});
+  const pollTimers = useRef({});
+
+  const startInterpret = async (result) => {
+    const id = result._id;
+    setState(prev => ({ ...prev, [id]: { loading: true, summary: null, error: null } }));
+
+    try {
+      await interpret(id);
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Failed to queue interpretation';
+      setState(prev => ({ ...prev, [id]: { loading: false, summary: null, error: msg } }));
+      return;
+    }
+
+    // Poll GET /api/lab-results/:id every 2s, up to 10s (5 attempts)
+    let attempts = 0;
+    const MAX_ATTEMPTS = 5;
+    const poll = async () => {
+      attempts += 1;
+      try {
+        const updated = await getLabResult(id);
+        if (updated?.aiInterpretation?.processedAt) {
+          setState(prev => ({
+            ...prev,
+            [id]: { loading: false, summary: updated.aiInterpretation.summary, error: null },
+          }));
+          return; // done
+        }
+      } catch {} // ignore poll errors
+
+      if (attempts < MAX_ATTEMPTS) {
+        pollTimers.current[id] = setTimeout(poll, 2000);
+      } else {
+        setState(prev => ({
+          ...prev,
+          [id]: { loading: false, summary: null, error: 'Interpretation is taking longer than expected. Try again shortly.' },
+        }));
+      }
+    };
+    pollTimers.current[id] = setTimeout(poll, 2000);
+  };
+
+  // Cleanup timers on unmount
+  const clearAll = () => {
+    Object.values(pollTimers.current).forEach(clearTimeout);
+    pollTimers.current = {};
+  };
+
+  return { state, startInterpret, clearAll };
+}
+
 export default function LabResultsScreen() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [shareTarget, setShareTarget] = useState(null);
+  const { state: interpretState, startInterpret, clearAll } = useLabInterpretation();
 
   useEffect(() => {
     getLabResults().then(setResults).catch(() => {}).finally(() => setLoading(false));
+    return () => clearAll(); // clear any pending poll timers on unmount
   }, []);
 
   return (
@@ -135,6 +191,44 @@ export default function LabResultsScreen() {
                         <Text style={s.notesTxt}>{r.notes}</Text>
                       </View>
                     ) : null}
+                    {/* AI Interpretation */}
+                    {r.status === 'ready' && (() => {
+                      const ai = interpretState[r._id];
+                      if (ai?.summary) {
+                        return (
+                          <View style={s.aiCard}>
+                            <Text style={s.aiLabel}>AI Explanation</Text>
+                            <Text style={s.aiSummary}>{ai.summary}</Text>
+                            <Text style={s.aiDisclaimer}>AI-generated explanation — consult your doctor for medical advice.</Text>
+                          </View>
+                        );
+                      }
+                      if (ai?.error) {
+                        return (
+                          <View style={s.aiCardError}>
+                            <Text style={s.aiErrorTxt}>{ai.error}</Text>
+                          </View>
+                        );
+                      }
+                      if (ai?.loading) {
+                        return (
+                          <View style={s.aiCardLoading}>
+                            <ActivityIndicator size="small" color={C.mint} />
+                            <Text style={s.aiLoadingTxt}>Generating explanation…</Text>
+                          </View>
+                        );
+                      }
+                      return (
+                        <TouchableOpacity
+                          style={s.explainBtn}
+                          onPress={() => startInterpret(r)}
+                          disabled={!!ai?.loading}
+                        >
+                          <Text style={s.explainBtnTxt}>✨ Explain my results</Text>
+                        </TouchableOpacity>
+                      );
+                    })()}
+
                     <View style={{ flexDirection:'row', gap:8, marginTop:12 }}>
                       <TouchableOpacity style={s.actionBtn} onPress={() => setShareTarget(r)}>
                         <Text style={s.actionTxt}>🔗 Share</Text>
@@ -183,6 +277,16 @@ const s = StyleSheet.create({
   notesTxt: { fontSize:12.5, color:C.text2, lineHeight:18 },
   actionBtn: { paddingHorizontal:14, paddingVertical:7, borderRadius:8, borderWidth:1, borderColor:C.border2 },
   actionTxt: { fontSize:12.5, color:C.text2 },
+  explainBtn: { marginTop:12, backgroundColor:'rgba(15,227,176,0.12)', borderWidth:1, borderColor:C.mint, borderRadius:8, paddingVertical:9, paddingHorizontal:14, alignSelf:'flex-start' },
+  explainBtnTxt: { fontSize:12.5, fontWeight:'600', color:C.mint },
+  aiCard: { marginTop:12, backgroundColor:'rgba(15,227,176,0.07)', borderWidth:1, borderColor:C.mint, borderRadius:10, padding:12 },
+  aiLabel: { fontSize:10, fontWeight:'700', textTransform:'uppercase', letterSpacing:0.8, color:C.mint, marginBottom:6 },
+  aiSummary: { fontSize:13, color:C.text, lineHeight:20 },
+  aiDisclaimer: { fontSize:10.5, color:C.text3, marginTop:8, fontStyle:'italic' },
+  aiCardError: { marginTop:12, backgroundColor:'rgba(244,63,94,0.07)', borderWidth:1, borderColor:C.rose, borderRadius:10, padding:12 },
+  aiErrorTxt: { fontSize:12.5, color:C.rose },
+  aiCardLoading: { marginTop:12, flexDirection:'row', alignItems:'center', gap:8, padding:10 },
+  aiLoadingTxt: { fontSize:12.5, color:C.text3 },
 });
 
 const ms = StyleSheet.create({

@@ -27,3 +27,7 @@ export const toggleReminderOptOut = (id, disabled) =>
 // AI symptom intake
 export const submitSymptoms = (appointmentId, symptomText) =>
   client.patch(`/appointments/${appointmentId}/symptoms`, { symptomText });
+
+// AI note analysis
+export const analyzeNote = (apptId, noteId) =>
+  client.post(`/appointments/${apptId}/notes/${noteId}/analyze`).then(r => r.data);

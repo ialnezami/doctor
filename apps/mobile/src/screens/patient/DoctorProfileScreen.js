@@ -2,12 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { getDoctor, getAvailableSlots } from '../../api/doctors';
+import { getDoctor, getAvailableSlots, getSuggestedSlots } from '../../api/doctors';
 import { getDoctorReviews } from '../../api/reviews';
 import C from '../../constants/colors';
 
 function toISO(d) { return d.toISOString().slice(0, 10); }
 function dateLabel(d) { return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); }
+
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+/** Returns the ISO date string for the next occurrence of dayOfWeek (0=Sun) at or after today. */
+function nextDateForDay(dayOfWeek) {
+  const today = new Date();
+  const todayDow = today.getUTCDay();
+  const diff = (dayOfWeek - todayDow + 7) % 7;
+  const target = new Date(today);
+  target.setUTCDate(today.getUTCDate() + diff);
+  return toISO(target);
+}
 
 function Stars({ rating }) {
   const full = Math.round(rating);
@@ -42,17 +54,31 @@ function ReviewItem({ review }) {
 export default function DoctorProfileScreen({ route, navigation }) {
   const { doctorId, doctorUserId } = route.params;
   const { t } = useTranslation();
-  const [doctor, setDoctor]             = useState(null);
-  const [selectedDate, setSelectedDate] = useState(toISO(new Date()));
-  const [slots, setSlots]               = useState([]);
-  const [slotsLoading, setSlotsLoading] = useState(false);
-  const [reviewData, setReviewData]     = useState({ reviews: [], averageRating: 0, reviewCount: 0 });
+  const [doctor, setDoctor]                   = useState(null);
+  const [selectedDate, setSelectedDate]       = useState(toISO(new Date()));
+  const [slots, setSlots]                     = useState([]);
+  const [slotsLoading, setSlotsLoading]       = useState(false);
+  const [reviewData, setReviewData]           = useState({ reviews: [], averageRating: 0, reviewCount: 0 });
+  const [smartSuggestions, setSmartSuggestions] = useState([]);
+  const [smartDisclaimer, setSmartDisclaimer]   = useState('');
+  const [smartLoading, setSmartLoading]         = useState(false);
 
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() + i); return d;
   });
 
   useEffect(() => { getDoctor(doctorId).then(setDoctor).catch(() => {}); }, [doctorId]);
+
+  useEffect(() => {
+    setSmartLoading(true);
+    getSuggestedSlots(doctorId)
+      .then(data => {
+        setSmartSuggestions(data?.suggestions || []);
+        setSmartDisclaimer(data?.disclaimer || '');
+      })
+      .catch(() => setSmartSuggestions([]))
+      .finally(() => setSmartLoading(false));
+  }, [doctorId]);
   useEffect(() => {
     if (doctorUserId) {
       getDoctorReviews(doctorUserId, 1).then(setReviewData).catch(() => {});
@@ -129,6 +155,38 @@ export default function DoctorProfileScreen({ route, navigation }) {
           ))}
         </View>
 
+        {/* Smart Suggestions section */}
+        {(smartLoading || smartSuggestions.length > 0) && (
+          <View style={{ paddingHorizontal: 16, marginBottom: 20 }}>
+            <Text style={s.sectionTitle}>Smart suggestions</Text>
+            {smartLoading ? (
+              <ActivityIndicator color={C.mint} style={{ marginTop: 8 }} />
+            ) : (
+              <>
+                {smartSuggestions.map((sg, idx) => (
+                  <TouchableOpacity
+                    key={idx}
+                    onPress={() => {
+                      const date = nextDateForDay(sg.dayOfWeek);
+                      setSelectedDate(date);
+                    }}
+                    style={ss.suggCard}
+                  >
+                    <View style={ss.suggHeader}>
+                      <Text style={ss.suggDay}>{DAY_NAMES[sg.dayOfWeek]}</Text>
+                      <Text style={ss.suggTime}>{sg.time}</Text>
+                    </View>
+                    <Text style={ss.suggReason}>{sg.reason}</Text>
+                  </TouchableOpacity>
+                ))}
+                {!!smartDisclaimer && (
+                  <Text style={ss.disclaimer}>{smartDisclaimer}</Text>
+                )}
+              </>
+            )}
+          </View>
+        )}
+
         {reviews.length > 0 && (
           <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
             <Text style={s.sectionTitle}>{t('reviews.title')}</Text>
@@ -172,4 +230,13 @@ const rs = StyleSheet.create({
   name:     { fontSize: 12.5, fontWeight: '600', color: C.text },
   comment:  { fontSize: 12, color: C.text2, marginTop: 4, lineHeight: 17 },
   date:     { fontSize: 10, color: C.text3, marginTop: 4 },
+});
+
+const ss = StyleSheet.create({
+  suggCard:    { backgroundColor: C.bg3, borderRadius: 10, borderWidth: 1, borderColor: C.mint, padding: 12, marginBottom: 8 },
+  suggHeader:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  suggDay:     { fontSize: 13, fontWeight: '600', color: C.mint },
+  suggTime:    { fontSize: 13, fontWeight: '700', color: C.text },
+  suggReason:  { fontSize: 12, color: C.text2, lineHeight: 17 },
+  disclaimer:  { fontSize: 10, color: C.text3, marginTop: 6, fontStyle: 'italic' },
 });
