@@ -23,3 +23,7 @@ export const markRead   = (apptId)                  => client.post(`/appointment
 // Reminder opt-out
 export const toggleReminderOptOut = (id, disabled) =>
   client.patch(`/appointments/${id}/reminders-opt-out`, { disabled }).then(r => r.data);
+
+// AI symptom intake
+export const submitSymptoms = (appointmentId, symptomText) =>
+  client.patch(`/appointments/${appointmentId}/symptoms`, { symptomText });

@@ -29,7 +29,10 @@ export default function BookAppointmentScreen({ route, navigation }) {
         visitType,
         reason,
       });
-      navigation.replace('BookConfirmed', { status: appt.status });
+      navigation.replace('SymptomInput', {
+        appointmentId: appt._id || appt.id,
+        status: appt.status,
+      });
     } catch (e) {
       setError(e.message || 'Booking failed — slot may be taken');
     } finally { setLoading(false); }
