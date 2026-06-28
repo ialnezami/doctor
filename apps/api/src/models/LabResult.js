@@ -18,6 +18,10 @@ const labResultSchema = new mongoose.Schema({
   status:        { type: String, enum: ['pending', 'ready'], default: 'pending' },
   notes:         { type: String, default: '' },
   issuedAt:      { type: Date, default: Date.now },
+  aiInterpretation: {
+    summary:     { type: String, default: null },
+    processedAt: { type: Date,   default: null },
+  },
 }, { timestamps: true });
 
 labResultSchema.index({ 'tests.name': 'text', labName: 'text' });

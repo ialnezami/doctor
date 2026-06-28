@@ -3,6 +3,7 @@ const auth = require('../middleware/auth');
 const requireRole = require('../middleware/rbac');
 const LabResult = require('../models/LabResult');
 const Lab = require('../models/Lab');
+const { getLabQueue } = require('../queues/reminderQueue');
 
 // L-02: create lab result (doctor or approved laboratory)
 router.post('/', auth, requireRole('doctor', 'laboratory'), async (req, res, next) => {
@@ -94,6 +95,30 @@ router.get('/:id', auth, async (req, res, next) => {
     if (!isOwner) return res.status(403).json({ message: 'Forbidden' });
 
     res.json(result);
+  } catch (err) { next(err); }
+});
+
+// L-07: patient requests AI plain-language interpretation
+// POST /api/lab-results/:id/interpret
+// Auth: patient only. Ownership verified. Status must be 'ready'.
+// Enqueues a BullMQ job; worker saves result async.
+router.post('/:id/interpret', auth, requireRole('patient'), async (req, res, next) => {
+  try {
+    const result = await LabResult.findById(req.params.id);
+    if (!result) return res.status(404).json({ message: 'Lab result not found' });
+
+    // Ownership: patient may only request interpretation for their own results
+    if (result.patientId.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    if (result.status === 'pending') {
+      return res.status(409).json({ message: 'Lab result not ready yet' });
+    }
+
+    await getLabQueue().add('interpret', { labResultId: result._id });
+
+    return res.status(202).json({ message: 'Interpretation queued' });
   } catch (err) { next(err); }
 });
 
