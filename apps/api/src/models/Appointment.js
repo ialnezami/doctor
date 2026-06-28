@@ -35,6 +35,14 @@ const appointmentSchema = new mongoose.Schema({
     category:    { type: String, default: null },
     processedAt: { type: Date,   default: null },
   },
+  rescheduleSuggestions: {
+    type: [{
+      dayOfWeek: { type: Number, min: 0, max: 6 },
+      time:      { type: String },
+      reason:    { type: String },
+    }],
+    default: [],
+  },
 }, { timestamps: true });
 
 // Prevent querying a cancelled or completed slot as "booked"

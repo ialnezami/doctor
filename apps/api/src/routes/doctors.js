@@ -7,6 +7,7 @@ const Review = require('../models/Review');
 const upload = require('../middleware/upload');
 const { uploadBuffer } = require('../utils/cloudinary');
 const { IANAZone } = require('luxon');
+const { suggestSlots } = require('../utils/smartScheduling');
 
 const PAGE_SIZE = 20;
 
@@ -117,6 +118,30 @@ router.get('/:id/available-slots', auth, async (req, res, next) => {
 
     const result = allSlots.map(time => ({ time, available: !bookedTimes.has(time) }));
     res.json(result);
+  } catch (err) { next(err); }
+});
+
+// GET /api/doctors/:id/suggested-slots — AI-powered slot suggestions for a patient
+router.get('/:id/suggested-slots', auth, async (req, res, next) => {
+  try {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return res.status(503).json({ message: 'AI scheduling not available' });
+    }
+
+    // :id is the Doctor document _id; resolve the userId for history lookup
+    const doctor = await Doctor.findById(req.params.id).select('userId availabilitySlots specialty timezone');
+    if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
+
+    const suggestions = await suggestSlots(doctor.userId.toString(), req.user.id);
+
+    if (suggestions === null) {
+      return res.status(503).json({ message: 'AI scheduling not available' });
+    }
+
+    res.json({
+      suggestions,
+      disclaimer: 'AI-powered suggestion — availability may vary',
+    });
   } catch (err) { next(err); }
 });
 

@@ -10,6 +10,7 @@ const { getReminderQueue, getSymptomQueue } = require('../queues/reminderQueue')
 const { computeReminderDelays } = require('../utils/reminderDelays');
 const { sendEmail }             = require('../utils/email');
 const { appointmentConfirmedEmail, consultationValidatedEmail } = require('../utils/emailTemplates');
+const { generateRescheduleSuggestions } = require('../utils/smartScheduling');
 
 async function notifyUser(recipientId, type, payload, emailData) {
   const notif = await Notification.create({ recipientId, type, payload });
@@ -264,10 +265,9 @@ router.patch('/:id/cancel', auth, async (req, res, next) => {
     const appt = await Appointment.findById(req.params.id);
     if (!appt) return res.status(404).json({ message: 'Not found' });
 
-    const isParty =
-      appt.patientId.toString() === req.user.id ||
-      appt.doctorId.toString() === req.user.id;
-    if (!isParty) return res.status(403).json({ message: 'Forbidden' });
+    const isDoctor  = req.user.role === 'doctor'  && appt.doctorId.toString() === req.user.id;
+    const isPatient = req.user.role === 'patient' && appt.patientId.toString() === req.user.id;
+    if (!isDoctor && !isPatient) return res.status(403).json({ message: 'Forbidden' });
     if (appt.status === 'validated') return res.status(409).json({ message: 'Cannot cancel a validated appointment' });
 
     await cancelReminders(appt);
@@ -275,6 +275,25 @@ router.patch('/:id/cancel', auth, async (req, res, next) => {
     appt.status = 'cancelled';
     await appt.save();
     res.json(appt);
+
+    // Fire-and-forget: when doctor cancels, generate AI reschedule suggestions
+    if (isDoctor) {
+      Doctor.findOne({ userId: req.user.id })
+        .select('availabilitySlots specialty timezone')
+        .then(doctor => {
+          if (!doctor) return;
+          return generateRescheduleSuggestions(doctor, appt)
+            .then(suggestions => {
+              if (!suggestions || suggestions.length === 0) return;
+              return Appointment.findByIdAndUpdate(appt._id, {
+                rescheduleSuggestions: suggestions,
+              });
+            });
+        })
+        .catch(err => {
+          console.error('[smartScheduling] reschedule fire-and-forget error:', err.message);
+        });
+    }
   } catch (err) { next(err); }
 });
 
