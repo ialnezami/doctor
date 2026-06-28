@@ -29,6 +29,12 @@ const appointmentSchema = new mongoose.Schema({
   remindersDisabled: { type: Boolean, default: false },
   reminder24hJobId:  { type: String,  default: null },
   reminder1hJobId:   { type: String,  default: null },
+  symptomText:     { type: String, default: null },
+  symptomAnalysis: {
+    urgency:     { type: String, enum: ['low', 'medium', 'high'], default: null },
+    category:    { type: String, default: null },
+    processedAt: { type: Date,   default: null },
+  },
 }, { timestamps: true });
 
 // Prevent querying a cancelled or completed slot as "booked"

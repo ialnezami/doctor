@@ -48,3 +48,24 @@ describe('User model notificationPrefs', () => {
     expect(prefs.defaultValue).toBe(true);
   });
 });
+
+describe('Appointment symptom fields', () => {
+  it('has symptomText defaulting to null', () => {
+    const Appointment = require('../Appointment');
+    const path = Appointment.schema.paths.symptomText;
+    expect(path).toBeDefined();
+    expect(path.defaultValue).toBeNull();
+  });
+  it('has symptomAnalysis.urgency enum low/medium/high', () => {
+    const Appointment = require('../Appointment');
+    const path = Appointment.schema.paths['symptomAnalysis.urgency'];
+    expect(path).toBeDefined();
+    expect(path.enumValues).toEqual(['low', 'medium', 'high']);
+  });
+  it('has symptomAnalysis.processedAt defaulting to null', () => {
+    const Appointment = require('../Appointment');
+    const path = Appointment.schema.paths['symptomAnalysis.processedAt'];
+    expect(path).toBeDefined();
+    expect(path.defaultValue).toBeNull();
+  });
+});
