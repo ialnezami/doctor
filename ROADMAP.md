@@ -166,12 +166,12 @@ Target: real-time features, richer doctor-patient communication, reviews.
 
 ## Phase 5 — Admin & Compliance 🔲
 
-### 5.1 Admin Panel
-- [ ] User management: search, suspend, delete accounts
-- [ ] Doctor approval workflow (verify credentials before going live)
-- [ ] Lab approval workflow (`Lab.isApproved` gate)
-- [ ] Audit log: all sensitive actions (role change, record access, deletion)
-- [ ] System health dashboard (API uptime, DB metrics)
+### 5.1 Admin Panel ✅
+- [x] User management: search, suspend, delete accounts
+- [x] Doctor approval workflow (verify credentials before going live)
+- [x] Lab approval workflow (`Lab.isApproved` gate)
+- [-] Audit log: all sensitive actions (role change, record access, deletion) — deferred to Phase 6
+- [-] System health dashboard (API uptime, DB metrics) — deferred to Phase 6
 
 ### 5.2 HIPAA / GDPR Compliance
 - [ ] Encrypt sensitive fields at rest (SSN, medical history) using field-level encryption
@@ -290,7 +290,7 @@ Doctor-only marketplace for browsing and ordering medical equipment and supplies
 | Phase 2 — Engagement & Communication | ✅ Done | 100% |
 | Phase 3 — Payments & Monetization | 🔲 Planned | 0% |
 | Phase 4 — AI & Clinical Intelligence | ✅ Done | 100% |
-| Phase 5 — Admin & Compliance | 🔄 In Progress | 33% (5.3 ✅) |
+| Phase 5 — Admin & Compliance | 🔄 In Progress | 67% (5.1 ✅, 5.3 ✅) |
 | Phase 6 — Scale & Reliability | 🔲 Planned | 0% |
 | Phase 7 — Ecosystem Expansion | 💡 Idea | 0% |
 | Phase 8 — Doctor Equipment Marketplace | 💡 Idea | 0% |
