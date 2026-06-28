@@ -31,8 +31,7 @@ export default function VideoCallPage() {
     let frame;
 
     getVideoToken(appointmentId)
-      .then(({ data }) => {
-        const { roomUrl, token } = data;
+      .then(({ roomUrl, token }) => {
         frame = Daily.createFrame(videoRef.current, {
           showLeaveButton: true,
           showFullscreenButton: true,
@@ -46,7 +45,8 @@ export default function VideoCallPage() {
         return frame.join({ url: roomUrl, token });
       })
       .then(() => setLoading(false))
-      .catch(() => {
+      .catch((err) => {
+        console.error('[video] join failed:', err);
         alert(t('video.connectionError'));
         navigate(-1);
       });
