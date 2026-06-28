@@ -7,6 +7,7 @@ const errorHandler = require('./middleware/errorHandler');
 const { initSocket } = require('./socket');
 const { startReminderWorker }                          = require('./workers/reminderWorker');
 const { startDigestWorker, registerDigestOrchestrator } = require('./workers/digestWorker');
+const { startSymptomWorker }                            = require('./workers/symptomWorker');
 
 const app = express();
 
@@ -51,6 +52,7 @@ connectDB().then(() => {
   if (process.env.REDIS_URL) {
     startReminderWorker();
     startDigestWorker();
+    startSymptomWorker();
     registerDigestOrchestrator().catch(err =>
       console.error('[digest] orchestrator registration failed:', err.message)
     );
