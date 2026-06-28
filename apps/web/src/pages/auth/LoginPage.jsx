@@ -40,13 +40,13 @@ export default function LoginPage() {
           <p style={{ fontSize:14, color:'var(--text2)', marginTop:10 }}>{t('auth.appDesc')}</p>
         </div>
         {[
-          { icon:'🩺', title:'Smart Scheduling', desc:'Manage appointments with zero conflicts' },
-          { icon:'📋', title:'Digital Prescriptions', desc:'Create & export PDF ordonnances instantly' },
-          { icon:'📍', title:'Location-based Search', desc:'Find nearby doctors by specialty' },
+          { icon:'🩺', key:'scheduling' },
+          { icon:'📋', key:'prescriptions' },
+          { icon:'📍', key:'location' },
         ].map(f => (
           <div key={f.title} style={{ display:'flex', alignItems:'center', gap:13, padding:'14px 16px', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r)', marginBottom:12, width:'100%', maxWidth:340 }}>
             <div style={{ width:34, height:34, borderRadius:9, background:'var(--mint-dim)', display:'grid', placeItems:'center', fontSize:17, flexShrink:0 }}>{f.icon}</div>
-            <div><div style={{ fontSize:13.5, fontWeight:600 }}>{f.title}</div><div style={{ fontSize:11.5, color:'var(--text2)', marginTop:2 }}>{f.desc}</div></div>
+            <div><div style={{ fontSize:13.5, fontWeight:600 }}>{t(`auth.features.${f.key}.title`)}</div><div style={{ fontSize:11.5, color:'var(--text2)', marginTop:2 }}>{t(`auth.features.${f.key}.desc`)}</div></div>
           </div>
         ))}
       </div>
@@ -74,7 +74,7 @@ export default function LoginPage() {
         {/* Google sign-in */}
         <div style={{ display:'flex', alignItems:'center', gap:12, margin:'20px 0 16px' }}>
           <div style={{ flex:1, height:1, background:'var(--border)' }} />
-          <span style={{ color:'var(--text2)', fontSize:12 }}>or</span>
+          <span style={{ color:'var(--text2)', fontSize:12 }}>{t('common.or')}</span>
           <div style={{ flex:1, height:1, background:'var(--border)' }} />
         </div>
         <GoogleSignInButton />

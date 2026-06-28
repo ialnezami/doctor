@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
@@ -13,22 +15,25 @@ const MOCK_PATIENTS = [
 
 export default function PatientRecordsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(MOCK_PATIENTS[0]);
-  const [useState] = [require('react').useState];
 
   const filtered = MOCK_PATIENTS.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div>
       <div style={{ position:'sticky', top:0, zIndex:10, background:'rgba(6,13,24,0.88)', backdropFilter:'blur(14px)', borderBottom:'1px solid var(--border)', padding:'14px 26px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <div><div style={{ fontFamily:'var(--font-display)', fontSize:21, fontWeight:500 }}>Patient Records</div><div style={{ fontSize:12, color:'var(--text2)', marginTop:1 }}>Search and view patient history</div></div>
-        <Button>+ New Patient</Button>
+        <div>
+          <div style={{ fontFamily:'var(--font-display)', fontSize:21, fontWeight:500 }}>{t('patientRecords.title')}</div>
+          <div style={{ fontSize:12, color:'var(--text2)', marginTop:1 }}>{t('patientRecords.subtitle')}</div>
+        </div>
+        <Button>{t('patientRecords.newPatient')}</Button>
       </div>
       <div style={{ padding:26 }}>
         <div style={{ display:'flex', alignItems:'center', background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:'var(--r)', overflow:'hidden', marginBottom:20 }}>
           <span style={{ padding:'0 13px', color:'var(--text3)', fontSize:15 }}>⌕</span>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, ID, or condition…"
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('patientRecords.searchPlaceholder')}
             style={{ flex:1, background:'transparent', border:'none', outline:'none', padding:'11px 0', color:'var(--text)', fontSize:13.5 }} />
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:18 }}>
@@ -60,11 +65,15 @@ export default function PatientRecordsPage() {
                     <div style={{ fontSize:11.5, color:'var(--text2)' }}>{selected.age} · {selected.sex} · {selected.ref}</div>
                   </div>
                 </div>
-                <Button style={{ padding:'6px 13px', fontSize:12 }} onClick={() => navigate('/prescriptions')}>+ Prescribe</Button>
+                <Button style={{ padding:'6px 13px', fontSize:12 }} onClick={() => navigate('/prescriptions')}>{t('patientRecords.prescribe')}</Button>
               </div>
 
               <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:14 }}>
-                {[['BP', selected.bp, 'mmHg'], ['Heart Rate', selected.hr, 'bpm'], ['SpO₂', `${selected.spo2}%`, 'oxygen']].map(([l,v,u]) => (
+                {[
+                  [t('patientRecords.vitals.bp'),        selected.bp,           t('patientRecords.vitals.mmhg')],
+                  [t('patientRecords.vitals.heartRate'),  selected.hr,           t('patientRecords.vitals.bpm')],
+                  [t('patientRecords.vitals.spo2'),       `${selected.spo2}%`,   t('patientRecords.vitals.oxygen')],
+                ].map(([l,v,u]) => (
                   <div key={l} style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r-sm)', padding:'10px 12px', textAlign:'center' }}>
                     <div style={{ fontSize:10, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text3)' }}>{l}</div>
                     <div style={{ fontFamily:'var(--font-display)', fontSize:22, fontWeight:600, margin:'3px 0' }}>{v}</div>
@@ -74,7 +83,9 @@ export default function PatientRecordsPage() {
               </div>
 
               <div style={{ height:1, background:'var(--border)', margin:'14px 0' }} />
-              <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:10 }}>Medical History</div>
+              <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:10 }}>
+                {t('patientRecords.medicalHistory')}
+              </div>
               <div style={{ position:'relative', paddingLeft:26 }}>
                 <div style={{ position:'absolute', left:6, top:0, bottom:0, width:1, background:'var(--border)' }} />
                 {selected.notes.map((n, i) => (

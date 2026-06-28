@@ -1,19 +1,317 @@
 {
-  "common": { "or": "or", "years": "years", "recorded": "recorded", "noData": "No data" },
+  "common": {
+    "or": "or",
+    "years": "years",
+    "recorded": "recorded",
+    "noData": "No data",
+    "saving": "Saving…",
+    "saved": "Saved ✓",
+    "cancel": "Cancel",
+    "to": "to",
+    "days": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    }
+  },
   "auth": {
-    "appName": "MediConnect", "appTagline": "Healthcare reimagined", "appDesc": "Connect doctors and patients seamlessly.",
-    "email": "Email", "password": "Password",
-    "login": { "title": "Welcome back", "subtitle": "Sign in to your MediConnect account", "submit": "Sign in →", "submitting": "Signing in…", "noAccount": "No account?", "createOne": "Create one free", "invalidCredentials": "Invalid credentials" },
-    "register": { "title": "Create account", "subtitle": "Join MediConnect today", "name": "Full name", "role": "I am a", "rolePatient": "Patient", "roleDoctor": "Doctor", "submit": "Create account", "submitting": "Creating…", "haveAccount": "Already have an account?", "signIn": "Sign in" }
+    "appName": "MediConnect",
+    "appTagline": "Healthcare reimagined",
+    "appDesc": "Connect doctors and patients seamlessly.",
+    "email": "Email",
+    "password": "Password",
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your MediConnect account",
+      "submit": "Sign in →",
+      "submitting": "Signing in…",
+      "noAccount": "No account?",
+      "createOne": "Create one free",
+      "invalidCredentials": "Invalid credentials"
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Join MediConnect today",
+      "name": "Full name",
+      "role": "I am a",
+      "rolePatient": "Patient",
+      "roleDoctor": "Doctor",
+      "submit": "Create account",
+      "submitting": "Creating…",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "features": {
+      "scheduling": { "title": "Smart Scheduling", "desc": "Manage appointments with zero conflicts" },
+      "prescriptions": { "title": "Digital Prescriptions", "desc": "Create & export PDF ordonnances instantly" },
+      "location": { "title": "Location-based Search", "desc": "Find nearby doctors by specialty" }
+    }
   },
-  "nav": { "findDoctor": "Find Doctor", "appointments": "Appointments", "records": "Medical Records", "labResults": "Lab Results", "dashboard": "Dashboard", "logout": "Sign out" },
+  "nav": {
+    "findDoctor": "Find Doctor",
+    "appointments": "Appointments",
+    "records": "Medical Records",
+    "labResults": "Lab Results",
+    "dashboard": "Dashboard",
+    "logout": "Sign out",
+    "patientRecords": "Patient Records",
+    "prescriptions": "Prescriptions",
+    "settings": "Settings",
+    "reviews": "My Reviews ⭐",
+    "findADoctor": "Find a Doctor",
+    "myAppointments": "My Appointments",
+    "myUploads": "My Uploads",
+    "roleMenu": {
+      "doctor": "Doctor Menu",
+      "patient": "Patient Menu",
+      "laboratory": "Lab Menu"
+    }
+  },
   "records": {
-    "title": "Medical Records", "subtitle": "Your complete health history",
+    "title": "Medical Records",
+    "subtitle": "Your complete health history",
     "tabs": { "prescriptions": "Prescriptions", "labs": "Lab Results", "profile": "Health Profile" },
-    "healthProfile": "Health Profile", "age": "Age", "bloodType": "Blood Type", "allergies": "Allergies",
-    "conditionsAllergies": "Conditions & Allergies", "noProfileData": "No health profile data yet. Update your profile to fill this in.",
-    "allergy": "allergy", "noPrescriptions": "No prescriptions yet.", "noLabResults": "No lab results yet.",
-    "prescriptions": "Prescriptions", "tests": "test", "tests_plural": "tests"
+    "healthProfile": "Health Profile",
+    "age": "Age",
+    "bloodType": "Blood Type",
+    "allergies": "Allergies",
+    "conditionsAllergies": "Conditions & Allergies",
+    "noProfileData": "No health profile data yet. Update your profile to fill this in.",
+    "allergy": "allergy",
+    "noPrescriptions": "No prescriptions yet.",
+    "noLabResults": "No lab results yet.",
+    "prescriptions": "Prescriptions",
+    "tests": "test",
+    "tests_plural": "tests"
   },
-  "language": { "label": "Language", "ar": "العربية", "en": "English", "fr": "Français" }
+  "language": {
+    "label": "Language",
+    "ar": "العربية",
+    "en": "English",
+    "fr": "Français"
+  },
+  "dashboard": {
+    "greeting": "Good morning, {{name}}",
+    "appointmentsToday": "{{count}} appointments today",
+    "newPrescription": "+ New Prescription",
+    "stats": {
+      "todayAppointments": "Today's Appointments",
+      "pendingRequests": "Pending Requests",
+      "totalPatients": "Total Patients",
+      "prescriptionsToday": "Prescriptions Today"
+    },
+    "schedule": {
+      "title": "Today's Schedule",
+      "viewAll": "View all",
+      "noAppointments": "No appointments today."
+    },
+    "weeklyVolume": "Weekly Volume"
+  },
+  "appointments": {
+    "title": "Appointments",
+    "subtitle": "Manage your schedule",
+    "filters": {
+      "all": "All",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "allAppointments": "All Appointments",
+    "total": "{{count}} total",
+    "pendingApproval": "Pending Approval",
+    "requests": "{{count}} requests",
+    "video": "Video",
+    "chat": "Chat",
+    "details": {
+      "title": "Appointment Details",
+      "patient": "Patient",
+      "dateTime": "Date & Time",
+      "visitType": "Visit Type",
+      "status": "Status",
+      "reason": "Reason"
+    },
+    "symptoms": {
+      "title": "Patient Symptoms",
+      "unavailable": "Analysis unavailable",
+      "pending": "Analysis pending…",
+      "aiDisclaimer": "AI-generated — not a substitute for clinical judgment."
+    }
+  },
+  "prescriptions": {
+    "title": "Prescriptions",
+    "subtitle": "Digital ordonnances",
+    "exportPdf": "↓ Export PDF",
+    "saveSign": "Save & Sign",
+    "saving": "Saving…",
+    "patientId": "Patient ID",
+    "medications": "Medications",
+    "drugName": "Drug name",
+    "dose": "Dose",
+    "freq": "Freq.",
+    "duration": "Duration",
+    "addMedication": "+ Add Medication",
+    "clinicalNotes": "Clinical Notes",
+    "recentPrescriptions": "Recent Prescriptions",
+    "print": "Print",
+    "pdf": {
+      "title": "Digital Prescription",
+      "date": "Date",
+      "rx": "Rx #",
+      "patient": "Patient",
+      "medication": "Medication",
+      "dosage": "Dosage",
+      "frequency": "Frequency",
+      "duration": "Duration",
+      "instructions": "Instructions",
+      "footer": "Generated by MediConnect · Digitally issued and valid without a physical signature."
+    }
+  },
+  "labResults": {
+    "title": "Lab Results",
+    "subtitle": "Patient laboratory reports",
+    "searchPlaceholder": "Search tests, lab names…",
+    "search": "Search",
+    "noResults": "No lab results yet",
+    "selectPrompt": "Select a result to view details",
+    "interpretationNotes": "Interpretation Notes",
+    "addInterpretation": "Add clinical interpretation…",
+    "saveNotes": "Save Notes",
+    "saving": "Saving…",
+    "share": "🔗 Share",
+    "ready": "Ready",
+    "flags": {
+      "normal": "Normal",
+      "high": "High",
+      "low": "Low",
+      "critical": "Critical"
+    },
+    "table": {
+      "testName": "Test Name",
+      "value": "Value",
+      "unit": "Unit",
+      "range": "Range",
+      "flag": "Flag"
+    },
+    "shareModal": {
+      "title": "Share Lab Result",
+      "password": "Password (optional)",
+      "passwordPlaceholder": "Leave blank for no password",
+      "expiry": "Link Expiry",
+      "1h": "1 hour",
+      "24h": "24 hours",
+      "7d": "7 days",
+      "never": "Never",
+      "generate": "Generate Secure Link",
+      "expires": "Expires:",
+      "copied": "Copied!",
+      "copyLink": "Copy Link",
+      "revoke": "Revoke",
+      "revoking": "…"
+    },
+    "patient": "Patient",
+    "issued": "Issued"
+  },
+  "settings": {
+    "title": "Settings",
+    "autoAccept": {
+      "label": "Auto-accept appointments",
+      "desc": "When on, new bookings are confirmed immediately without manual approval."
+    },
+    "timezone": {
+      "label": "Daily Digest Timezone",
+      "desc": "Your morning schedule summary arrives at 7:00 AM in this timezone."
+    },
+    "notifications": {
+      "title": "Notification Channels",
+      "push": "Push notifications",
+      "email": "Email notifications"
+    },
+    "availability": {
+      "title": "Availability",
+      "addDay": "+ Add day",
+      "noSlots": "No availability set — patients won't see any slots.",
+      "to": "to"
+    },
+    "saveSettings": "Save Settings",
+    "saving": "Saving…",
+    "saved": "Saved ✓"
+  },
+  "reviews": {
+    "title": "My Reviews",
+    "subtitle": "Patient feedback on your consultations",
+    "noReviews": "No reviews yet.",
+    "report": "Report",
+    "reported": "⚑ Reported",
+    "loadMore": "Load more",
+    "flagModal": {
+      "title": "Report this review?",
+      "reasonPlaceholder": "Reason (optional)",
+      "cancel": "Cancel",
+      "report": "Report"
+    }
+  },
+  "chat": {
+    "back": "← Back",
+    "appointmentChat": "Appointment chat",
+    "cancelled": "This appointment was cancelled. Chat is read-only.",
+    "loading": "Loading…",
+    "loadEarlier": "Load earlier messages",
+    "seen": "Seen",
+    "attachFile": "Attach file",
+    "readOnly": "Chat is read-only",
+    "messagePlaceholder": "Type a message… (Enter to send)",
+    "send": "Send"
+  },
+  "video": {
+    "endCall": "✕ End Call",
+    "hideNotes": "Hide Notes",
+    "showNotes": "📝 Notes",
+    "connecting": "Connecting…",
+    "waiting": "Waiting for {{name}}…",
+    "connected": "✓ Connected",
+    "privateNote": "📝 Private Note",
+    "noteDesc": "Saved to this appointment. Visible only to you.",
+    "notePlaceholder": "Type your in-call note here…",
+    "noteSaved": "Note saved.",
+    "noteFailed": "Failed to save note.",
+    "saveNote": "Save Note",
+    "saving": "Saving…",
+    "connectionError": "Could not start video session. Please try again."
+  },
+  "lab": {
+    "pendingTitle": "Account Pending Approval",
+    "pendingDesc": "An administrator needs to approve your lab account before you can upload results.",
+    "uploadTitle": "Upload Lab Result",
+    "fields": {
+      "patientId": "Patient ID (MongoDB ObjectId)",
+      "labName": "Lab Name",
+      "testName": "Test Name",
+      "result": "Result Value"
+    },
+    "uploading": "Uploading…",
+    "upload": "Upload Result",
+    "myUploads": "My Uploads",
+    "noUploads": "No uploads yet."
+  },
+  "patientRecords": {
+    "title": "Patient Records",
+    "subtitle": "Search and view patient history",
+    "newPatient": "+ New Patient",
+    "searchPlaceholder": "Search by name, ID, or condition…",
+    "medicalHistory": "Medical History",
+    "prescribe": "+ Prescribe",
+    "vitals": {
+      "bp": "BP",
+      "heartRate": "Heart Rate",
+      "spo2": "SpO₂",
+      "mmhg": "mmHg",
+      "bpm": "bpm",
+      "oxygen": "oxygen"
+    }
+  }
 }

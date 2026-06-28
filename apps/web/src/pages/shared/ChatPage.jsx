@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { io } from 'socket.io-client';
 import useAuthStore from '../../store/authStore';
 import { getMessages, uploadAttachment } from '../../api/chat';
@@ -12,20 +13,21 @@ export default function ChatPage() {
   const { token, user }       = useAuthStore();
   const navigate              = useNavigate();
   const location              = useLocation();
-  const otherPartyName        = location.state?.otherPartyName || 'Other party';
+  const { t }                 = useTranslation();
+  const otherPartyName        = location.state?.otherPartyName || t('chat.appointmentChat');
 
-  const [messages, setMessages]       = useState([]);
-  const [text, setText]               = useState('');
-  const [loading, setLoading]         = useState(true);
-  const [uploading, setUploading]     = useState(false);
-  const [oldestId, setOldestId]       = useState(null);
-  const [hasMore, setHasMore]         = useState(true);
+  const [messages, setMessages]           = useState([]);
+  const [text, setText]                   = useState('');
+  const [loading, setLoading]             = useState(true);
+  const [uploading, setUploading]         = useState(false);
+  const [oldestId, setOldestId]           = useState(null);
+  const [hasMore, setHasMore]             = useState(true);
   const [otherLastRead, setOtherLastRead] = useState(null);
-  const [cancelled, setCancelled]     = useState(false);
+  const [cancelled, setCancelled]         = useState(false);
 
-  const socketRef  = useRef(null);
-  const bottomRef  = useRef(null);
-  const fileRef    = useRef(null);
+  const socketRef = useRef(null);
+  const bottomRef = useRef(null);
+  const fileRef   = useRef(null);
 
   const scrollToBottom = () => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -52,10 +54,7 @@ export default function ChatPage() {
   useEffect(() => {
     loadHistory(null);
 
-    const socket = io(SOCKET_URL, {
-      auth: { token },
-      transports: ['websocket'],
-    });
+    const socket = io(SOCKET_URL, { auth: { token }, transports: ['websocket'] });
     socketRef.current = socket;
 
     socket.on('connect', () => {
@@ -69,9 +68,7 @@ export default function ChatPage() {
     });
 
     socket.on('read_receipt', ({ userId, lastReadAt }) => {
-      if (userId !== user.id) {
-        setOtherLastRead(new Date(lastReadAt));
-      }
+      if (userId !== user.id) setOtherLastRead(new Date(lastReadAt));
     });
 
     socket.on('chat_error', (err) => {
@@ -109,79 +106,73 @@ export default function ChatPage() {
   };
 
   const markRead = () => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit('mark_read', { appointmentId });
-    }
+    if (socketRef.current?.connected) socketRef.current.emit('mark_read', { appointmentId });
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }} onFocus={markRead}>
-      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(6,13,24,0.95)', backdropFilter: 'blur(14px)', borderBottom: '1px solid var(--border)', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: 'var(--mint)', cursor: 'pointer', fontSize: 14 }}>← Back</button>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 16, fontWeight: 600 }}>{otherPartyName}</div>
-          <div style={{ fontSize: 11, color: 'var(--text3)' }}>Appointment chat</div>
+    <div style={{ display:'flex', flexDirection:'column', height:'100vh' }} onFocus={markRead}>
+      <div style={{ position:'sticky', top:0, zIndex:10, background:'rgba(6,13,24,0.95)', backdropFilter:'blur(14px)', borderBottom:'1px solid var(--border)', padding:'12px 20px', display:'flex', alignItems:'center', gap:12 }}>
+        <button onClick={() => navigate(-1)} style={{ background:'none', border:'none', color:'var(--mint)', cursor:'pointer', fontSize:14 }}>
+          {t('chat.back')}
+        </button>
+        <div style={{ flex:1 }}>
+          <div style={{ fontSize:16, fontWeight:600 }}>{otherPartyName}</div>
+          <div style={{ fontSize:11, color:'var(--text3)' }}>{t('chat.appointmentChat')}</div>
         </div>
       </div>
 
       {cancelled && (
-        <div style={{ background: 'rgba(244,63,94,0.1)', border: '1px solid rgba(244,63,94,0.3)', margin: '12px 16px', padding: '10px 16px', borderRadius: 8, fontSize: 13, color: 'var(--rose)' }}>
-          This appointment was cancelled. Chat is read-only.
+        <div style={{ background:'rgba(244,63,94,0.1)', border:'1px solid rgba(244,63,94,0.3)', margin:'12px 16px', padding:'10px 16px', borderRadius:8, fontSize:13, color:'var(--rose)' }}>
+          {t('chat.cancelled')}
         </div>
       )}
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
-        {loading && <p style={{ color: 'var(--text3)', fontSize: 13, textAlign: 'center' }}>Loading…</p>}
+      <div style={{ flex:1, overflowY:'auto', padding:'16px 20px' }}>
+        {loading && <p style={{ color:'var(--text3)', fontSize:13, textAlign:'center' }}>{t('chat.loading')}</p>}
         {!loading && hasMore && (
-          <div style={{ textAlign: 'center', marginBottom: 12 }}>
-            <button onClick={() => loadHistory(oldestId)} style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '5px 14px', color: 'var(--text2)', cursor: 'pointer', fontSize: 12 }}>
-              Load earlier messages
+          <div style={{ textAlign:'center', marginBottom:12 }}>
+            <button onClick={() => loadHistory(oldestId)} style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:8, padding:'5px 14px', color:'var(--text2)', cursor:'pointer', fontSize:12 }}>
+              {t('chat.loadEarlier')}
             </button>
           </div>
         )}
 
         {messages.map((msg, idx) => {
-          const mine = msg.senderId === user.id || msg.senderId?._id === user.id;
-          const ts   = new Date(msg.createdAt);
+          const mine  = msg.senderId === user.id || msg.senderId?._id === user.id;
+          const ts    = new Date(msg.createdAt);
           const isLast = idx === messages.length - 1;
-          const seen   = mine && isLast && otherLastRead && otherLastRead > new Date(msg.createdAt);
+          const seen  = mine && isLast && otherLastRead && otherLastRead > new Date(msg.createdAt);
 
           return (
-            <div key={msg._id} style={{ display: 'flex', flexDirection: 'column', alignItems: mine ? 'flex-end' : 'flex-start', marginBottom: 6 }}>
+            <div key={msg._id} style={{ display:'flex', flexDirection:'column', alignItems: mine ? 'flex-end' : 'flex-start', marginBottom:6 }}>
               <div style={{
-                maxWidth: '65%', padding: '9px 13px', borderRadius: 14,
+                maxWidth:'65%', padding:'9px 13px', borderRadius:14,
                 borderBottomRightRadius: mine ? 4 : 14,
                 borderBottomLeftRadius: mine ? 14 : 4,
                 background: mine ? 'rgba(15,227,176,0.18)' : 'var(--bg3)',
                 border: mine ? '1px solid rgba(15,227,176,0.3)' : '1px solid var(--border)',
               }}>
-                {msg.type === 'text' && <span style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{msg.text}</span>}
-                {msg.type === 'image' && <span style={{ fontSize: 13, color: 'var(--text2)' }}>📷 {msg.fileName}</span>}
-                {msg.type === 'file'  && <span style={{ fontSize: 13, color: 'var(--text2)' }}>📎 {msg.fileName}</span>}
-                <div style={{ fontSize: 10, color: 'var(--text3)', textAlign: 'right', marginTop: 4 }}>
-                  {ts.getHours()}:{String(ts.getMinutes()).padStart(2, '0')}
+                {msg.type === 'text'  && <span style={{ fontSize:14, color:'var(--text)', lineHeight:1.5, whiteSpace:'pre-wrap' }}>{msg.text}</span>}
+                {msg.type === 'image' && <span style={{ fontSize:13, color:'var(--text2)' }}>📷 {msg.fileName}</span>}
+                {msg.type === 'file'  && <span style={{ fontSize:13, color:'var(--text2)' }}>📎 {msg.fileName}</span>}
+                <div style={{ fontSize:10, color:'var(--text3)', textAlign:'right', marginTop:4 }}>
+                  {ts.getHours()}:{String(ts.getMinutes()).padStart(2,'0')}
                 </div>
               </div>
-              {seen && <span style={{ fontSize: 10, color: 'var(--text3)', marginTop: 2, marginRight: 4 }}>Seen</span>}
+              {seen && <span style={{ fontSize:10, color:'var(--text3)', marginTop:2, marginRight:4 }}>{t('chat.seen')}</span>}
             </div>
           );
         })}
         <div ref={bottomRef} />
       </div>
 
-      <div style={{ borderTop: '1px solid var(--border)', padding: '12px 16px', background: 'var(--bg2)', display: 'flex', alignItems: 'flex-end', gap: 10 }}>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*,application/pdf"
-          style={{ display: 'none' }}
-          onChange={handleFile}
-        />
+      <div style={{ borderTop:'1px solid var(--border)', padding:'12px 16px', background:'var(--bg2)', display:'flex', alignItems:'flex-end', gap:10 }}>
+        <input ref={fileRef} type="file" accept="image/*,application/pdf" style={{ display:'none' }} onChange={handleFile} />
         <button
           onClick={() => fileRef.current?.click()}
           disabled={cancelled || uploading}
-          style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', cursor: 'pointer', color: 'var(--text2)', fontSize: 16, opacity: (cancelled || uploading) ? 0.4 : 1 }}
-          title="Attach file"
+          title={t('chat.attachFile')}
+          style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:8, padding:'8px 10px', cursor:'pointer', color:'var(--text2)', fontSize:16, opacity:(cancelled || uploading) ? 0.4 : 1 }}
         >
           {uploading ? '⏳' : '📎'}
         </button>
@@ -190,17 +181,17 @@ export default function ChatPage() {
           onChange={e => setText(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={cancelled}
-          placeholder={cancelled ? 'Chat is read-only' : 'Type a message… (Enter to send)'}
+          placeholder={cancelled ? t('chat.readOnly') : t('chat.messagePlaceholder')}
           maxLength={2000}
           rows={1}
-          style={{ flex: 1, background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 10, padding: '9px 13px', color: 'var(--text)', fontSize: 14, resize: 'none', outline: 'none', maxHeight: 120, overflowY: 'auto', opacity: cancelled ? 0.5 : 1 }}
+          style={{ flex:1, background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:10, padding:'9px 13px', color:'var(--text)', fontSize:14, resize:'none', outline:'none', maxHeight:120, overflowY:'auto', opacity:cancelled ? 0.5 : 1 }}
         />
         <button
           onClick={sendText}
           disabled={!text.trim() || cancelled}
-          style={{ background: 'var(--mint)', border: 'none', borderRadius: 10, padding: '9px 18px', color: '#000', fontWeight: 700, fontSize: 13, cursor: 'pointer', opacity: (!text.trim() || cancelled) ? 0.4 : 1, whiteSpace: 'nowrap' }}
+          style={{ background:'var(--mint)', border:'none', borderRadius:10, padding:'9px 18px', color:'#000', fontWeight:700, fontSize:13, cursor:'pointer', opacity:(!text.trim() || cancelled) ? 0.4 : 1, whiteSpace:'nowrap' }}
         >
-          Send
+          {t('chat.send')}
         </button>
       </div>
     </div>

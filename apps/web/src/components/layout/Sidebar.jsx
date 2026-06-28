@@ -1,38 +1,47 @@
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/authStore';
 import LanguageSwitcher from '../LanguageSwitcher';
 
-const doctorNav = [
-  { label: 'Dashboard',       path: '/dashboard' },
-  { label: 'Appointments',    path: '/appointments', badge: true },
-  { label: 'Patient Records', path: '/patients' },
-  { label: 'Prescriptions',   path: '/prescriptions' },
-  { label: 'Lab Results',     path: '/lab-results' },
-  { label: 'Settings',        path: '/settings' },
-  { label: 'My Reviews ⭐',   path: '/reviews' },
+const doctorNavKeys = [
+  { key: 'nav.dashboard',      path: '/dashboard' },
+  { key: 'nav.appointments',   path: '/appointments', badge: true },
+  { key: 'nav.patientRecords', path: '/patients' },
+  { key: 'nav.prescriptions',  path: '/prescriptions' },
+  { key: 'nav.labResults',     path: '/lab-results' },
+  { key: 'nav.settings',       path: '/settings' },
+  { key: 'nav.reviews',        path: '/reviews' },
 ];
 
-const patientNav = [
-  { label: 'Find a Doctor',   path: '/find-doctor' },
-  { label: 'My Appointments', path: '/my-appointments', badge: true },
-  { label: 'Medical Records', path: '/records' },
-  { label: 'Settings',        path: '/patient-settings' },
+const patientNavKeys = [
+  { key: 'nav.findADoctor',    path: '/find-doctor' },
+  { key: 'nav.myAppointments', path: '/my-appointments', badge: true },
+  { key: 'nav.records',        path: '/records' },
+  { key: 'nav.settings',       path: '/patient-settings' },
 ];
 
-const labNav = [
-  { label: 'My Uploads', path: '/lab' },
+const labNavKeys = [
+  { key: 'nav.myUploads', path: '/lab' },
 ];
 
 export default function Sidebar() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { user, logout } = useAuthStore();
-  const nav = user?.role === 'doctor' ? doctorNav : user?.role === 'laboratory' ? labNav : patientNav;
+  const { t } = useTranslation();
+
+  const navKeys = user?.role === 'doctor' ? doctorNavKeys
+    : user?.role === 'laboratory' ? labNavKeys
+    : patientNavKeys;
+
+  const roleMenuKey = user?.role === 'doctor' ? 'nav.roleMenu.doctor'
+    : user?.role === 'laboratory' ? 'nav.roleMenu.laboratory'
+    : 'nav.roleMenu.patient';
+
   const initials = user?.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??';
 
   return (
     <aside style={{ width:240, background:'var(--bg2)', borderRight:'1px solid var(--border)', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
-      {/* glow */}
       <div style={{ position:'absolute', top:-80, left:-60, width:200, height:200, background:'radial-gradient(circle, rgba(15,227,176,0.07) 0%, transparent 70%)', pointerEvents:'none' }} />
 
       {/* Logo */}
@@ -46,9 +55,9 @@ export default function Sidebar() {
       {/* Nav */}
       <nav style={{ flex:1, padding:'8px 10px', overflowY:'auto' }}>
         <div style={{ fontSize:10, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.1em', color:'var(--text3)', padding:'0 10px 8px' }}>
-          {user?.role === 'doctor' ? 'Doctor' : user?.role === 'laboratory' ? 'Lab' : 'Patient'} Menu
+          {t(roleMenuKey)}
         </div>
-        {nav.map(item => {
+        {navKeys.map(item => {
           const active = pathname === item.path;
           return (
             <div key={item.path} onClick={() => navigate(item.path)}
@@ -57,7 +66,7 @@ export default function Sidebar() {
                 borderColor: active ? 'rgba(15,227,176,0.2)' : 'transparent',
                 color: active ? 'var(--mint)' : 'var(--text2)',
                 fontWeight: active ? 500 : 400, fontSize:13.5 }}>
-              {item.label}
+              {t(item.key)}
               {item.badge && <span style={{ marginLeft:'auto', background:'var(--rose)', color:'#fff', fontSize:10, fontWeight:700, borderRadius:10, padding:'1px 6px', fontFamily:'var(--font-mono)' }}>!</span>}
             </div>
           );
@@ -78,7 +87,7 @@ export default function Sidebar() {
           <div style={{ fontSize:13, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{user?.name}</div>
           <div style={{ fontSize:11, color:'var(--text2)', textTransform:'capitalize' }}>{user?.role}</div>
         </div>
-        <button onClick={logout} style={{ background:'none', border:'none', color:'var(--text3)', fontSize:16, cursor:'pointer' }} title="Logout">⏏</button>
+        <button onClick={logout} style={{ background:'none', border:'none', color:'var(--text3)', fontSize:16, cursor:'pointer' }} title={t('nav.logout')}>⏏</button>
       </div>
     </aside>
   );
