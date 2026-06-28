@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocation } from 'react-router-dom';
 import { getPrescriptions, createPrescription } from '../../api/prescriptions';
 import { getAppointments } from '../../api/appointments';
 import Card from '../../components/ui/Card';
@@ -10,10 +11,15 @@ const emptyMed = { name:'', dosage:'', frequency:'', duration:'' };
 
 export default function PrescriptionsPage() {
   const { t } = useTranslation();
+  const location = useLocation();
   const isMobile = useIsMobile();
+
+  const presetPatientId   = location.state?.patientId   || '';
+  const presetPatientName = location.state?.patientName || '';
+
   const [rxList, setRxList] = useState([]);
   const [patients, setPatients] = useState([]);
-  const [form, setForm] = useState({ patientId:'', instructions:'', medications:[{ ...emptyMed }] });
+  const [form, setForm] = useState({ patientId: presetPatientId, instructions:'', medications:[{ ...emptyMed }] });
   const [saving, setSaving] = useState(false);
 
   const load = () => getPrescriptions().then(setRxList).catch(() => {});
@@ -71,14 +77,21 @@ export default function PrescriptionsPage() {
   };
 
   const addMed = () => setForm(p => ({ ...p, medications: [...p.medications, { ...emptyMed }] }));
+  const removeMed = (i) => setForm(p => ({
+    ...p,
+    medications: p.medications.length > 1 ? p.medications.filter((_, idx) => idx !== i) : p.medications,
+  }));
   const updateMed = (i, field, val) => setForm(p => {
     const meds = [...p.medications]; meds[i] = { ...meds[i], [field]: val }; return { ...p, medications: meds };
   });
 
   const submit = async (e) => {
     e.preventDefault(); setSaving(true);
-    try { await createPrescription(form); load(); setForm({ patientId:'', instructions:'', medications:[{ ...emptyMed }] }); }
-    catch {} finally { setSaving(false); }
+    try {
+      await createPrescription(form);
+      load();
+      setForm({ patientId: presetPatientId, instructions:'', medications:[{ ...emptyMed }] });
+    } catch {} finally { setSaving(false); }
   };
 
   const ACCENT = ['var(--mint)','var(--amber)','var(--blue)','var(--rose)'];
@@ -113,17 +126,27 @@ export default function PrescriptionsPage() {
                 <label style={{ display:'block', fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text2)', marginBottom:7 }}>
                   {t('prescriptions.patient', 'Patient')}
                 </label>
-                <select
-                  value={form.patientId}
-                  onChange={e => setForm(p => ({ ...p, patientId: e.target.value }))}
-                  required
-                  style={{ width:'100%', background:'var(--bg3)', border:'1px solid var(--border2)', borderRadius:'var(--r-sm)', padding:'10px 13px', color: form.patientId ? 'var(--text)' : 'var(--text3)', fontSize:13.5, outline:'none', cursor:'pointer' }}
-                >
-                  <option value="">{t('prescriptions.selectPatient', '— Select patient —')}</option>
-                  {patients.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
+                {presetPatientId ? (
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:'var(--mint-dim)', border:'1px solid rgba(15,227,176,0.3)', borderRadius:'var(--r-sm)', padding:'10px 14px' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:9 }}>
+                      <span style={{ fontSize:14 }}>👤</span>
+                      <span style={{ fontSize:13.5, fontWeight:600, color:'var(--mint)' }}>{presetPatientName}</span>
+                    </div>
+                    <span style={{ fontSize:11, color:'var(--mint)', opacity:0.7 }}>pre-selected</span>
+                  </div>
+                ) : (
+                  <select
+                    value={form.patientId}
+                    onChange={e => setForm(p => ({ ...p, patientId: e.target.value }))}
+                    required
+                    style={{ width:'100%', background:'var(--bg3)', border:'1px solid var(--border2)', borderRadius:'var(--r-sm)', padding:'10px 13px', color: form.patientId ? 'var(--text)' : 'var(--text3)', fontSize:13.5, outline:'none', cursor:'pointer' }}
+                  >
+                    <option value="">{t('prescriptions.selectPatient', '— Select patient —')}</option>
+                    {patients.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               <div style={{ height:1, background:'var(--border)', margin:'14px 0' }} />
@@ -138,6 +161,13 @@ export default function PrescriptionsPage() {
                   <input value={med.dosage}    onChange={e => updateMed(i,'dosage',e.target.value)}    placeholder={t('prescriptions.dose')}     style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'var(--mint)', fontSize:11.5, fontFamily:'var(--font-mono)' }} />
                   <input value={med.frequency} onChange={e => updateMed(i,'frequency',e.target.value)} placeholder={t('prescriptions.freq')}     style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'var(--text2)', fontSize:11.5 }} />
                   <input value={med.duration}  onChange={e => updateMed(i,'duration',e.target.value)}  placeholder={t('prescriptions.duration')} style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'var(--text2)', fontSize:11.5 }} />
+                  {form.medications.length > 1 && (
+                    <button type="button" onClick={() => removeMed(i)}
+                      style={{ background:'transparent', border:'none', color:'var(--rose)', fontSize:16, cursor:'pointer', padding:'0 2px', lineHeight:1, flexShrink:0, opacity:0.7 }}
+                      title="Remove medication">
+                      ×
+                    </button>
+                  )}
                 </div>
               ))}
               <button type="button" onClick={addMed}
