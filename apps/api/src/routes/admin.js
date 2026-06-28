@@ -8,6 +8,7 @@ const Lab     = require('../models/Lab');
 const Review  = require('../models/Review');
 const Appointment = require('../models/Appointment');
 const { recalculateRating } = require('./reviews');
+const Report = require('../models/Report');
 
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -167,6 +168,48 @@ router.delete('/reviews/:id', adminAuth, async (req, res, next) => {
     await review.deleteOne();
     recalculateRating(doctorId).catch(err => console.error('[admin] recalculate failed:', err.message));
     res.status(204).send();
+  } catch (err) { next(err); }
+});
+
+// GET /api/admin/reports?status=pending|resolved|dismissed
+router.get('/reports', adminAuth, async (req, res, next) => {
+  try {
+    const filter = {};
+    if (req.query.status) filter.status = req.query.status;
+    const reports = await Report.find(filter)
+      .populate('reporterId', 'name email role')
+      .sort({ createdAt: -1 })
+      .limit(100);
+    const pending = await Report.countDocuments({ status: 'pending' });
+    res.json({ reports, pending });
+  } catch (err) { next(err); }
+});
+
+// PATCH /api/admin/reports/:id/resolve
+router.patch('/reports/:id/resolve', adminAuth, async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ message: 'Invalid report id' });
+    const report = await Report.findByIdAndUpdate(
+      req.params.id,
+      { status: 'resolved', adminNote: req.body.note || '', resolvedAt: new Date() },
+      { new: true }
+    );
+    if (!report) return res.status(404).json({ message: 'Report not found' });
+    res.json(report);
+  } catch (err) { next(err); }
+});
+
+// PATCH /api/admin/reports/:id/dismiss
+router.patch('/reports/:id/dismiss', adminAuth, async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ message: 'Invalid report id' });
+    const report = await Report.findByIdAndUpdate(
+      req.params.id,
+      { status: 'dismissed', adminNote: req.body.note || '', resolvedAt: new Date() },
+      { new: true }
+    );
+    if (!report) return res.status(404).json({ message: 'Report not found' });
+    res.json(report);
   } catch (err) { next(err); }
 });
 

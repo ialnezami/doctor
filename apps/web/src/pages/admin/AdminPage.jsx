@@ -2,7 +2,16 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import adminClient from '../../api/admin';
 
-const TABS = ['Overview', 'Users', 'Doctors', 'Labs', 'Reviews'];
+const TABS = ['Overview', 'Users', 'Doctors', 'Labs', 'Reviews', 'Reports'];
+
+const REASON_LABELS = {
+  harassment:            'Harassment',
+  fraud:                 'Fraud',
+  spam:                  'Spam',
+  inappropriate_content: 'Inappropriate Content',
+  fake_profile:          'Fake Profile',
+  other:                 'Other',
+};
 
 const S = {
   page:    { minHeight: '100vh', background: 'var(--bg, #060d18)', color: 'var(--text, #e2e8f0)' },
@@ -397,6 +406,79 @@ function ReviewsTab() {
   );
 }
 
+// ── Reports ───────────────────────────────────────────────────────────────────
+function ReportsTab() {
+  const [reports, setReports]   = useState([]);
+  const [filter, setFilter]     = useState('pending');
+  const [loading, setLoading]   = useState(true);
+  const [pending, setPending]   = useState(0);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    adminClient.get(`/admin/reports?status=${filter}`)
+      .then(d => { setReports(d.reports || []); setPending(d.pending || 0); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [filter]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const act = async (id, action) => {
+    try {
+      await adminClient.patch(`/admin/reports/${id}/${action}`);
+      setReports(prev => prev.filter(r => r._id !== id));
+      if (action === 'resolve' || action === 'dismiss') setPending(p => Math.max(0, p - 1));
+    } catch {}
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)' }}>
+          Abuse & Misconduct Reports
+        </div>
+        {pending > 0 && <span style={S.badge('red')}>{pending} pending</span>}
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+          {['pending','resolved','dismissed'].map(s => (
+            <button key={s} onClick={() => setFilter(s)}
+              style={{ ...S.btn(filter === s ? 'mint' : 'default'), padding: '4px 12px', textTransform: 'capitalize' }}>
+              {s}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? <div style={{ fontSize: 13, color: 'var(--text2)' }}>Loading…</div> :
+       reports.length === 0 ? <div style={{ ...S.card, color: 'var(--text2)', fontSize: 13 }}>No {filter} reports</div> : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {reports.map(r => (
+            <div key={r._id} style={S.card}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>{r.reporterId?.name || 'User'}</span>
+                    <span style={{ fontSize: 11, color: 'var(--text2)' }}>{r.reporterId?.role}</span>
+                    <span style={S.badge('red')}>{REASON_LABELS[r.reason] || r.reason}</span>
+                    <span style={S.badge('default')}>{r.targetType}</span>
+                  </div>
+                  {r.description && <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.5, marginBottom: 6 }}>{r.description}</div>}
+                  <div style={{ fontSize: 11, color: 'var(--text3, #64748b)' }}>{new Date(r.createdAt).toLocaleString()}</div>
+                </div>
+                {filter === 'pending' && (
+                  <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                    <button style={S.btn('mint')} onClick={() => act(r._id, 'resolve')}>Resolve</button>
+                    <button style={S.btn('default')} onClick={() => act(r._id, 'dismiss')}>Dismiss</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function AdminPage() {
   const navigate = useNavigate();
@@ -439,6 +521,7 @@ export default function AdminPage() {
         {tab === 'Doctors'  && <DoctorsTab />}
         {tab === 'Labs'     && <LabsTab />}
         {tab === 'Reviews'  && <ReviewsTab />}
+        {tab === 'Reports'  && <ReportsTab />}
       </div>
     </div>
   );

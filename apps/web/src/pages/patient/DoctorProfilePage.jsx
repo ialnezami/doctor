@@ -5,6 +5,79 @@ import { getDoctor, getAvailableSlots } from '../../api/doctors';
 import { getDoctorReviews } from '../../api/reviews';
 import Button from '../../components/ui/Button';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import client from '../../api/client';
+
+const REPORT_REASONS = [
+  { value: 'fraud',                 label: 'Fraud / Fake credentials' },
+  { value: 'harassment',            label: 'Harassment' },
+  { value: 'inappropriate_content', label: 'Inappropriate content' },
+  { value: 'fake_profile',          label: 'Fake profile' },
+  { value: 'spam',                  label: 'Spam' },
+  { value: 'other',                 label: 'Other' },
+];
+
+function ReportModal({ doctorUserId, onClose }) {
+  const [reason, setReason]       = useState('');
+  const [description, setDescription] = useState('');
+  const [submitting, setSubmitting]   = useState(false);
+  const [done, setDone]           = useState(false);
+  const [error, setError]         = useState('');
+
+  const submit = async () => {
+    if (!reason) return;
+    setSubmitting(true);
+    setError('');
+    try {
+      await client.post('/reports', { targetType: 'user', targetId: doctorUserId, reason, description });
+      setDone(true);
+    } catch (e) {
+      setError(e.response?.data?.message || 'Failed to submit report');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:1000, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+      <div style={{ background:'var(--bg2,#0d1a2b)', border:'1px solid var(--border)', borderRadius:12, padding:24, width:'100%', maxWidth:420 }}>
+        {done ? (
+          <div style={{ textAlign:'center' }}>
+            <div style={{ fontSize:32, marginBottom:12 }}>✓</div>
+            <div style={{ fontSize:15, fontWeight:600, marginBottom:8 }}>Report submitted</div>
+            <div style={{ fontSize:13, color:'var(--text2)', marginBottom:20 }}>Our team will review it shortly.</div>
+            <button onClick={onClose} style={{ padding:'8px 24px', background:'var(--mint)', border:'none', borderRadius:8, fontWeight:700, cursor:'pointer', color:'#000' }}>Close</button>
+          </div>
+        ) : (
+          <>
+            <div style={{ fontSize:15, fontWeight:700, marginBottom:16 }}>Report this doctor</div>
+            <div style={{ marginBottom:12 }}>
+              <div style={{ fontSize:12, color:'var(--text2)', marginBottom:6 }}>Reason</div>
+              {REPORT_REASONS.map(r => (
+                <label key={r.value} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6, cursor:'pointer', fontSize:13 }}>
+                  <input type="radio" name="reason" value={r.value} checked={reason === r.value} onChange={() => setReason(r.value)} />
+                  {r.label}
+                </label>
+              ))}
+            </div>
+            <div style={{ marginBottom:14 }}>
+              <div style={{ fontSize:12, color:'var(--text2)', marginBottom:6 }}>Additional details (optional)</div>
+              <textarea value={description} onChange={e => setDescription(e.target.value)} maxLength={1000} rows={3}
+                style={{ width:'100%', boxSizing:'border-box', padding:'8px 10px', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:8, color:'var(--text)', fontSize:13, resize:'vertical', outline:'none' }} />
+            </div>
+            {error && <div style={{ fontSize:12, color:'#f43f5e', marginBottom:10 }}>{error}</div>}
+            <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+              <button onClick={onClose} style={{ padding:'8px 16px', background:'none', border:'1px solid var(--border2)', borderRadius:8, color:'var(--text2)', cursor:'pointer', fontSize:13 }}>Cancel</button>
+              <button onClick={submit} disabled={!reason || submitting}
+                style={{ padding:'8px 16px', background:'rgba(244,63,94,0.15)', border:'1px solid rgba(244,63,94,0.3)', borderRadius:8, color:'#f43f5e', fontWeight:600, cursor: !reason || submitting ? 'not-allowed' : 'pointer', fontSize:13, opacity: !reason || submitting ? 0.6 : 1 }}>
+                {submitting ? 'Submitting…' : 'Submit Report'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function dateLabel(d) { return d.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' }); }
 function toISO(d) { return d.toISOString().slice(0,10); }
@@ -30,6 +103,7 @@ export default function DoctorProfilePage() {
   const [slots, setSlots]               = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [reviewData, setReviewData]     = useState({ reviews: [], averageRating: 0, reviewCount: 0 });
+  const [showReport, setShowReport]     = useState(false);
 
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() + i); return d;
@@ -43,6 +117,8 @@ export default function DoctorProfilePage() {
   }, [id, selectedDate]);
 
   if (!doctor) return <div style={{ padding:40, color:'var(--text2)' }}>{t('doctorProfile.loading')}</div>;
+
+  const doctorUserId = (doctor.userId?._id || doctor.userId || id);
 
   const user = doctor.userId || {};
   const name = user.name || t('myAppts.doctor');
@@ -73,7 +149,15 @@ export default function DoctorProfilePage() {
             )}
           </div>
         </div>
+        <div style={{ marginTop:14, display:'flex', justifyContent:'flex-end' }}>
+          <button onClick={() => setShowReport(true)}
+            style={{ background:'none', border:'none', color:'var(--text3)', fontSize:12, cursor:'pointer', textDecoration:'underline' }}>
+            Report this doctor
+          </button>
+        </div>
       </div>
+
+      {showReport && <ReportModal doctorUserId={doctorUserId} onClose={() => setShowReport(false)} />}
 
       <div style={{ fontSize:13, fontWeight:600, marginBottom:10 }}>{t('doctorProfile.pickDate')}</div>
       <div style={{ display:'flex', gap:8, marginBottom:20, overflowX:'auto', paddingBottom:4 }}>
