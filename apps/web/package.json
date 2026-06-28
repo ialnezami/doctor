@@ -8,7 +8,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@daily-co/daily-js": "^0.91.0",
     "axios": "^1.6.2",
     "i18next": "^26.2.0",
     "react": "^19.0.0",

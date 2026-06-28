@@ -22,8 +22,8 @@ export default function VideoCallScreen({ route, navigation }) {
 
   useEffect(() => {
     getVideoToken(appointmentId)
-      .then(({ roomUrl, token }) => {
-        setCallUrl(`${roomUrl}?t=${token}`);
+      .then(({ roomUrl }) => {
+        setCallUrl(roomUrl);
         setLoading(false);
         // Auto-dismiss waiting banner after 30s
         waitTimerRef.current = setTimeout(() => setWaiting(false), 30000);

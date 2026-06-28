@@ -1,11 +1,29 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Daily from '@daily-co/daily-js';
 import useAuthStore from '../../store/authStore';
 import { getVideoToken } from '../../api/video';
 import client from '../../api/client';
 import { useIsMobile } from '../../hooks/useIsMobile';
+
+function loadJitsiScript(src) {
+  return new Promise((resolve, reject) => {
+    if (window.JitsiMeetExternalAPI) return resolve();
+    const existing = document.getElementById('jitsi-ext-api');
+    if (existing) {
+      existing.addEventListener('load', resolve);
+      existing.addEventListener('error', reject);
+      return;
+    }
+    const s = document.createElement('script');
+    s.id    = 'jitsi-ext-api';
+    s.src   = src;
+    s.async = true;
+    s.onload  = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
 
 export default function VideoCallPage() {
   const { id: appointmentId } = useParams();
@@ -24,38 +42,58 @@ export default function VideoCallPage() {
   const [saving, setSaving]                 = useState(false);
   const [saveMsg, setSaveMsg]               = useState('');
 
-  const videoRef = useRef(null);
-  const frameRef = useRef(null);
+  const containerRef = useRef(null);
+  const apiRef       = useRef(null);
 
   useEffect(() => {
-    let frame;
+    (async () => {
+      try {
+        const { roomUrl } = await getVideoToken(appointmentId);
 
-    getVideoToken(appointmentId)
-      .then(({ roomUrl, token }) => {
-        frame = Daily.createFrame(videoRef.current, {
-          showLeaveButton: true,
-          showFullscreenButton: true,
-          iframeStyle: { width:'100%', height:'100%', border:'none' },
+        const url    = new URL(roomUrl);
+        const domain = url.hostname;
+        const room   = url.pathname.slice(1);
+        const script = `https://${domain}/external_api.js`;
+
+        await loadJitsiScript(script);
+
+        const api = new window.JitsiMeetExternalAPI(domain, {
+          roomName: room,
+          parentNode: containerRef.current,
+          configOverwrite: {
+            prejoinPageEnabled:   false,
+            startWithAudioMuted:  false,
+            startWithVideoMuted:  false,
+          },
+          interfaceConfigOverwrite: {
+            SHOW_JITSI_WATERMARK:       false,
+            SHOW_WATERMARK_FOR_GUESTS:  false,
+            TOOLBAR_BUTTONS: [
+              'microphone', 'camera', 'closedcaptions', 'desktop',
+              'fullscreen', 'fodeviceselection', 'hangup', 'chat',
+              'raisehand', 'videoquality', 'tileview',
+            ],
+          },
+          userInfo: {
+            displayName: user?.name || (isDoctor ? 'Doctor' : 'Patient'),
+          },
         });
-        frameRef.current = frame;
+        apiRef.current = api;
 
-        frame.on('participant-joined', () => setWaiting(false));
-        frame.on('left-meeting', () => navigate(-1));
-
-        return frame.join({ url: roomUrl, token });
-      })
-      .then(() => setLoading(false))
-      .catch((err) => {
+        api.on('videoConferenceJoined', () => setLoading(false));
+        api.on('participantJoined',     () => setWaiting(false));
+        api.on('readyToClose',          () => navigate(-1));
+      } catch (err) {
         console.error('[video] join failed:', err);
         alert(t('video.connectionError'));
         navigate(-1);
-      });
+      }
+    })();
 
     return () => {
-      if (frameRef.current) {
-        frameRef.current.leave().catch(() => {});
-        frameRef.current.destroy();
-        frameRef.current = null;
+      if (apiRef.current) {
+        apiRef.current.dispose();
+        apiRef.current = null;
       }
     };
   }, [appointmentId]);
@@ -66,7 +104,7 @@ export default function VideoCallPage() {
     setSaveMsg('');
     try {
       await client.post(`/appointments/${appointmentId}/notes`, {
-        content: noteText.trim(),
+        content:    noteText.trim(),
         visibility: 'private',
       });
       setNoteText('');
@@ -122,7 +160,7 @@ export default function VideoCallPage() {
             </div>
           )}
 
-          <div ref={videoRef} style={{ width:'100%', height:'100%' }} />
+          <div ref={containerRef} style={{ width:'100%', height:'100%' }} />
         </div>
 
         {/* Notes panel — doctor only */}

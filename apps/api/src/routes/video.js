@@ -1,50 +1,15 @@
-const router     = require('express').Router({ mergeParams: true });
-const mongoose   = require('mongoose');
-const auth       = require('../middleware/auth');
+const router      = require('express').Router({ mergeParams: true });
+const crypto      = require('crypto');
+const mongoose    = require('mongoose');
+const auth        = require('../middleware/auth');
 const Appointment = require('../models/Appointment');
 
-const DAILY_API = 'https://api.daily.co/v1';
-
-async function dailyFetch(path, options = {}) {
-  const res = await fetch(`${DAILY_API}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.DAILY_API_KEY}`,
-      ...(options.headers || {}),
-    },
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    console.error('[daily] API error', res.status, JSON.stringify(data));
-    throw Object.assign(new Error(data.error || `Daily.co ${res.status}`), { dailyStatus: res.status, dailyBody: data });
-  }
-  return data;
-}
-
-function computeRoomExp(appointmentDate) {
-  const d = new Date(appointmentDate);
-  d.setUTCHours(23, 59, 59, 999);
-  // Daily.co rejects exp in the past — always guarantee at least 1 h from now
-  const floor = Date.now() + 60 * 60 * 1000;
-  return Math.floor(Math.max(d.getTime(), floor) / 1000);
-}
-
-function computeTokenExp(appointmentDate, timeSlotEnd) {
-  const [hours, minutes] = timeSlotEnd.split(':').map(Number);
-  const endDate = new Date(appointmentDate);
-  endDate.setHours(hours, minutes, 0, 0);
-  const endMs  = endDate.getTime() + 90 * 60 * 1000;
-  const capMs  = Date.now()        +  4 * 60 * 60 * 1000;
-  const floor  = Date.now()        +      60 * 60 * 1000; // always at least 1 h
-  return Math.floor(Math.max(Math.min(endMs, capMs), floor) / 1000);
-}
-
-/* POST /api/appointments/:id/video/token */
+/* POST /api/appointments/:id/video/token
+ * Returns a Jitsi room URL for the appointment.
+ * Both participants call this endpoint; the room is created on first join (Jitsi is server-less).
+ * The random suffix on the room name prevents guessing via MongoDB ObjectID.
+ */
 router.post('/:id/video/token', auth, async (req, res) => {
-  if (!process.env.DAILY_API_KEY || !process.env.DAILY_DOMAIN) {
-    return res.status(503).json({ message: 'Video service not configured — set DAILY_API_KEY and DAILY_DOMAIN in .env' });
-  }
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ message: 'Invalid appointment id' });
@@ -63,43 +28,16 @@ router.post('/:id/video/token', auth, async (req, res) => {
     }
 
     if (!appt.videoRoomName) {
-      const roomName = `appt-${appt._id}`;
-      try {
-        await dailyFetch('/rooms', {
-          method: 'POST',
-          body: JSON.stringify({
-            name: roomName,
-            privacy: 'private',
-            properties: {
-              exp: computeRoomExp(appt.date),
-              enable_recording: false,
-            },
-          }),
-        });
-      } catch (err) {
-        if (err.dailyStatus !== 409) throw err;
-        // Room already exists on Daily.co — idempotent, continue
-      }
-      appt.videoRoomName = roomName;
+      const suffix = crypto.randomBytes(6).toString('hex');
+      appt.videoRoomName = `appt-${appt._id}-${suffix}`;
       await appt.save();
     }
 
-    const tokenExp = computeTokenExp(appt.date, appt.timeSlot.end);
-    const { token } = await dailyFetch('/meeting-tokens', {
-      method: 'POST',
-      body: JSON.stringify({
-        properties: {
-          room_name: appt.videoRoomName,
-          is_owner:  isDoctor,
-          exp:       tokenExp,
-        },
-      }),
-    });
-
-    const roomUrl = `https://${process.env.DAILY_DOMAIN}/${appt.videoRoomName}`;
-    res.json({ roomUrl, token });
+    const server  = process.env.JITSI_SERVER || 'meet.jit.si';
+    const roomUrl = `https://${server}/${appt.videoRoomName}`;
+    res.json({ roomUrl });
   } catch (err) {
-    console.error('[video] token error:', err);
+    console.error('[video] room error:', err);
     res.status(500).json({ message: 'Could not start video session' });
   }
 });
