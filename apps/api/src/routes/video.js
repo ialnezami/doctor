@@ -36,6 +36,9 @@ function computeTokenExp(appointmentDate, timeSlotEnd) {
 
 /* POST /api/appointments/:id/video/token */
 router.post('/:id/video/token', auth, async (req, res) => {
+  if (!process.env.DAILY_API_KEY || !process.env.DAILY_DOMAIN) {
+    return res.status(503).json({ message: 'Video service not configured — set DAILY_API_KEY and DAILY_DOMAIN in .env' });
+  }
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ message: 'Invalid appointment id' });

@@ -121,19 +121,20 @@ router.get('/:id/available-slots', auth, async (req, res, next) => {
 });
 
 // GET /api/doctors/:id/reviews — public, paginated
+// :id is the Doctor document _id; reviews store doctorId as User._id
 router.get('/:id/reviews', async (req, res, next) => {
   try {
     const mongoose = require('mongoose');
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ message: 'Invalid doctor id' });
     }
-    const doctor = await Doctor.findOne({ userId: req.params.id }).select('averageRating reviewCount');
+    const doctor = await Doctor.findById(req.params.id).select('userId averageRating reviewCount');
     if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
 
     const page  = Math.max(1, parseInt(req.query.page) || 1);
     const skip  = (page - 1) * PAGE_SIZE;
-    const total = await Review.countDocuments({ doctorId: req.params.id });
-    const reviews = await Review.find({ doctorId: req.params.id })
+    const total = await Review.countDocuments({ doctorId: doctor.userId });
+    const reviews = await Review.find({ doctorId: doctor.userId })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(PAGE_SIZE)
