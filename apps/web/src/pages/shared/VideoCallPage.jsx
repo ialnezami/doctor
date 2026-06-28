@@ -81,10 +81,10 @@ export default function VideoCallPage() {
           },
         });
         apiRef.current = api;
+        setLoading(false);
 
-        api.on('videoConferenceJoined', () => setLoading(false));
-        api.on('participantJoined',     () => setWaiting(false));
-        api.on('readyToClose',          () => navigate(-1));
+        api.on('participantJoined', () => setWaiting(false));
+        api.on('readyToClose',      () => navigate(-1));
       } catch (err) {
         console.error('[video] join failed:', err);
         alert(t('video.connectionError'));
