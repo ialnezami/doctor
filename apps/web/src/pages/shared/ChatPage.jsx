@@ -146,7 +146,7 @@ export default function ChatPage() {
           return (
             <div key={msg._id} style={{ display:'flex', flexDirection:'column', alignItems: mine ? 'flex-end' : 'flex-start', marginBottom:6 }}>
               <div style={{
-                maxWidth:'65%', padding:'9px 13px', borderRadius:14,
+                maxWidth:'82%', padding:'9px 13px', borderRadius:14,
                 borderBottomRightRadius: mine ? 4 : 14,
                 borderBottomLeftRadius: mine ? 14 : 4,
                 background: mine ? 'rgba(15,227,176,0.18)' : 'var(--bg3)',

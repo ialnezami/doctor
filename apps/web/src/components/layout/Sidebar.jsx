@@ -24,11 +24,13 @@ const labNavKeys = [
   { key: 'nav.myUploads', path: '/lab' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ onNavigate }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { user, logout } = useAuthStore();
   const { t } = useTranslation();
+
+  const go = (path) => { navigate(path); onNavigate?.(); };
 
   const navKeys = user?.role === 'doctor' ? doctorNavKeys
     : user?.role === 'laboratory' ? labNavKeys
@@ -60,7 +62,7 @@ export default function Sidebar() {
         {navKeys.map(item => {
           const active = pathname === item.path;
           return (
-            <div key={item.path} onClick={() => navigate(item.path)}
+            <div key={item.path} onClick={() => go(item.path)}
               style={{ display:'flex', alignItems:'center', gap:9, padding:'9px 10px', borderRadius:'var(--r-sm)', marginBottom:2, cursor:'pointer', border:'1px solid transparent', transition:'all .13s',
                 background: active ? 'var(--mint-dim)' : 'transparent',
                 borderColor: active ? 'rgba(15,227,176,0.2)' : 'transparent',

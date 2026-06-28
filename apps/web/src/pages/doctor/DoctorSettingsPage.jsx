@@ -5,6 +5,7 @@ import useAuthStore from '../../store/authStore';
 import Button from '../../components/ui/Button';
 import client from '../../api/client';
 import { getNotificationPrefs, updateNotificationPrefs } from '../../api/users';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const TIMEZONES = [
   { label: 'UTC',                 value: 'UTC' },
@@ -26,6 +27,7 @@ const DAY_KEYS = ['sun','mon','tue','wed','thu','fri','sat'];
 export default function DoctorSettingsPage() {
   const { user } = useAuthStore();
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [doctorId, setDoctorId] = useState(null);
   const [autoAccept, setAutoAccept] = useState(false);
   const [slots, setSlots] = useState([]);
@@ -74,7 +76,7 @@ export default function DoctorSettingsPage() {
   const saveLabel = saving ? t('settings.saving') : saved ? t('settings.saved') : t('settings.saveSettings');
 
   return (
-    <div style={{ padding:26, maxWidth:600 }}>
+    <div style={{ padding: isMobile ? 14 : 26, maxWidth:600 }}>
       <div style={{ fontFamily:'var(--font-display)', fontSize:21, fontWeight:500, marginBottom:24 }}>{t('settings.title')}</div>
 
       {/* Auto-accept */}

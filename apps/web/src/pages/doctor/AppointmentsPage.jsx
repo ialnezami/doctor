@@ -5,6 +5,7 @@ import { getAppointments, updateStatus } from '../../api/appointments';
 import api from '../../api/client';
 import StatusChip from '../../components/ui/StatusChip';
 import Button from '../../components/ui/Button';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const FILTER_KEYS = ['all','pending','confirmed','completed','cancelled'];
 
@@ -53,6 +54,7 @@ function SymptomCard({ appt, t }) {
 export default function AppointmentsPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [appointments, setAppointments] = useState([]);
   const [filter, setFilter] = useState('all');
   const [selectedAppointment, setSelectedAppointment] = useState(null);
@@ -97,14 +99,14 @@ export default function AppointmentsPage() {
 
   return (
     <div>
-      <div style={{ position:'sticky', top:0, zIndex:10, background:'rgba(6,13,24,0.88)', backdropFilter:'blur(14px)', borderBottom:'1px solid var(--border)', padding:'14px 26px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+      <div style={{ position:'sticky', top:0, zIndex:10, background:'rgba(6,13,24,0.88)', backdropFilter:'blur(14px)', borderBottom:'1px solid var(--border)', padding: isMobile ? '12px 14px' : '14px 26px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <div>
           <div style={{ fontFamily:'var(--font-display)', fontSize:21, fontWeight:500 }}>{t('appointments.title')}</div>
           <div style={{ fontSize:12, color:'var(--text2)', marginTop:1 }}>{t('appointments.subtitle')}</div>
         </div>
       </div>
 
-      <div style={{ padding:26 }}>
+      <div style={{ padding: isMobile ? 14 : 26 }}>
         <div style={{ display:'flex', gap:7, marginBottom:16, flexWrap:'wrap' }}>
           {FILTER_KEYS.map(f => (
             <button key={f} onClick={() => setFilter(f)}
@@ -114,7 +116,7 @@ export default function AppointmentsPage() {
           ))}
         </div>
 
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:18 }}>
+        <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:18 }}>
           <div>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
               <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)' }}>
@@ -183,7 +185,7 @@ export default function AppointmentsPage() {
               <div style={{ fontSize: 16, fontWeight: 600 }}>{t('appointments.details.title')}</div>
               <button onClick={() => setSelectedAppointment(null)} style={{ background: 'none', border: 'none', color: 'var(--text2)', fontSize: 20, cursor: 'pointer' }}>✕</button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 16 }}>
               <div>
                 <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: 'var(--text2)', marginBottom: 4 }}>{t('appointments.details.patient')}</div>
                 <div style={{ fontSize: 14 }}>{selectedAppointment.patientId?.name}</div>

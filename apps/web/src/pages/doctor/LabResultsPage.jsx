@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { getLabResults, searchLabResults, addLabNotes, createShareLink, revokeShareLink } from '../../api/labResults';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 function FlagBadge({ flag, t }) {
   const FLAGS = {
@@ -111,6 +112,7 @@ const inputStyle = { width:'100%', background:'var(--bg3)', border:'1px solid va
 
 export default function LabResultsPage() {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [results, setResults] = useState([]);
   const [selected, setSelected] = useState(null);
   const [notes, setNotes] = useState('');
@@ -150,19 +152,19 @@ export default function LabResultsPage() {
 
   return (
     <div>
-      <div style={{ position:'sticky', top:0, zIndex:10, background:'rgba(6,13,24,0.88)', backdropFilter:'blur(14px)', borderBottom:'1px solid var(--border)', padding:'14px 26px', display:'flex', alignItems:'center', gap:16 }}>
-        <div style={{ flex:1 }}>
+      <div style={{ position:'sticky', top:0, zIndex:10, background:'rgba(6,13,24,0.88)', backdropFilter:'blur(14px)', borderBottom:'1px solid var(--border)', padding: isMobile ? '12px 14px' : '14px 26px', display:'flex', alignItems:'center', gap:12, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+        <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontFamily:'var(--font-display)', fontSize:21, fontWeight:500 }}>{t('labResults.title')}</div>
           <div style={{ fontSize:12, color:'var(--text2)', marginTop:1 }}>{t('labResults.subtitle')}</div>
         </div>
-        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+        <div style={{ display:'flex', gap:8, alignItems:'center', width: isMobile ? '100%' : 'auto' }}>
           <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key==='Enter' && doSearch()}
-            placeholder={t('labResults.searchPlaceholder')} style={{ ...inputStyle, width:220, padding:'8px 13px' }} />
+            placeholder={t('labResults.searchPlaceholder')} style={{ ...inputStyle, flex:1, padding:'8px 13px' }} />
           <Button variant="ghost" onClick={doSearch}>{t('labResults.search')}</Button>
         </div>
       </div>
 
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1.6fr', gap:0, height:'calc(100vh - 57px)' }}>
+      <div style={isMobile ? { display:'flex', flexDirection:'column' } : { display:'grid', gridTemplateColumns:'1fr 1.6fr', gap:0, height:'calc(100vh - 57px)' }}>
         {/* List */}
         <div style={{ borderRight:'1px solid var(--border)', overflowY:'auto', padding:16 }}>
           {results.length === 0 && (
@@ -225,7 +227,8 @@ export default function LabResultsPage() {
 
               {/* Tests table */}
               <Card style={{ marginBottom:18, padding:0, overflow:'hidden' }}>
-                <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
+                <div style={{ overflowX:'auto' }}>
+                <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13, minWidth: isMobile ? 480 : 'auto' }}>
                   <thead>
                     <tr style={{ background:'var(--bg3)' }}>
                       {['testName','value','unit','range','flag'].map(h => (
@@ -251,6 +254,7 @@ export default function LabResultsPage() {
                     })}
                   </tbody>
                 </table>
+                </div>
               </Card>
 
               {/* Doctor notes */}

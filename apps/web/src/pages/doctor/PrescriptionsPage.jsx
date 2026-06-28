@@ -3,11 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { getPrescriptions, createPrescription } from '../../api/prescriptions';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const emptyMed = { name:'', dosage:'', frequency:'', duration:'' };
 
 export default function PrescriptionsPage() {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [rxList, setRxList] = useState([]);
   const [form, setForm] = useState({ patientId:'', instructions:'', medications:[{ ...emptyMed }] });
   const [saving, setSaving] = useState(false);
@@ -69,7 +71,7 @@ export default function PrescriptionsPage() {
 
   return (
     <div>
-      <div style={{ position:'sticky', top:0, zIndex:10, background:'rgba(6,13,24,0.88)', backdropFilter:'blur(14px)', borderBottom:'1px solid var(--border)', padding:'14px 26px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+      <div style={{ position:'sticky', top:0, zIndex:10, background:'rgba(6,13,24,0.88)', backdropFilter:'blur(14px)', borderBottom:'1px solid var(--border)', padding: isMobile ? '12px 14px' : '14px 26px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:8 }}>
         <div>
           <div style={{ fontFamily:'var(--font-display)', fontSize:21, fontWeight:500 }}>{t('prescriptions.title')}</div>
           <div style={{ fontSize:12, color:'var(--text2)', marginTop:1 }}>{t('prescriptions.subtitle')}</div>
@@ -81,8 +83,8 @@ export default function PrescriptionsPage() {
           </Button>
         </div>
       </div>
-      <div style={{ padding:26 }}>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:18 }}>
+      <div style={{ padding: isMobile ? 14 : 26 }}>
+        <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:18 }}>
           <Card>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingBottom:14, borderBottom:'1px solid var(--border)', marginBottom:16 }}>
               <div>

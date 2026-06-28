@@ -28,13 +28,13 @@ export default function RegisterPage() {
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', padding:24 }}>
-      <div style={{ width:440, background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:40 }}>
+      <div style={{ width:'100%', maxWidth:440, background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:'32px 24px' }}>
         <div style={{ marginBottom:28, textAlign:'center' }}>
           <div style={{ width:48, height:48, background:'var(--mint)', borderRadius:14, display:'grid', placeItems:'center', fontSize:22, fontWeight:800, color:'#000', margin:'0 auto 14px' }}>M</div>
           <h2 style={{ fontFamily:'var(--font-display)', fontSize:26, fontWeight:500 }}>Create account</h2>
         </div>
 
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:3, marginBottom:22 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:3, marginBottom:22 }}>
           {['patient','doctor','laboratory'].map(r => (
             <button key={r} onClick={() => setForm(p => ({ ...p, role: r }))}
               style={{ padding:10, border: form.role===r ? '1px solid var(--border2)' : 'none', borderRadius:7, background: form.role===r ? 'var(--bg2)' : 'transparent', color: form.role===r ? 'var(--mint)' : 'var(--text2)', fontWeight: form.role===r ? 600 : 500, fontSize:13, textTransform:'capitalize', transition:'all .18s' }}>

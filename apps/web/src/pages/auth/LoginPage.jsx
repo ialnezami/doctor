@@ -6,11 +6,13 @@ import useAuthStore from '../../store/authStore';
 import Button from '../../components/ui/Button';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const setAuth = useAuthStore(s => s.login);
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,9 +32,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ display:'flex', height:'100vh' }}>
-      {/* Left panel */}
-      <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', padding:56, background:'var(--bg2)', borderRight:'1px solid var(--border)', position:'relative', overflow:'hidden' }}>
+    <div style={{ display:'flex', flexDirection: isMobile ? 'column' : 'row', height:'100vh', overflowY: isMobile ? 'auto' : 'hidden' }}>
+      {/* Left panel — hidden on mobile */}
+      {!isMobile && <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', padding:56, background:'var(--bg2)', borderRight:'1px solid var(--border)', position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 65% 55% at 20% 30%, rgba(15,227,176,0.08) 0%, transparent 60%), radial-gradient(ellipse 45% 40% at 80% 70%, rgba(96,165,250,0.06) 0%, transparent 60%)', pointerEvents:'none' }} />
         <div style={{ textAlign:'center', marginBottom:52 }}>
           <div style={{ width:60, height:60, background:'var(--mint)', borderRadius:18, display:'grid', placeItems:'center', fontSize:26, fontWeight:800, color:'#000', margin:'0 auto 18px', boxShadow:'0 0 50px rgba(15,227,176,0.25)' }}>M</div>
@@ -49,10 +51,16 @@ export default function LoginPage() {
             <div><div style={{ fontSize:13.5, fontWeight:600 }}>{t(`auth.features.${f.key}.title`)}</div><div style={{ fontSize:11.5, color:'var(--text2)', marginTop:2 }}>{t(`auth.features.${f.key}.desc`)}</div></div>
           </div>
         ))}
-      </div>
+      </div>}
 
       {/* Right panel - form */}
-      <div style={{ width:420, display:'flex', flexDirection:'column', justifyContent:'center', padding:'56px 46px' }}>
+      <div style={{ width: isMobile ? '100%' : 420, display:'flex', flexDirection:'column', justifyContent:'center', padding: isMobile ? '40px 24px' : '56px 46px', flex: isMobile ? 'none' : undefined }}>
+        {isMobile && (
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:28 }}>
+            <div style={{ width:38, height:38, background:'var(--mint)', borderRadius:10, display:'grid', placeItems:'center', fontSize:18, fontWeight:800, color:'#000', boxShadow:'0 0 30px rgba(15,227,176,0.2)' }}>M</div>
+            <span style={{ fontFamily:'var(--font-display)', fontSize:22, fontWeight:600 }}>Medi<span style={{ color:'var(--mint)' }}>Connect</span></span>
+          </div>
+        )}
         <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:16 }}><LanguageSwitcher /></div>
         <h2 style={{ fontFamily:'var(--font-display)', fontSize:28, fontWeight:500, marginBottom:7 }}>{t('auth.login.title')}</h2>
         <p style={{ fontSize:13, color:'var(--text2)', marginBottom:26 }}>{t('auth.login.subtitle')}</p>

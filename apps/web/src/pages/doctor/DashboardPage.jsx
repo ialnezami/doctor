@@ -6,11 +6,13 @@ import useAuthStore from '../../store/authStore';
 import Card from '../../components/ui/Card';
 import StatusChip from '../../components/ui/StatusChip';
 import Button from '../../components/ui/Button';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [appointments, setAppointments] = useState([]);
 
   useEffect(() => { getAppointments().then(setAppointments).catch(() => {}); }, []);
@@ -27,7 +29,7 @@ export default function DashboardPage() {
   return (
     <div>
       {/* Topbar */}
-      <div style={{ position:'sticky', top:0, zIndex:10, background:'rgba(6,13,24,0.88)', backdropFilter:'blur(14px)', borderBottom:'1px solid var(--border)', padding:'14px 26px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+      <div style={{ position:'sticky', top:0, zIndex:10, background:'rgba(6,13,24,0.88)', backdropFilter:'blur(14px)', borderBottom:'1px solid var(--border)', padding: isMobile ? '12px 14px' : '14px 26px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <div>
           <div style={{ fontFamily:'var(--font-display)', fontSize:21, fontWeight:500 }}>
             {t('dashboard.greeting', { name: user?.name?.split(' ')[0] })}
@@ -39,9 +41,9 @@ export default function DashboardPage() {
         <Button onClick={() => navigate('/prescriptions')}>{t('dashboard.newPrescription')}</Button>
       </div>
 
-      <div style={{ padding:26 }}>
+      <div style={{ padding: isMobile ? 14 : 26 }}>
         {/* Stats */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:14, marginBottom:22 }}>
+        <div style={{ display:'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap:14, marginBottom:22 }}>
           {[
             { label: t('dashboard.stats.todayAppointments'), value: today.length,        accent:'var(--mint)' },
             { label: t('dashboard.stats.pendingRequests'),   value: pending.length,      accent:'var(--amber)' },
@@ -56,7 +58,7 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:18 }}>
+        <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:18 }}>
           {/* Today's schedule */}
           <div>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>

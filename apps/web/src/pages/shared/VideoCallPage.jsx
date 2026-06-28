@@ -5,6 +5,7 @@ import Daily from '@daily-co/daily-js';
 import useAuthStore from '../../store/authStore';
 import { getVideoToken } from '../../api/video';
 import client from '../../api/client';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 export default function VideoCallPage() {
   const { id: appointmentId } = useParams();
@@ -14,10 +15,11 @@ export default function VideoCallPage() {
   const { t }                 = useTranslation();
   const isDoctor              = user?.role === 'doctor';
   const otherPartyName        = location.state?.otherPartyName || t('chat.appointmentChat');
+  const isMobile              = useIsMobile();
 
   const [loading, setLoading]               = useState(true);
   const [waiting, setWaiting]               = useState(true);
-  const [notesPanelOpen, setNotesPanelOpen] = useState(true);
+  const [notesPanelOpen, setNotesPanelOpen] = useState(!isMobile);
   const [noteText, setNoteText]             = useState('');
   const [saving, setSaving]                 = useState(false);
   const [saveMsg, setSaveMsg]               = useState('');
@@ -99,9 +101,9 @@ export default function VideoCallPage() {
       </div>
 
       {/* Body */}
-      <div style={{ display:'flex', flex:1, overflow:'hidden' }}>
+      <div style={{ display:'flex', flex:1, overflow: isMobile ? 'auto' : 'hidden', flexDirection: isMobile ? 'column' : 'row' }}>
         {/* Video area */}
-        <div style={{ flex:1, position:'relative' }}>
+        <div style={{ flex:1, position:'relative', minHeight: isMobile ? '60vw' : 'auto' }}>
           {loading && (
             <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', background:'#111', zIndex:5 }}>
               <div style={{ textAlign:'center', color:'#aaa' }}>
@@ -125,7 +127,7 @@ export default function VideoCallPage() {
 
         {/* Notes panel — doctor only */}
         {isDoctor && notesPanelOpen && (
-          <div style={{ width:320, borderLeft:'1px solid rgba(255,255,255,0.1)', background:'var(--bg2,#0d1a2b)', display:'flex', flexDirection:'column', padding:16, gap:10 }}>
+          <div style={ isMobile ? { borderTop:'1px solid rgba(255,255,255,0.1)', background:'var(--bg2,#0d1a2b)', display:'flex', flexDirection:'column', padding:16, gap:10 } : { width:320, borderLeft:'1px solid rgba(255,255,255,0.1)', background:'var(--bg2,#0d1a2b)', display:'flex', flexDirection:'column', padding:16, gap:10 }}>
             <div style={{ fontSize:14, fontWeight:700, color:'var(--text,#e2e8f0)' }}>{t('video.privateNote')}</div>
             <div style={{ fontSize:11, color:'var(--text3,#64748b)' }}>{t('video.noteDesc')}</div>
             <textarea

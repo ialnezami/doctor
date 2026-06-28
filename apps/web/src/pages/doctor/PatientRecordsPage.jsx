@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const MOCK_PATIENTS = [
   { id:'1', name:'Omar Faisal', age:32, sex:'Male', conditions:['Hypertension','Arrhythmia'], ref:'#P-0042', bp:'138/88', hr:76, spo2:98,
@@ -16,6 +17,7 @@ const MOCK_PATIENTS = [
 export default function PatientRecordsPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(MOCK_PATIENTS[0]);
 
@@ -23,20 +25,20 @@ export default function PatientRecordsPage() {
 
   return (
     <div>
-      <div style={{ position:'sticky', top:0, zIndex:10, background:'rgba(6,13,24,0.88)', backdropFilter:'blur(14px)', borderBottom:'1px solid var(--border)', padding:'14px 26px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+      <div style={{ position:'sticky', top:0, zIndex:10, background:'rgba(6,13,24,0.88)', backdropFilter:'blur(14px)', borderBottom:'1px solid var(--border)', padding: isMobile ? '12px 14px' : '14px 26px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <div>
           <div style={{ fontFamily:'var(--font-display)', fontSize:21, fontWeight:500 }}>{t('patientRecords.title')}</div>
           <div style={{ fontSize:12, color:'var(--text2)', marginTop:1 }}>{t('patientRecords.subtitle')}</div>
         </div>
         <Button>{t('patientRecords.newPatient')}</Button>
       </div>
-      <div style={{ padding:26 }}>
+      <div style={{ padding: isMobile ? 14 : 26 }}>
         <div style={{ display:'flex', alignItems:'center', background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:'var(--r)', overflow:'hidden', marginBottom:20 }}>
           <span style={{ padding:'0 13px', color:'var(--text3)', fontSize:15 }}>⌕</span>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('patientRecords.searchPlaceholder')}
             style={{ flex:1, background:'transparent', border:'none', outline:'none', padding:'11px 0', color:'var(--text)', fontSize:13.5 }} />
         </div>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:18 }}>
+        <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:18 }}>
           <div>
             {filtered.map(p => (
               <div key={p.id} onClick={() => setSelected(p)}
@@ -68,7 +70,7 @@ export default function PatientRecordsPage() {
                 <Button style={{ padding:'6px 13px', fontSize:12 }} onClick={() => navigate('/prescriptions')}>{t('patientRecords.prescribe')}</Button>
               </div>
 
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:14 }}>
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? 'repeat(3,1fr)' : 'repeat(3,1fr)', gap: isMobile ? 6 : 10, marginBottom:14 }}>
                 {[
                   [t('patientRecords.vitals.bp'),        selected.bp,           t('patientRecords.vitals.mmhg')],
                   [t('patientRecords.vitals.heartRate'),  selected.hr,           t('patientRecords.vitals.bpm')],
