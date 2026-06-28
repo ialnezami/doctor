@@ -41,7 +41,25 @@
       "Bash(gh pr *)",
       "Bash(curl -s http://localhost:3001/api/health)",
       "Bash(curl -s http://localhost:3001/)",
-      "Bash(xargs ls)"
+      "Bash(xargs ls)",
+      "Bash(cat \"$\\(git -C /Users/ibrahimalnezami/Desktop/doc/doctor rev-parse --show-toplevel\\)/.superpowers/sdd/progress.md\")",
+      "Bash(/Users/ibrahimalnezami/.claude/plugins/cache/claude-plugins-official/superpowers/6.0.3/skills/subagent-driven-development/scripts/task-brief *)",
+      "Bash(/Users/ibrahimalnezami/.claude/plugins/cache/claude-plugins-official/superpowers/6.0.3/skills/subagent-driven-development/scripts/review-package 975f43e *)",
+      "Bash(/Users/ibrahimalnezami/.claude/plugins/cache/claude-plugins-official/superpowers/6.0.3/skills/subagent-driven-development/scripts/review-package bf57ffb *)",
+      "Bash(bash *)",
+      "Skill(gsd-resume-work)",
+      "Bash(/Users/ibrahimalnezami/.claude/plugins/cache/claude-plugins-official/superpowers/6.0.3/skills/subagent-driven-development/scripts/review-package da61c53 *)",
+      "Bash(/Users/ibrahimalnezami/.claude/plugins/cache/claude-plugins-official/superpowers/6.0.3/skills/subagent-driven-development/scripts/review-package 983735d *)",
+      "Bash(/Users/ibrahimalnezami/.claude/plugins/cache/claude-plugins-official/superpowers/6.0.3/skills/subagent-driven-development/scripts/review-package 53262ea *)",
+      "Bash(GIT_DIR=/Users/ibrahimalnezami/Desktop/doc/doctor/.git GIT_WORK_TREE=/Users/ibrahimalnezami/Desktop/doc/doctor bash *)",
+      "Bash(xargs ls -la)",
+      "Bash(npm test *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('scripts',{}\\), indent=2\\)\\)\")",
+      "Bash(docker pull *)",
+      "Bash(docker compose *)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('/Users/ibrahimalnezami/Desktop/doc/doctor/apps/web/src/i18n/en.json'\\)\\); print\\(json.dumps\\(d, indent=2\\)\\)\")",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('/Users/ibrahimalnezami/Desktop/doc/doctor/apps/web/src/i18n/fr.json'\\)\\); print\\(json.dumps\\(d, indent=2\\)\\)\")",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('/Users/ibrahimalnezami/Desktop/doc/doctor/apps/web/src/i18n/ar.json'\\)\\); print\\(json.dumps\\(d, indent=2\\)\\)\")"
     ]
   }
 }
