@@ -48,8 +48,9 @@ router.get('/search', auth, async (req, res, next) => {
       if (to)   filter.issuedAt.$lte = new Date(to);
     }
 
+    const sortOpt = q ? { score: { $meta: 'textScore' }, issuedAt: -1 } : { issuedAt: -1 };
     const results = await LabResult.find(filter)
-      .sort({ score: q ? { $meta: 'textScore' } : undefined, issuedAt: -1 })
+      .sort(sortOpt)
       .limit(50)
       .populate('patientId', 'name email')
       .populate('doctorId', 'name email');
