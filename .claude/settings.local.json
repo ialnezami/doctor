@@ -59,7 +59,11 @@
       "Bash(docker compose *)",
       "Bash(python3 -c \"import json; d=json.load\\(open\\('/Users/ibrahimalnezami/Desktop/doc/doctor/apps/web/src/i18n/en.json'\\)\\); print\\(json.dumps\\(d, indent=2\\)\\)\")",
       "Bash(python3 -c \"import json; d=json.load\\(open\\('/Users/ibrahimalnezami/Desktop/doc/doctor/apps/web/src/i18n/fr.json'\\)\\); print\\(json.dumps\\(d, indent=2\\)\\)\")",
-      "Bash(python3 -c \"import json; d=json.load\\(open\\('/Users/ibrahimalnezami/Desktop/doc/doctor/apps/web/src/i18n/ar.json'\\)\\); print\\(json.dumps\\(d, indent=2\\)\\)\")"
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('/Users/ibrahimalnezami/Desktop/doc/doctor/apps/web/src/i18n/ar.json'\\)\\); print\\(json.dumps\\(d, indent=2\\)\\)\")",
+      "Skill(browse)",
+      "Read(//Users/ibrahimalnezami/.claude/skills/gstack/browse/**)",
+      "Bash(npx playwright *)",
+      "Bash(docker exec *)"
     ]
   }
 }
