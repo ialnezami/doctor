@@ -52,16 +52,23 @@ function SymptomCard({ appt, t }) {
 }
 
 // ── AI Assist card for a single consultation note ─────────────────────────────
-function NoteAiAssistCard({ apptId, note, onAnalysisComplete }) {
-  const [analyzing, setAnalyzing] = useState(false);
-  const [error, setError]         = useState(null);
+function NoteAiAssistCard({ apptId, note, apptStatus, onAnalysisComplete, onNoteUpdated, onNoteDeleted }) {
+  const [analyzing, setAnalyzing]       = useState(false);
+  const [error, setError]               = useState(null);
+  const [editing, setEditing]           = useState(false);
+  const [editContent, setEditContent]   = useState(note.content);
+  const [editVis, setEditVis]           = useState(note.visibility);
+  const [saving, setSaving]             = useState(false);
+  const [editError, setEditError]       = useState(null);
+  const [deleting, setDeleting]         = useState(false);
   const pollRef = useRef(null);
+
+  const canEdit = apptStatus !== 'validated';
 
   const stopPolling = () => {
     if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
   };
 
-  // Clean up on unmount
   useEffect(() => () => stopPolling(), []);
 
   const handleAnalyze = async () => {
@@ -77,7 +84,6 @@ function NoteAiAssistCard({ apptId, note, onAnalysisComplete }) {
       return;
     }
 
-    // Poll GET /appointments/:apptId/notes every 2 s for up to 10 s
     let attempts = 0;
     pollRef.current = setInterval(async () => {
       attempts++;
@@ -99,90 +105,185 @@ function NoteAiAssistCard({ apptId, note, onAnalysisComplete }) {
     }, 2000);
   };
 
-  const aiAssist = note.aiAssist;
+  const handleSave = async () => {
+    if (!editContent.trim()) return;
+    setSaving(true);
+    setEditError(null);
+    try {
+      const res = await api.patch(`/appointments/${apptId}/notes/${note._id}`, {
+        content: editContent.trim(),
+        visibility: editVis,
+      });
+      onNoteUpdated(res.data.note);
+      setEditing(false);
+    } catch (err) {
+      setEditError(err.response?.data?.message || 'Failed to save note');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('Delete this note? This cannot be undone.')) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/appointments/${apptId}/notes/${note._id}`);
+      onNoteDeleted(note._id);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete note');
+      setDeleting(false);
+    }
+  };
+
+  const aiAssist  = note.aiAssist;
   const hasResult = Boolean(aiAssist?.processedAt);
 
   return (
     <div style={{ marginTop: 12, padding: 14, background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)' }}>
-      {/* Note content preview */}
-      <div style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 6, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {note.content?.slice(0, 120)}{note.content?.length > 120 ? '…' : ''}
-      </div>
 
-      {!hasResult && (
-        <button
-          onClick={handleAnalyze}
-          disabled={analyzing}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            background: 'var(--mint-dim)', border: '1px solid rgba(15,227,176,0.3)',
-            borderRadius: 6, padding: '5px 12px', color: 'var(--mint)',
-            fontSize: 12, fontWeight: 600, cursor: analyzing ? 'not-allowed' : 'pointer',
-            opacity: analyzing ? 0.6 : 1,
-          }}
-        >
-          {analyzing ? (
-            <><span style={{ display: 'inline-block', width: 10, height: 10, border: '2px solid var(--mint)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} /> Analyzing…</>
-          ) : 'AI Assist'}
-        </button>
-      )}
-
-      {error && <div style={{ fontSize: 12, color: '#ef4444', marginTop: 6 }}>{error}</div>}
-
-      {hasResult && (
-        <div style={{ marginTop: 10 }}>
-          {/* ICD-10 codes */}
-          {aiAssist.icdCodes?.length > 0 && (
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 6 }}>ICD-10 Codes</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {aiAssist.icdCodes.map((entry, i) => (
-                  <span key={i} title={entry.description} style={{
-                    background: 'rgba(15,227,176,0.1)', border: '1px solid rgba(15,227,176,0.25)',
-                    borderRadius: 6, padding: '3px 8px', fontSize: 11, color: 'var(--mint)', fontWeight: 600,
-                  }}>
-                    {entry.code}
-                    <span style={{ fontWeight: 400, color: 'var(--text2)', marginLeft: 4, fontSize: 10 }}>{entry.description}</span>
-                  </span>
-                ))}
+      {editing ? (
+        /* ── Edit mode ── */
+        <div>
+          <textarea
+            value={editContent}
+            onChange={e => setEditContent(e.target.value)}
+            maxLength={5000}
+            rows={5}
+            autoFocus
+            style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 6, padding: '8px 10px', color: 'var(--text)', fontSize: 13, resize: 'vertical', outline: 'none', marginBottom: 8 }}
+          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+            <span style={{ fontSize: 12, color: 'var(--text2)' }}>Visibility:</span>
+            {['private', 'shared'].map(v => (
+              <button
+                key={v}
+                onClick={() => setEditVis(v)}
+                style={{ padding: '3px 10px', borderRadius: 20, border: `1px solid ${editVis === v ? 'var(--mint)' : 'var(--border2)'}`, background: editVis === v ? 'var(--mint-dim)' : 'transparent', color: editVis === v ? 'var(--mint)' : 'var(--text2)', fontSize: 11, cursor: 'pointer' }}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+          {editError && <div style={{ fontSize: 12, color: '#ef4444', marginBottom: 6 }}>{editError}</div>}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={handleSave}
+              disabled={saving || !editContent.trim()}
+              style={{ padding: '5px 14px', borderRadius: 6, background: 'var(--mint)', border: 'none', color: '#000', fontSize: 12, fontWeight: 700, cursor: 'pointer', opacity: (saving || !editContent.trim()) ? 0.5 : 1 }}
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+            <button
+              onClick={() => { setEditing(false); setEditContent(note.content); setEditVis(note.visibility); setEditError(null); }}
+              style={{ padding: '5px 14px', borderRadius: 6, background: 'none', border: '1px solid var(--border2)', color: 'var(--text2)', fontSize: 12, cursor: 'pointer' }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* ── View mode ── */
+        <div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
+            <div style={{ flex: 1, fontSize: 12, color: 'var(--text2)', fontStyle: 'italic', lineHeight: 1.5 }}>
+              {note.content}
+            </div>
+            {canEdit && (
+              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                <button
+                  onClick={() => { setEditing(true); setEditContent(note.content); setEditVis(note.visibility); }}
+                  title="Edit note"
+                  style={{ background: 'none', border: '1px solid var(--border2)', borderRadius: 6, padding: '3px 8px', color: 'var(--text2)', fontSize: 11, cursor: 'pointer' }}
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  title="Delete note"
+                  style={{ background: 'none', border: '1px solid rgba(244,63,94,0.3)', borderRadius: 6, padding: '3px 8px', color: '#f43f5e', fontSize: 11, cursor: 'pointer', opacity: deleting ? 0.5 : 1 }}
+                >
+                  {deleting ? '…' : 'Delete'}
+                </button>
               </div>
-            </div>
-          )}
-
-          {/* Patient summary */}
-          {aiAssist.patientSummary && (
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 4 }}>Patient-Friendly Summary</div>
-              <div style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.6, padding: 10, background: 'rgba(255,255,255,0.03)', borderRadius: 6, borderLeft: '3px solid var(--mint)' }}>
-                {aiAssist.patientSummary}
-              </div>
-            </div>
-          )}
-
-          {/* Flags */}
-          {aiAssist.flags?.length > 0 && (
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 4 }}>Missing Information</div>
-              {aiAssist.flags.map((flag, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#f59e0b', marginBottom: 3 }}>
-                  <span>⚠</span><span>{flag}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div style={{ fontSize: 10, color: 'var(--text2)', fontStyle: 'italic', marginTop: 6 }}>
-            AI-generated — not a substitute for clinical judgment.
+            )}
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 8 }}>
+            {note.visibility === 'private' ? '🔒 Private' : '👁 Shared with patient'}
           </div>
 
-          {/* Re-analyze */}
-          <button
-            onClick={handleAnalyze}
-            disabled={analyzing}
-            style={{ marginTop: 8, background: 'none', border: '1px solid var(--border2)', borderRadius: 6, padding: '3px 10px', color: 'var(--text2)', fontSize: 11, cursor: 'pointer' }}
-          >
-            Re-analyze
-          </button>
+          {!hasResult && (
+            <button
+              onClick={handleAnalyze}
+              disabled={analyzing}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: 'var(--mint-dim)', border: '1px solid rgba(15,227,176,0.3)',
+                borderRadius: 6, padding: '5px 12px', color: 'var(--mint)',
+                fontSize: 12, fontWeight: 600, cursor: analyzing ? 'not-allowed' : 'pointer',
+                opacity: analyzing ? 0.6 : 1,
+              }}
+            >
+              {analyzing ? (
+                <><span style={{ display: 'inline-block', width: 10, height: 10, border: '2px solid var(--mint)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} /> Analyzing…</>
+              ) : 'AI Assist'}
+            </button>
+          )}
+
+          {error && <div style={{ fontSize: 12, color: '#ef4444', marginTop: 6 }}>{error}</div>}
+
+          {hasResult && (
+            <div style={{ marginTop: 10 }}>
+              {aiAssist.icdCodes?.length > 0 && (
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 6 }}>ICD-10 Codes</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {aiAssist.icdCodes.map((entry, i) => (
+                      <span key={i} title={entry.description} style={{
+                        background: 'rgba(15,227,176,0.1)', border: '1px solid rgba(15,227,176,0.25)',
+                        borderRadius: 6, padding: '3px 8px', fontSize: 11, color: 'var(--mint)', fontWeight: 600,
+                      }}>
+                        {entry.code}
+                        <span style={{ fontWeight: 400, color: 'var(--text2)', marginLeft: 4, fontSize: 10 }}>{entry.description}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {aiAssist.patientSummary && (
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 4 }}>Patient-Friendly Summary</div>
+                  <div style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.6, padding: 10, background: 'rgba(255,255,255,0.03)', borderRadius: 6, borderLeft: '3px solid var(--mint)' }}>
+                    {aiAssist.patientSummary}
+                  </div>
+                </div>
+              )}
+
+              {aiAssist.flags?.length > 0 && (
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 4 }}>Missing Information</div>
+                  {aiAssist.flags.map((flag, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#f59e0b', marginBottom: 3 }}>
+                      <span>⚠</span><span>{flag}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div style={{ fontSize: 10, color: 'var(--text2)', fontStyle: 'italic', marginTop: 6 }}>
+                AI-generated — not a substitute for clinical judgment.
+              </div>
+
+              <button
+                onClick={handleAnalyze}
+                disabled={analyzing}
+                style={{ marginTop: 8, background: 'none', border: '1px solid var(--border2)', borderRadius: 6, padding: '3px 10px', color: 'var(--text2)', fontSize: 11, cursor: 'pointer' }}
+              >
+                Re-analyze
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -190,7 +291,7 @@ function NoteAiAssistCard({ apptId, note, onAnalysisComplete }) {
 }
 
 // ── Notes panel: lists notes + AI Assist for each ────────────────────────────
-function NotesPanel({ apptId, t }) {
+function NotesPanel({ apptId, apptStatus, t }) {
   const [notes, setNotes]     = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -208,6 +309,14 @@ function NotesPanel({ apptId, t }) {
     setNotes(prev => prev.map(n => n._id === updatedNote._id ? updatedNote : n));
   }, []);
 
+  const handleNoteUpdated = useCallback((updatedNote) => {
+    setNotes(prev => prev.map(n => n._id === updatedNote._id ? updatedNote : n));
+  }, []);
+
+  const handleNoteDeleted = useCallback((noteId) => {
+    setNotes(prev => prev.filter(n => n._id !== noteId));
+  }, []);
+
   if (loading) return <div style={{ fontSize: 12, color: 'var(--text2)', padding: '12px 0' }}>Loading notes…</div>;
   if (!notes.length) return <div style={{ fontSize: 12, color: 'var(--text2)', padding: '12px 0' }}>No notes yet.</div>;
 
@@ -217,7 +326,15 @@ function NotesPanel({ apptId, t }) {
         Consultation Notes &amp; AI Assist
       </div>
       {notes.map(note => (
-        <NoteAiAssistCard key={note._id} apptId={apptId} note={note} onAnalysisComplete={handleAnalysisComplete} />
+        <NoteAiAssistCard
+          key={note._id}
+          apptId={apptId}
+          note={note}
+          apptStatus={apptStatus}
+          onAnalysisComplete={handleAnalysisComplete}
+          onNoteUpdated={handleNoteUpdated}
+          onNoteDeleted={handleNoteDeleted}
+        />
       ))}
     </div>
   );
@@ -382,7 +499,7 @@ export default function AppointmentsPage() {
               </div>
             )}
             <SymptomCard appt={selectedAppointment} t={t} />
-            <NotesPanel apptId={selectedAppointment._id} t={t} />
+            <NotesPanel apptId={selectedAppointment._id} apptStatus={selectedAppointment.status} t={t} />
           </div>
         )}
       </div>
