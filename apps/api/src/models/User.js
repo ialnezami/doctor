@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema({
     pushEnabled:  { type: Boolean, default: true },
     emailEnabled: { type: Boolean, default: true },
   },
+  isSuspended: { type: Boolean, default: false },
 }, { timestamps: true });
 
 userSchema.index({ location: '2dsphere' });

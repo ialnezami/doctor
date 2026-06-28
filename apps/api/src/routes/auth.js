@@ -63,6 +63,9 @@ router.post('/login', loginLimiter, [
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
+    if (user.isSuspended) {
+      return res.status(403).json({ message: 'Account suspended. Contact support.' });
+    }
     const token = sign({ id: user._id, role: user.role });
     res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {

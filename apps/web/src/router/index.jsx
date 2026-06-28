@@ -23,6 +23,8 @@ import LabDashboardPage   from '../pages/lab/LabDashboardPage';
 import ShareViewerPage    from '../pages/public/ShareViewerPage';
 import ChatPage           from '../pages/shared/ChatPage';
 import VideoCallPage      from '../pages/shared/VideoCallPage';
+import AdminLoginPage from '../pages/admin/AdminLoginPage';
+import AdminPage      from '../pages/admin/AdminPage';
 
 function Protected({ children, role }) {
   const { user } = useAuthStore();
@@ -68,6 +70,10 @@ export default function AppRouter() {
 
         {/* Public */}
         <Route path="/s/:token" element={<ShareViewerPage />} />
+
+        {/* Admin routes */}
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route path="/admin" element={<AdminPage />} />
 
         {/* Root redirect */}
         <Route path="/" element={
