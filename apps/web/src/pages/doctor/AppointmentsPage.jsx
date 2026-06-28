@@ -6,10 +6,53 @@ import Button from '../../components/ui/Button';
 
 const FILTERS = ['all','pending','confirmed','completed','cancelled'];
 
+function SymptomCard({ appt }) {
+  if (!appt?.symptomText) return null;
+  const { urgency, category, processedAt } = appt.symptomAnalysis || {};
+  const pillColor = urgency === 'high' ? '#ef4444' : urgency === 'medium' ? '#f59e0b' : '#22c55e';
+  return (
+    <div style={{
+      background: 'var(--card)', border: '1px solid var(--border)',
+      borderRadius: 'var(--r)', padding: 16, marginBottom: 16,
+    }}>
+      <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 10, color: 'var(--text)' }}>
+        Patient Symptoms
+      </div>
+      <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6, marginBottom: 12 }}>
+        {appt.symptomText}
+      </p>
+      {processedAt ? (
+        urgency ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{
+              background: pillColor, color: '#fff',
+              fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
+              padding: '2px 8px', borderRadius: 10,
+            }}>
+              {urgency}
+            </span>
+            {category && (
+              <span style={{ fontSize: 13, color: 'var(--text2)' }}>{category}</span>
+            )}
+          </div>
+        ) : (
+          <span style={{ fontSize: 12, color: 'var(--text2)' }}>Analysis unavailable</span>
+        )
+      ) : (
+        <span style={{ fontSize: 12, color: 'var(--text2)' }}>Analysis pending…</span>
+      )}
+      <p style={{ fontSize: 11, color: 'var(--text2)', marginTop: 10 }}>
+        AI-generated — not a substitute for clinical judgment.
+      </p>
+    </div>
+  );
+}
+
 export default function AppointmentsPage() {
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [filter, setFilter] = useState('all');
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   const load = () => getAppointments().then(setAppointments).catch(() => {});
   useEffect(() => { load(); }, []);
@@ -52,7 +95,7 @@ export default function AppointmentsPage() {
               </span>
             </div>
             {visible.map(a => (
-              <div key={a._id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r-sm)', marginBottom:8 }}>
+              <div key={a._id} onClick={() => setSelectedAppointment(a)} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', background:'var(--bg3)', border:`1px solid ${selectedAppointment?._id === a._id ? 'var(--mint)' : 'var(--border)'}`, borderRadius:'var(--r-sm)', marginBottom:8, cursor: 'pointer', transition: 'all 0.2s' }}>
                 <span style={{ fontFamily:'var(--font-mono)', fontSize:12, color:'var(--mint)', minWidth:52 }}>{a.timeSlot?.start}</span>
                 <div style={{ width:1, height:28, background:'var(--border)', flexShrink:0 }} />
                 <div style={{ flex:1 }}>
@@ -62,7 +105,7 @@ export default function AppointmentsPage() {
                 <StatusChip status={a.status} />
                 {(a.status === 'confirmed' || a.status === 'in_progress') && (
                   <button
-                    onClick={() => navigate(`/appointments/${a._id}/video`, { state: { otherPartyName: a.patientId?.name || 'Patient' } })}
+                    onClick={(e) => { e.stopPropagation(); navigate(`/appointments/${a._id}/video`, { state: { otherPartyName: a.patientId?.name || 'Patient' } }); }}
                     style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: 6, padding: '3px 9px', color: '#a78bfa', fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
                   >
                     🎥 Video
@@ -70,7 +113,7 @@ export default function AppointmentsPage() {
                 )}
                 {a.status !== 'cancelled' && (
                   <button
-                    onClick={() => navigate(`/appointments/${a._id}/chat`, { state: { otherPartyName: a.patientId?.name || 'Patient' } })}
+                    onClick={(e) => { e.stopPropagation(); navigate(`/appointments/${a._id}/chat`, { state: { otherPartyName: a.patientId?.name || 'Patient' } }); }}
                     style={{ background: 'var(--mint-dim)', border: '1px solid rgba(15,227,176,0.3)', borderRadius: 6, padding: '3px 9px', color: 'var(--mint)', fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
                   >
                     💬 Chat
@@ -101,6 +144,40 @@ export default function AppointmentsPage() {
             ))}
           </div>
         </div>
+
+        {selectedAppointment && (
+          <div style={{ marginTop: 24, padding: 20, background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--r)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <div style={{ fontSize: 16, fontWeight: 600 }}>Appointment Details</div>
+              <button onClick={() => setSelectedAppointment(null)} style={{ background: 'none', border: 'none', color: 'var(--text2)', fontSize: 20, cursor: 'pointer' }}>✕</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: 'var(--text2)', marginBottom: 4 }}>Patient</div>
+                <div style={{ fontSize: 14 }}>{selectedAppointment.patientId?.name}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: 'var(--text2)', marginBottom: 4 }}>Date & Time</div>
+                <div style={{ fontSize: 14 }}>{new Date(selectedAppointment.date).toLocaleDateString()} at {selectedAppointment.timeSlot?.start}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: 'var(--text2)', marginBottom: 4 }}>Visit Type</div>
+                <div style={{ fontSize: 14, textTransform: 'capitalize' }}>{selectedAppointment.visitType}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: 'var(--text2)', marginBottom: 4 }}>Status</div>
+                <div style={{ fontSize: 14 }}><StatusChip status={selectedAppointment.status} /></div>
+              </div>
+            </div>
+            {selectedAppointment.reason && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: 'var(--text2)', marginBottom: 4 }}>Reason</div>
+                <div style={{ fontSize: 13, color: 'var(--text)' }}>{selectedAppointment.reason}</div>
+              </div>
+            )}
+            <SymptomCard appt={selectedAppointment} />
+          </div>
+        )}
       </div>
     </div>
   );
