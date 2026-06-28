@@ -86,6 +86,47 @@ export default function AppointmentDetailScreen({ route, navigation }) {
           </>}
         </View>
 
+        {/* Patient Symptoms card */}
+        {appt?.symptomText ? (
+          <View style={{
+            backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border,
+            borderRadius: 8, padding: 14, marginBottom: 16,
+          }}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: C.text, marginBottom: 8 }}>
+              Patient Symptoms
+            </Text>
+            <Text style={{ fontSize: 13, color: C.text, marginBottom: 12, lineHeight: 20 }}>
+              {appt.symptomText}
+            </Text>
+            {appt.symptomAnalysis?.processedAt ? (
+              appt.symptomAnalysis.urgency ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <View style={{
+                    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12,
+                    backgroundColor:
+                      appt.symptomAnalysis.urgency === 'high'   ? '#ef4444' :
+                      appt.symptomAnalysis.urgency === 'medium'  ? '#f59e0b' : '#22c55e',
+                  }}>
+                    <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700', textTransform: 'uppercase' }}>
+                      {appt.symptomAnalysis.urgency}
+                    </Text>
+                  </View>
+                  {appt.symptomAnalysis.category ? (
+                    <Text style={{ fontSize: 13, color: C.text2 }}>{appt.symptomAnalysis.category}</Text>
+                  ) : null}
+                </View>
+              ) : (
+                <Text style={{ fontSize: 12, color: C.text2 }}>Analysis unavailable</Text>
+              )
+            ) : (
+              <Text style={{ fontSize: 12, color: C.text2 }}>Analysis pending…</Text>
+            )}
+            <Text style={{ fontSize: 11, color: C.text3, marginTop: 10 }}>
+              AI-generated — not a substitute for clinical judgment.
+            </Text>
+          </View>
+        ) : null}
+
         <Text style={s.sectionTitle}>Notes ({notes.length})</Text>
 
         {notes.map(note => (
