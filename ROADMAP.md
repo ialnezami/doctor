@@ -75,23 +75,23 @@ Foundation: auth, appointment lifecycle, consultation notes, prescriptions, lab 
 
 ---
 
-## Phase 2 — Engagement & Communication 🔲
+## Phase 2 — Engagement & Communication ✅
 
 Target: real-time features, richer doctor-patient communication, reviews.
 
-### 2.1 Real-Time Chat
-- [ ] In-app messaging between doctor and patient per appointment
-- [ ] WebSocket server (Socket.io) or Supabase Realtime
-- [ ] Message read receipts
-- [ ] File attachments (images, PDFs) via S3/Cloudinary
-- [ ] Chat history linked to appointment record
+### 2.1 Real-Time Chat ✅
+- [x] In-app messaging between doctor and patient per appointment
+- [x] WebSocket server (Socket.io)
+- [x] Message read receipts
+- [x] File attachments (images, PDFs) via Cloudinary
+- [x] Chat history linked to appointment record
 
-### 2.2 Video Consultations
-- [ ] WebRTC peer-to-peer video call (Daily.co or Twilio Video SDK)
-- [ ] Video session linked to appointment
-- [ ] In-call note-taking sidebar for doctor
-- [ ] Session recording (optional, consent required)
-- [ ] Waiting room UI with estimated wait time
+### 2.2 Video Consultations ✅
+- [x] WebRTC peer-to-peer video call (Daily.co)
+- [x] Video session linked to appointment
+- [x] In-call note-taking sidebar for doctor
+- [-] Session recording — out of scope (enable_recording: false, consent flow deferred)
+- [x] Waiting room UI with estimated wait time
 
 ### 2.3 Doctor Reviews & Ratings ✅
 - [x] Patient submits rating (1–5) + text review after validated appointment
