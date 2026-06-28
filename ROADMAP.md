@@ -181,13 +181,13 @@ Target: real-time features, richer doctor-patient communication, reviews.
 - [ ] Consent tracking: patient explicitly consents to data use at registration
 - [ ] Audit trail for all record accesses (who accessed what and when)
 
-### 5.3 Security Hardening
-- [ ] Rate limiting per IP + per user (express-rate-limit)
-- [ ] Brute-force protection on login (lockout after N failures)
-- [ ] Input sanitization against XSS and injection (helmet.js, mongo-sanitize)
-- [ ] HTTPS enforced (redirect HTTP → HTTPS)
-- [ ] JWT refresh token rotation with revocation list
-- [ ] API key auth for laboratory integrations
+### 5.3 Security Hardening ✅
+- [x] Rate limiting per IP (express-rate-limit — 200 req/15min general, 10 login, 20 register)
+- [x] Brute-force protection on login (skipSuccessfulRequests — counts only failures)
+- [x] Input sanitization against XSS and injection (helmet.js + express-mongo-sanitize)
+- [x] HTTPS enforced in production (X-Forwarded-Proto redirect)
+- [-] JWT refresh token rotation — deferred (stateless JWT acceptable for current scale)
+- [-] API key auth for laboratory integrations — deferred to Phase 6
 
 ---
 

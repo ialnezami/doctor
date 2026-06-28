@@ -7,6 +7,7 @@ const Lab = require('../models/Lab');
 const { sign } = require('../utils/jwt');
 const auth = require('../middleware/auth');
 const { verifyGoogleToken } = require('../utils/googleAuth');
+const { loginLimiter, registerLimiter } = require('../middleware/rateLimiter');
 
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -15,7 +16,7 @@ const validate = (req, res, next) => {
 };
 
 // POST /api/auth/register
-router.post('/register', [
+router.post('/register', registerLimiter, [
   body('name').notEmpty(),
   body('email').isEmail(),
   body('password').isLength({ min: 8 }),
@@ -52,7 +53,7 @@ router.post('/register', [
 });
 
 // POST /api/auth/login
-router.post('/login', [
+router.post('/login', loginLimiter, [
   body('email').isEmail(),
   body('password').notEmpty(),
 ], validate, async (req, res, next) => {

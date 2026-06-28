@@ -2,8 +2,11 @@ require('dotenv').config();
 const http    = require('http');
 const express = require('express');
 const cors    = require('cors');
+const helmet         = require('helmet');
+const mongoSanitize  = require('express-mongo-sanitize');
 const connectDB    = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
+const { apiLimiter } = require('./middleware/rateLimiter');
 const { initSocket } = require('./socket');
 const { startReminderWorker }                          = require('./workers/reminderWorker');
 const { startDigestWorker, registerDigestOrchestrator } = require('./workers/digestWorker');
@@ -11,10 +14,27 @@ const { startSymptomWorker }                            = require('./workers/sym
 const { startNoteWorker }                               = require('./workers/noteWorker');
 const { startLabWorker }                                = require('./workers/labWorker');
 
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+  : ['http://localhost:5173', 'http://localhost:3001', 'http://localhost:3000'];
+
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+app.set('trust proxy', 1);
+
+// HTTPS redirect in production
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] !== 'https') {
+    return res.redirect(301, `https://${req.headers.host}${req.url}`);
+  }
+  next();
+});
+
+app.use(helmet());
+app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
+app.use(express.json({ limit: '50kb' }));
+app.use(mongoSanitize());
+app.use(apiLimiter);
 
 app.use('/api/auth',          require('./routes/auth'));
 app.use('/api/doctors',       require('./routes/doctors'));
