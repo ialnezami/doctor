@@ -7,15 +7,13 @@ A full-stack healthcare platform. Doctors manage appointments, consultation note
 ```
 apps/
 ├── api/      Node.js + Express REST API        → apps/api/README.md
+│   └── src/seed.js   — seed test accounts (npm run seed)
 ├── mobile/   React Native (Expo) iOS & Android → apps/mobile/README.md
 └── web/      React.js doctor + patient portal  → apps/web/README.md
 docs/
 └── superpowers/
     ├── plans/    Implementation plans
     └── specs/    Design specifications
-scripts/
-├── seed-test-doctor.mjs
-└── fix-db-and-seed.mjs
 ```
 
 ## Quick Start
@@ -44,6 +42,24 @@ cd apps/web && npm install && npm run dev
 ```
 
 See each app's README for detailed setup and environment variables.
+
+### Seed Test Accounts
+
+After the API is running, seed the three test accounts (idempotent — safe to re-run):
+
+```bash
+npm run seed
+```
+
+This creates one account of each role, ready to use immediately:
+
+| Role | Email | Password | Notes |
+|------|-------|----------|-------|
+| `patient` | `patient.test@mediconnect.com` | `Patient12345` | Blood type O+, allergies: Penicillin |
+| `doctor` | `doctor.test@mediconnect.com` | `Doctor12345` | General Practice, Mon–Fri 09:00–17:00, auto-accept ON |
+| `laboratory` | `lab.test@mediconnect.com` | `Lab12345!` | Pre-approved — can upload lab results immediately |
+
+**Quick booking test:** log in as patient → Find Doctor → search "Sarah" → book any weekday slot.
 
 ## Tech Stack
 

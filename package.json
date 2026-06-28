@@ -8,7 +8,8 @@
     "dev:api": "npm run dev --workspace=apps/api",
     "dev:web": "npm run dev --workspace=apps/web",
     "lint": "npm run lint --workspaces",
-    "test": "npm run test --workspaces --if-present"
+    "test": "npm run test --workspaces --if-present",
+    "seed": "npm run seed --workspace=apps/api"
   },
   "engines": {
     "node": ">=18"
