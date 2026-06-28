@@ -36,6 +36,7 @@ export default function MyAppointmentsScreen({ navigation }) {
 
   const Item = ({ a, isPast }) => {
     const eligible = isPast && isReviewEligible(a);
+    const isDatePast = new Date(a.date) < new Date(new Date().setHours(0, 0, 0, 0));
     return (
       <View style={[s.card, !isPast && { borderColor: 'rgba(15,227,176,0.25)' }]}>
         <View style={s.row}>
@@ -69,7 +70,7 @@ export default function MyAppointmentsScreen({ navigation }) {
               >
                 <Text style={{ fontSize: 11, fontWeight: '600', color: C.mint }}>💬</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={s.cancelBtn} onPress={() => cancel(a._id)}>
+              <TouchableOpacity style={[s.cancelBtn, isDatePast && { opacity: 0.4 }]} disabled={isDatePast} onPress={() => cancel(a._id)}>
                 <Text style={s.cancelTxt}>Cancel</Text>
               </TouchableOpacity>
             </>

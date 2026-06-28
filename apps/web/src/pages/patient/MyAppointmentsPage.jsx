@@ -115,6 +115,7 @@ export default function MyAppointmentsPage() {
 
   const ApptCard = ({ a, i, isPast }) => {
     const eligible = isPast && isReviewEligible(a);
+    const isDatePast = new Date(a.date) < new Date(new Date().setHours(0, 0, 0, 0));
     return (
       <div style={{ background: 'var(--bg3)', border: `1px solid ${!isPast ? 'rgba(15,227,176,0.25)' : 'var(--border)'}`, borderRadius: 'var(--r-sm)', marginBottom: 8, overflow: 'hidden' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
@@ -143,7 +144,7 @@ export default function MyAppointmentsPage() {
             </button>
           )}
           {!isPast
-            ? <Button variant="danger" style={{ padding: '5px 9px', fontSize: 11, flexShrink: 0 }} onClick={() => cancel(a._id)}>{t('myAppts.cancel')}</Button>
+            ? <Button variant="danger" style={{ padding: '5px 9px', fontSize: 11, flexShrink: 0, opacity: isDatePast ? 0.4 : 1 }} disabled={isDatePast} onClick={() => cancel(a._id)}>{t('myAppts.cancel')}</Button>
             : <Button variant="ghost" style={{ padding: '5px 9px', fontSize: 11, flexShrink: 0 }} onClick={() => navigate('/records')}>{t('myAppts.records')}</Button>
           }
         </div>
