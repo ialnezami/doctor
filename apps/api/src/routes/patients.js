@@ -70,6 +70,15 @@ router.patch('/me/profile', auth, requireRole('patient'), [
   } catch (err) { next(err); }
 });
 
+// GET /api/patients/by-user/:userId — doctor looks up a patient profile by User._id
+router.get('/by-user/:userId', auth, requireRole('doctor'), async (req, res, next) => {
+  try {
+    const patient = await Patient.findOne({ userId: req.params.userId }).populate('userId', 'name email');
+    if (!patient) return res.status(404).json({ message: 'Patient profile not found' });
+    res.json(patient);
+  } catch (err) { next(err); }
+});
+
 // GET /api/patients/:id — doctor or own patient
 router.get('/:id', auth, async (req, res, next) => {
   try {
