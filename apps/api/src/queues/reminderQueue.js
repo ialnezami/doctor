@@ -32,4 +32,13 @@ function getDigestQueue() {
   return _digestQueue;
 }
 
-module.exports = { getConnection, getReminderQueue, getDigestQueue };
+let _symptomQueue;
+
+function getSymptomQueue() {
+  if (!_symptomQueue) {
+    _symptomQueue = new Queue('symptom-analysis', { connection: getConnection() });
+  }
+  return _symptomQueue;
+}
+
+module.exports = { getConnection, getReminderQueue, getDigestQueue, getSymptomQueue };

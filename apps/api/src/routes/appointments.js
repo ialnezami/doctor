@@ -6,7 +6,7 @@ const Doctor       = require('../models/Doctor');
 const Notification = require('../models/Notification');
 const User         = require('../models/User');
 const { sendPush } = require('../utils/push');
-const { getReminderQueue }      = require('../queues/reminderQueue');
+const { getReminderQueue, getSymptomQueue } = require('../queues/reminderQueue');
 const { computeReminderDelays } = require('../utils/reminderDelays');
 const { sendEmail }             = require('../utils/email');
 const { appointmentConfirmedEmail, consultationValidatedEmail } = require('../utils/emailTemplates');
@@ -299,6 +299,43 @@ router.patch('/:id/reminders-opt-out', auth, requireRole('patient'), async (req,
     await appt.save();
 
     res.json({ remindersDisabled: appt.remindersDisabled });
+  } catch (err) { next(err); }
+});
+
+// PATCH /api/appointments/:id/symptoms — patient submits symptoms (async analysis)
+router.patch('/:id/symptoms', auth, async (req, res, next) => {
+  try {
+    if (req.user.role !== 'patient') return res.status(403).json({ message: 'Patients only' });
+
+    const { symptomText } = req.body;
+    if (!symptomText || typeof symptomText !== 'string' || symptomText.trim().length === 0) {
+      return res.status(400).json({ message: 'symptomText is required' });
+    }
+    if (symptomText.length > 1000) {
+      return res.status(400).json({ message: 'symptomText must be 1000 characters or fewer' });
+    }
+
+    const appt = await Appointment.findById(req.params.id);
+    if (!appt) return res.status(404).json({ message: 'Appointment not found' });
+    if (String(appt.patientId) !== req.user.id) {
+      return res.status(403).json({ message: 'Not your appointment' });
+    }
+    if (['validated', 'cancelled'].includes(appt.status)) {
+      return res.status(409).json({ message: 'Cannot update symptoms for a validated or cancelled appointment' });
+    }
+
+    appt.symptomText = symptomText.trim();
+    appt.symptomAnalysis = { urgency: null, category: null, processedAt: null };
+    await appt.save();
+
+    await getSymptomQueue().add('analyse', { appointmentId: String(appt._id) }, {
+      jobId: `symptom-${appt._id}`,
+      removeOnComplete: true,
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 5000 },
+    });
+
+    res.status(202).json({ message: 'Symptoms received' });
   } catch (err) { next(err); }
 });
 
