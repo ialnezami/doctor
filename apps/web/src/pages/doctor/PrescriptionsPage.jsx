@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getPrescriptions, createPrescription } from '../../api/prescriptions';
+import { getAppointments } from '../../api/appointments';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -11,11 +12,24 @@ export default function PrescriptionsPage() {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [rxList, setRxList] = useState([]);
+  const [patients, setPatients] = useState([]);
   const [form, setForm] = useState({ patientId:'', instructions:'', medications:[{ ...emptyMed }] });
   const [saving, setSaving] = useState(false);
 
   const load = () => getPrescriptions().then(setRxList).catch(() => {});
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    getAppointments().then(appts => {
+      const seen = new Set();
+      const unique = [];
+      for (const a of appts) {
+        const pid = a.patientId?._id;
+        if (pid && !seen.has(pid)) { seen.add(pid); unique.push({ id: pid, name: a.patientId.name }); }
+      }
+      setPatients(unique);
+    }).catch(() => {});
+  }, []);
 
   const printRx = (rx) => {
     const pdfTitle   = t('prescriptions.pdf.title');
@@ -97,11 +111,19 @@ export default function PrescriptionsPage() {
             <form id="rx-form" onSubmit={submit}>
               <div style={{ marginBottom:16 }}>
                 <label style={{ display:'block', fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text2)', marginBottom:7 }}>
-                  {t('prescriptions.patientId')}
+                  {t('prescriptions.patient', 'Patient')}
                 </label>
-                <input value={form.patientId} onChange={e => setForm(p => ({ ...p, patientId: e.target.value }))}
-                  placeholder={t('prescriptions.patientId')}
-                  style={{ width:'100%', background:'var(--bg3)', border:'1px solid var(--border2)', borderRadius:'var(--r-sm)', padding:'10px 13px', color:'var(--text)', fontSize:13.5, outline:'none' }} />
+                <select
+                  value={form.patientId}
+                  onChange={e => setForm(p => ({ ...p, patientId: e.target.value }))}
+                  required
+                  style={{ width:'100%', background:'var(--bg3)', border:'1px solid var(--border2)', borderRadius:'var(--r-sm)', padding:'10px 13px', color: form.patientId ? 'var(--text)' : 'var(--text3)', fontSize:13.5, outline:'none', cursor:'pointer' }}
+                >
+                  <option value="">{t('prescriptions.selectPatient', '— Select patient —')}</option>
+                  {patients.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
               </div>
 
               <div style={{ height:1, background:'var(--border)', margin:'14px 0' }} />

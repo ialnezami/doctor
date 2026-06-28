@@ -38,7 +38,7 @@ export default function DashboardPage() {
             {new Date().toDateString()} — {t('dashboard.appointmentsToday', { count: today.length })}
           </div>
         </div>
-        <Button onClick={() => navigate('/prescriptions')}>{t('dashboard.newPrescription')}</Button>
+        <Button onClick={() => navigate('/appointments')}>{t('dashboard.viewAppointments', 'View Appointments')}</Button>
       </div>
 
       <div style={{ padding: isMobile ? 14 : 26 }}>

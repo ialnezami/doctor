@@ -7,8 +7,6 @@ const doctorNavKeys = [
   { key: 'nav.dashboard',      path: '/dashboard' },
   { key: 'nav.appointments',   path: '/appointments', badge: true },
   { key: 'nav.patientRecords', path: '/patients' },
-  { key: 'nav.prescriptions',  path: '/prescriptions' },
-  { key: 'nav.labResults',     path: '/lab-results' },
   { key: 'nav.settings',       path: '/settings' },
   { key: 'nav.reviews',        path: '/reviews' },
 ];
