@@ -27,20 +27,24 @@ async function processSymptomJob(job) {
   let urgency = null;
   let category = null;
 
+  // Claude API call — errors propagate so BullMQ can retry
+  const Anthropic = require('@anthropic-ai/sdk');
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const response = await client.messages.create({
+    model:      'claude-haiku-4-5-20251001',
+    max_tokens: 100,
+    system:     SYSTEM_PROMPT,
+    messages:   [{ role: 'user', content: appt.symptomText }],
+  });
+  const rawText = response.content[0].text;
+
+  // JSON parse — silent degradation on malformed output
   try {
-    const Anthropic = require('@anthropic-ai/sdk');
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const response = await client.messages.create({
-      model:      'claude-haiku-4-5-20251001',
-      max_tokens: 100,
-      system:     SYSTEM_PROMPT,
-      messages:   [{ role: 'user', content: appt.symptomText }],
-    });
-    const parsed = JSON.parse(response.content[0].text);
+    const parsed = JSON.parse(rawText);
     if (['low', 'medium', 'high'].includes(parsed.urgency)) urgency = parsed.urgency;
     if (typeof parsed.category === 'string') category = parsed.category.slice(0, 100);
   } catch (err) {
-    console.error('[symptom] analysis failed:', err.message);
+    console.error('[symptom] JSON parse error:', err.message);
   }
 
   appt.symptomAnalysis = { urgency, category, processedAt: new Date() };

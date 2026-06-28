@@ -71,3 +71,15 @@ test('skips if ANTHROPIC_API_KEY not set', async () => {
   await processSymptomJob({ data: { appointmentId: 'a1' } });
   expect(appt.save).not.toHaveBeenCalled();
 });
+
+test('propagates Claude API error so BullMQ can retry', async () => {
+  mockAppt();
+  process.env.ANTHROPIC_API_KEY = 'test-key';
+  Anthropic.mockImplementation(() => ({
+    messages: { create: jest.fn().mockRejectedValue(new Error('API timeout')) },
+  }));
+
+  await expect(
+    processSymptomJob({ data: { appointmentId: 'a1' } })
+  ).rejects.toThrow('API timeout');
+});
