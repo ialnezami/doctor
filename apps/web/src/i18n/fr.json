@@ -46,9 +46,18 @@
       "signIn": "Se connecter"
     },
     "features": {
-      "scheduling": { "title": "Planification intelligente", "desc": "Gérez les rendez-vous sans conflits" },
-      "prescriptions": { "title": "Ordonnances numériques", "desc": "Créez et exportez des PDF instantanément" },
-      "location": { "title": "Recherche géolocalisée", "desc": "Trouvez des médecins près de vous par spécialité" }
+      "scheduling": {
+        "title": "Planification intelligente",
+        "desc": "Gérez les rendez-vous sans conflits"
+      },
+      "prescriptions": {
+        "title": "Ordonnances numériques",
+        "desc": "Créez et exportez des PDF instantanément"
+      },
+      "location": {
+        "title": "Recherche géolocalisée",
+        "desc": "Trouvez des médecins près de vous par spécialité"
+      }
     }
   },
   "nav": {
@@ -74,7 +83,11 @@
   "records": {
     "title": "Dossiers médicaux",
     "subtitle": "Votre historique de santé complet",
-    "tabs": { "prescriptions": "Ordonnances", "labs": "Résultats labo", "profile": "Profil de santé" },
+    "tabs": {
+      "prescriptions": "Ordonnances",
+      "labs": "Résultats labo",
+      "profile": "Profil de santé"
+    },
     "healthProfile": "Profil de santé",
     "age": "Âge",
     "bloodType": "Groupe sanguin",
@@ -86,7 +99,11 @@
     "noLabResults": "Aucun résultat.",
     "prescriptions": "Ordonnances",
     "tests": "analyse",
-    "tests_plural": "analyses"
+    "tests_plural": "analyses",
+    "years": "ans",
+    "recorded": "enregistrées",
+    "downloadPdf": "↓ PDF",
+    "more": "+{{count}} de plus"
   },
   "language": {
     "label": "Langue",
@@ -313,5 +330,82 @@
       "bpm": "bpm",
       "oxygen": "oxygène"
     }
+  },
+  "findDoctor": {
+    "title": "Trouver un médecin",
+    "searching": "Recherche…",
+    "results": "{{count}} résultats",
+    "searchPlaceholder": "Rechercher par nom, spécialité…",
+    "loading": "Chargement…",
+    "noDoctors": "Aucun médecin trouvé.",
+    "view": "Voir",
+    "sar": "SAR",
+    "exp": "{{years}} ans d'exp."
+  },
+  "myAppts": {
+    "title": "Mes rendez-vous",
+    "subtitle": "À venir et passés",
+    "bookNew": "+ Nouveau",
+    "upcoming": "À venir",
+    "past": "Passés",
+    "noUpcoming": "Aucun rendez-vous à venir.",
+    "bookOne": "En prendre un →",
+    "cancel": "Annuler",
+    "records": "Dossiers",
+    "leaveReview": "⭐ Laisser un avis",
+    "disableReminders": "Désactiver les rappels",
+    "doctor": "Médecin",
+    "review": {
+      "title": "Laisser un avis",
+      "rating": "Note",
+      "comment": "Commentaire (optionnel)",
+      "placeholder": "Partagez votre expérience…",
+      "cancel": "Annuler",
+      "submit": "Soumettre l'avis",
+      "submitting": "Envoi…",
+      "selectRating": "Veuillez sélectionner une note.",
+      "error": "Erreur lors de la soumission."
+    }
+  },
+  "doctorProfile": {
+    "loading": "Chargement…",
+    "pickDate": "Choisir une date",
+    "availableTimes": "Horaires disponibles",
+    "loadingSlots": "Chargement des créneaux…",
+    "noAvailability": "Aucune disponibilité ce jour.",
+    "reviews": "Avis",
+    "reviewCount": "({{count}} avis)",
+    "sar": "SAR / consultation",
+    "yearsExp": "{{years}} ans d'expérience",
+    "patient": "Patient"
+  },
+  "book": {
+    "title": "Confirmer la réservation",
+    "doctor": "Médecin",
+    "date": "Date",
+    "time": "Heure",
+    "visitType": "Type de visite",
+    "reason": "Motif (optionnel)",
+    "reasonPlaceholder": "Décrivez brièvement vos symptômes ou la raison de la visite…",
+    "submit": "Demander un rendez-vous",
+    "submitting": "Réservation…",
+    "error": "Échec de la réservation — créneau peut-être pris"
+  },
+  "bookConfirmed": {
+    "confirmed": {
+      "title": "Rendez-vous confirmé !",
+      "desc": "Votre rendez-vous a été confirmé. Vous recevrez un rappel avant la visite."
+    },
+    "pending": {
+      "title": "Demande envoyée",
+      "desc": "Votre demande est en attente d'approbation. Vous serez notifié une fois confirmé."
+    },
+    "viewAppointments": "Voir mes rendez-vous"
+  },
+  "patientSettings": {
+    "title": "Paramètres",
+    "notificationChannels": "Canaux de notification",
+    "pushNotifications": "Notifications push",
+    "emailNotifications": "Notifications par e-mail"
   }
 }

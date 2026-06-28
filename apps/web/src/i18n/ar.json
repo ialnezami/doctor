@@ -46,9 +46,18 @@
       "signIn": "تسجيل الدخول"
     },
     "features": {
-      "scheduling": { "title": "جدولة ذكية", "desc": "إدارة المواعيد دون تعارضات" },
-      "prescriptions": { "title": "وصفات طبية رقمية", "desc": "إنشاء وتصدير PDF فوراً" },
-      "location": { "title": "بحث جغرافي", "desc": "ابحث عن أطباء قريبين حسب التخصص" }
+      "scheduling": {
+        "title": "جدولة ذكية",
+        "desc": "إدارة المواعيد دون تعارضات"
+      },
+      "prescriptions": {
+        "title": "وصفات طبية رقمية",
+        "desc": "إنشاء وتصدير PDF فوراً"
+      },
+      "location": {
+        "title": "بحث جغرافي",
+        "desc": "ابحث عن أطباء قريبين حسب التخصص"
+      }
     }
   },
   "nav": {
@@ -90,7 +99,11 @@
     "noLabResults": "لا توجد نتائج مختبر بعد.",
     "prescriptions": "الوصفات الطبية",
     "tests": "فحص",
-    "tests_plural": "فحوصات"
+    "tests_plural": "فحوصات",
+    "years": "سنة",
+    "recorded": "مسجل",
+    "downloadPdf": "↓ PDF",
+    "more": "+{{count}} أخرى"
   },
   "language": {
     "label": "اللغة",
@@ -317,5 +330,82 @@
       "bpm": "نبضة/دقيقة",
       "oxygen": "أكسجين"
     }
+  },
+  "findDoctor": {
+    "title": "ابحث عن طبيب",
+    "searching": "يبحث…",
+    "results": "{{count}} نتيجة",
+    "searchPlaceholder": "ابحث بالاسم أو التخصص…",
+    "loading": "تحميل…",
+    "noDoctors": "لا يوجد أطباء.",
+    "view": "عرض",
+    "sar": "ريال",
+    "exp": "{{years}} سنة خبرة"
+  },
+  "myAppts": {
+    "title": "مواعيدي",
+    "subtitle": "المواعيد القادمة والسابقة",
+    "bookNew": "+ حجز موعد",
+    "upcoming": "القادمة",
+    "past": "السابقة",
+    "noUpcoming": "لا مواعيد قادمة.",
+    "bookOne": "احجز موعداً ←",
+    "cancel": "إلغاء",
+    "records": "السجلات",
+    "leaveReview": "⭐ اترك تقييماً",
+    "disableReminders": "تعطيل التذكيرات",
+    "doctor": "الطبيب",
+    "review": {
+      "title": "اترك تقييماً",
+      "rating": "التقييم",
+      "comment": "تعليق (اختياري)",
+      "placeholder": "شارك تجربتك…",
+      "cancel": "إلغاء",
+      "submit": "إرسال التقييم",
+      "submitting": "يُرسل…",
+      "selectRating": "الرجاء اختيار تقييم.",
+      "error": "خطأ في إرسال التقييم."
+    }
+  },
+  "doctorProfile": {
+    "loading": "تحميل…",
+    "pickDate": "اختر تاريخاً",
+    "availableTimes": "الأوقات المتاحة",
+    "loadingSlots": "تحميل المواعيد…",
+    "noAvailability": "لا مواعيد في هذا اليوم.",
+    "reviews": "التقييمات",
+    "reviewCount": "({{count}} تقييم)",
+    "sar": "ريال / زيارة",
+    "yearsExp": "{{years}} سنة خبرة",
+    "patient": "المريض"
+  },
+  "book": {
+    "title": "تأكيد الحجز",
+    "doctor": "الطبيب",
+    "date": "التاريخ",
+    "time": "الوقت",
+    "visitType": "نوع الزيارة",
+    "reason": "السبب (اختياري)",
+    "reasonPlaceholder": "صف باختصار أعراضك أو سبب الزيارة…",
+    "submit": "طلب موعد",
+    "submitting": "يحجز…",
+    "error": "فشل الحجز — قد يكون الموعد محجوزاً"
+  },
+  "bookConfirmed": {
+    "confirmed": {
+      "title": "تم تأكيد الموعد!",
+      "desc": "تم تأكيد موعدك. ستتلقى تذكيراً قبل الزيارة."
+    },
+    "pending": {
+      "title": "تم إرسال الطلب",
+      "desc": "طلبك قيد انتظار موافقة الطبيب. سيتم إخطارك عند التأكيد."
+    },
+    "viewAppointments": "عرض مواعيدي"
+  },
+  "patientSettings": {
+    "title": "الإعدادات",
+    "notificationChannels": "قنوات الإشعارات",
+    "pushNotifications": "الإشعارات الفورية",
+    "emailNotifications": "إشعارات البريد الإلكتروني"
   }
 }

@@ -46,9 +46,18 @@
       "signIn": "Sign in"
     },
     "features": {
-      "scheduling": { "title": "Smart Scheduling", "desc": "Manage appointments with zero conflicts" },
-      "prescriptions": { "title": "Digital Prescriptions", "desc": "Create & export PDF ordonnances instantly" },
-      "location": { "title": "Location-based Search", "desc": "Find nearby doctors by specialty" }
+      "scheduling": {
+        "title": "Smart Scheduling",
+        "desc": "Manage appointments with zero conflicts"
+      },
+      "prescriptions": {
+        "title": "Digital Prescriptions",
+        "desc": "Create & export PDF ordonnances instantly"
+      },
+      "location": {
+        "title": "Location-based Search",
+        "desc": "Find nearby doctors by specialty"
+      }
     }
   },
   "nav": {
@@ -74,7 +83,11 @@
   "records": {
     "title": "Medical Records",
     "subtitle": "Your complete health history",
-    "tabs": { "prescriptions": "Prescriptions", "labs": "Lab Results", "profile": "Health Profile" },
+    "tabs": {
+      "prescriptions": "Prescriptions",
+      "labs": "Lab Results",
+      "profile": "Health Profile"
+    },
     "healthProfile": "Health Profile",
     "age": "Age",
     "bloodType": "Blood Type",
@@ -86,7 +99,11 @@
     "noLabResults": "No lab results yet.",
     "prescriptions": "Prescriptions",
     "tests": "test",
-    "tests_plural": "tests"
+    "tests_plural": "tests",
+    "years": "years",
+    "recorded": "recorded",
+    "downloadPdf": "↓ PDF",
+    "more": "+{{count}} more"
   },
   "language": {
     "label": "Language",
@@ -313,5 +330,82 @@
       "bpm": "bpm",
       "oxygen": "oxygen"
     }
+  },
+  "findDoctor": {
+    "title": "Find a Doctor",
+    "searching": "Searching…",
+    "results": "{{count}} results",
+    "searchPlaceholder": "Search by name, specialty…",
+    "loading": "Loading…",
+    "noDoctors": "No doctors found.",
+    "view": "View",
+    "sar": "SAR",
+    "exp": "{{years}}y exp"
+  },
+  "myAppts": {
+    "title": "My Appointments",
+    "subtitle": "Upcoming and past bookings",
+    "bookNew": "+ Book New",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "noUpcoming": "No upcoming appointments.",
+    "bookOne": "Book one →",
+    "cancel": "Cancel",
+    "records": "Records",
+    "leaveReview": "⭐ Leave a review",
+    "disableReminders": "Disable reminders",
+    "doctor": "Doctor",
+    "review": {
+      "title": "Leave a Review",
+      "rating": "Rating",
+      "comment": "Comment (optional)",
+      "placeholder": "Share your experience…",
+      "cancel": "Cancel",
+      "submit": "Submit Review",
+      "submitting": "Submitting…",
+      "selectRating": "Please select a rating.",
+      "error": "Error submitting review."
+    }
+  },
+  "doctorProfile": {
+    "loading": "Loading…",
+    "pickDate": "Pick a date",
+    "availableTimes": "Available times",
+    "loadingSlots": "Loading slots…",
+    "noAvailability": "No availability on this day.",
+    "reviews": "Reviews",
+    "reviewCount": "({{count}} reviews)",
+    "sar": "SAR / visit",
+    "yearsExp": "{{years}} years experience",
+    "patient": "Patient"
+  },
+  "book": {
+    "title": "Confirm Booking",
+    "doctor": "Doctor",
+    "date": "Date",
+    "time": "Time",
+    "visitType": "Visit Type",
+    "reason": "Reason (optional)",
+    "reasonPlaceholder": "Briefly describe your symptoms or reason for visit…",
+    "submit": "Request Appointment",
+    "submitting": "Booking…",
+    "error": "Booking failed — slot may be taken"
+  },
+  "bookConfirmed": {
+    "confirmed": {
+      "title": "Appointment Confirmed!",
+      "desc": "Your appointment has been confirmed. You will receive a reminder before the visit."
+    },
+    "pending": {
+      "title": "Request Sent",
+      "desc": "Your request is pending doctor approval. You will be notified once it is confirmed."
+    },
+    "viewAppointments": "View My Appointments"
+  },
+  "patientSettings": {
+    "title": "Settings",
+    "notificationChannels": "Notification Channels",
+    "pushNotifications": "Push notifications",
+    "emailNotifications": "Email notifications"
   }
 }

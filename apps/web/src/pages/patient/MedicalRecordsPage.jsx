@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getPrescriptions } from '../../api/prescriptions';
 import { getLabResults } from '../../api/labResults';
 import { getPatientMe } from '../../api/patients';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 function calcAge(dob) {
   if (!dob) return '—';
@@ -18,26 +20,35 @@ const FLAG_STYLE = {
 };
 
 export default function MedicalRecordsPage() {
+  const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [rxList, setRxList] = useState([]);
   const [labResults, setLabResults] = useState([]);
   const [patient, setPatient] = useState(null);
   const [tab, setTab] = useState('prescriptions');
+
   useEffect(() => {
     getPrescriptions().then(setRxList).catch(() => {});
     getLabResults().then(setLabResults).catch(() => {});
     getPatientMe().then(setPatient).catch(() => {});
   }, []);
 
+  const tabs = [
+    ['prescriptions', t('records.tabs.prescriptions')],
+    ['labs',          t('records.tabs.labs')],
+    ['profile',       t('records.tabs.profile')],
+  ];
+
   return (
     <div>
-      <div style={{ position:'sticky', top:0, zIndex:10, background:'rgba(6,13,24,0.88)', backdropFilter:'blur(14px)', borderBottom:'1px solid var(--border)', padding:'14px 26px' }}>
-        <div style={{ fontFamily:'var(--font-display)', fontSize:21, fontWeight:500 }}>Medical Records</div>
-        <div style={{ fontSize:12, color:'var(--text2)', marginTop:1 }}>Your complete health history</div>
+      <div style={{ position:'sticky', top:0, zIndex:10, background:'rgba(6,13,24,0.88)', backdropFilter:'blur(14px)', borderBottom:'1px solid var(--border)', padding: isMobile ? '12px 14px' : '14px 26px' }}>
+        <div style={{ fontFamily:'var(--font-display)', fontSize:21, fontWeight:500 }}>{t('records.title')}</div>
+        <div style={{ fontSize:12, color:'var(--text2)', marginTop:1 }}>{t('records.subtitle')}</div>
       </div>
-      <div style={{ padding:26 }}>
+      <div style={{ padding: isMobile ? 14 : 26 }}>
         {/* Tabs */}
-        <div style={{ display:'flex', gap:4, marginBottom:20, borderBottom:'1px solid var(--border)', paddingBottom:12 }}>
-          {[['prescriptions','Prescriptions'],['labs','Lab Results'],['profile','Health Profile']].map(([key, label]) => (
+        <div style={{ display:'flex', gap:4, marginBottom:20, borderBottom:'1px solid var(--border)', paddingBottom:12, flexWrap:'wrap' }}>
+          {tabs.map(([key, label]) => (
             <button key={key} onClick={() => setTab(key)}
               style={{ padding:'6px 16px', borderRadius:8, border:'1px solid', cursor:'pointer', fontSize:13, fontWeight:500, transition:'all .12s',
                 background: tab === key ? 'var(--mint-dim)' : 'transparent',
@@ -48,20 +59,20 @@ export default function MedicalRecordsPage() {
           ))}
         </div>
 
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:18 }}>
+        <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:18 }}>
           <div>
             {tab === 'prescriptions' && (
               <>
-                <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:10 }}>Prescriptions</div>
-                {rxList.length === 0 && <p style={{ color:'var(--text3)', fontSize:13 }}>No prescriptions yet.</p>}
+                <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:10 }}>{t('records.prescriptions')}</div>
+                {rxList.length === 0 && <p style={{ color:'var(--text3)', fontSize:13 }}>{t('records.noPrescriptions')}</p>}
                 {rxList.map((rx, i) => (
                   <div key={rx._id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r-sm)', marginBottom:8 }}>
                     <span style={{ fontFamily:'var(--font-mono)', fontSize:10, color:'var(--mint)', minWidth:64 }}>RX-{String(i+31).padStart(4,'0')}</span>
-                    <div style={{ flex:1 }}>
+                    <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ fontSize:13.5, fontWeight:500 }}>{rx.doctorId?.name}</div>
                       <div style={{ fontSize:11.5, color:'var(--text2)', marginTop:2 }}>{rx.medications?.map(m=>m.name).join(', ')} · {new Date(rx.createdAt).toLocaleDateString()}</div>
                     </div>
-                    <Button variant="ghost" style={{ padding:'4px 9px', fontSize:11 }}>↓ PDF</Button>
+                    <Button variant="ghost" style={{ padding:'4px 9px', fontSize:11, flexShrink:0 }}>{t('records.downloadPdf')}</Button>
                   </div>
                 ))}
               </>
@@ -69,34 +80,36 @@ export default function MedicalRecordsPage() {
 
             {tab === 'labs' && (
               <>
-                <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:10 }}>Lab Results</div>
-                {labResults.length === 0 && <p style={{ color:'var(--text3)', fontSize:13 }}>No lab results yet.</p>}
+                <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:10 }}>{t('records.tabs.labs')}</div>
+                {labResults.length === 0 && <p style={{ color:'var(--text3)', fontSize:13 }}>{t('records.noLabResults')}</p>}
                 {labResults.map(r => {
-                  const worstFlag = r.tests.reduce((acc, t) => {
+                  const worstFlag = r.tests.reduce((acc, tst) => {
                     const order = { critical:3, high:2, low:2, normal:0 };
-                    return order[t.flag] > order[acc] ? t.flag : acc;
+                    return order[tst.flag] > order[acc] ? tst.flag : acc;
                   }, 'normal');
                   const fs = FLAG_STYLE[worstFlag];
                   return (
                     <div key={r._id} style={{ padding:'12px 14px', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r-sm)', marginBottom:8 }}>
                       <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:5 }}>
-                        <div style={{ width:8, height:8, borderRadius:'50%', background:fs.color }} />
+                        <div style={{ width:8, height:8, borderRadius:'50%', background:fs.color, flexShrink:0 }} />
                         <div style={{ fontSize:13.5, fontWeight:500, flex:1 }}>{r.labName}</div>
                         <span style={{ fontSize:10, fontWeight:600, padding:'2px 7px', borderRadius:10, background:fs.bg, color:fs.color, textTransform:'uppercase' }}>
                           {worstFlag}
                         </span>
                       </div>
-                      <div style={{ fontSize:11.5, color:'var(--text2)', marginBottom:6 }}>{r.tests.length} test{r.tests.length !== 1 ? 's' : ''} · {new Date(r.issuedAt).toLocaleDateString()}</div>
-                      {r.tests.slice(0, 3).map((t, i) => (
+                      <div style={{ fontSize:11.5, color:'var(--text2)', marginBottom:6 }}>
+                        {r.tests.length} {r.tests.length !== 1 ? t('records.tests_plural') : t('records.tests')} · {new Date(r.issuedAt).toLocaleDateString()}
+                      </div>
+                      {r.tests.slice(0, 3).map((tst, i) => (
                         <div key={i} style={{ display:'flex', gap:8, fontSize:11.5, color:'var(--text3)', marginBottom:2 }}>
-                          <span style={{ flex:1 }}>{t.name}</span>
-                          <span style={{ fontFamily:'var(--font-mono)', color:(FLAG_STYLE[t.flag]||FLAG_STYLE.normal).color }}>{t.value} {t.unit}</span>
+                          <span style={{ flex:1 }}>{tst.name}</span>
+                          <span style={{ fontFamily:'var(--font-mono)', color:(FLAG_STYLE[tst.flag]||FLAG_STYLE.normal).color }}>{tst.value} {tst.unit}</span>
                         </div>
                       ))}
-                      {r.tests.length > 3 && <div style={{ fontSize:11, color:'var(--text3)', marginTop:4 }}>+{r.tests.length - 3} more</div>}
+                      {r.tests.length > 3 && <div style={{ fontSize:11, color:'var(--text3)', marginTop:4 }}>{t('records.more', { count: r.tests.length - 3 })}</div>}
                       {r.reportFile && (
                         <a href={r.reportFile} target="_blank" rel="noreferrer" style={{ display:'inline-block', marginTop:8 }}>
-                          <Button variant="ghost" style={{ padding:'4px 9px', fontSize:11 }}>↓ Download PDF</Button>
+                          <Button variant="ghost" style={{ padding:'4px 9px', fontSize:11 }}>{t('records.downloadPdf')}</Button>
                         </a>
                       )}
                     </div>
@@ -108,12 +121,12 @@ export default function MedicalRecordsPage() {
 
           {tab === 'profile' && (
             <Card>
-              <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:12 }}>Health Profile</div>
+              <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:12 }}>{t('records.healthProfile')}</div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:14 }}>
                 {[
-                  ['Age',       calcAge(patient?.dateOfBirth), 'years'],
-                  ['Blood Type', patient?.bloodType || '—',   ''],
-                  ['Allergies',  (patient?.allergies?.length ?? '—'), 'recorded'],
+                  [t('records.age'),       calcAge(patient?.dateOfBirth), t('records.years')],
+                  [t('records.bloodType'), patient?.bloodType || '—',     ''],
+                  [t('records.allergies'), (patient?.allergies?.length ?? '—'), t('records.recorded')],
                 ].map(([l,v,u]) => (
                   <div key={l} style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r-sm)', padding:'10px 12px', textAlign:'center' }}>
                     <div style={{ fontSize:10, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text3)' }}>{l}</div>
@@ -125,19 +138,19 @@ export default function MedicalRecordsPage() {
               {((patient?.conditions?.length > 0) || (patient?.allergies?.length > 0)) && (
                 <>
                   <div style={{ height:1, background:'var(--border)', margin:'12px 0' }} />
-                  <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:8 }}>Conditions &amp; Allergies</div>
+                  <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:8 }}>{t('records.conditionsAllergies')}</div>
                   <div style={{ display:'flex', gap:7, flexWrap:'wrap' }}>
                     {(patient?.conditions || []).map(c => (
                       <span key={c} style={{ padding:'2px 9px', borderRadius:20, fontSize:10.5, fontWeight:600, background:'var(--bg3)', border:'1px solid var(--border2)', color:'var(--text2)' }}>{c}</span>
                     ))}
                     {(patient?.allergies || []).map(a => (
-                      <span key={a} style={{ padding:'2px 9px', borderRadius:20, fontSize:10.5, fontWeight:600, background:'rgba(244,63,94,0.1)', border:'1px solid rgba(244,63,94,0.3)', color:'var(--rose)' }}>{a} allergy</span>
+                      <span key={a} style={{ padding:'2px 9px', borderRadius:20, fontSize:10.5, fontWeight:600, background:'rgba(244,63,94,0.1)', border:'1px solid rgba(244,63,94,0.3)', color:'var(--rose)' }}>{a} {t('records.allergy')}</span>
                     ))}
                   </div>
                 </>
               )}
               {!patient?.dateOfBirth && !patient?.bloodType && (
-                <p style={{ color:'var(--text3)', fontSize:13, marginTop:8 }}>No health profile data yet. Update your profile to fill this in.</p>
+                <p style={{ color:'var(--text3)', fontSize:13, marginTop:8 }}>{t('records.noProfileData')}</p>
               )}
             </Card>
           )}
