@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
+import LanguageSwitcher from '../LanguageSwitcher';
 
 const doctorNav = [
   { label: 'Dashboard',       path: '/dashboard' },
@@ -62,6 +63,11 @@ export default function Sidebar() {
           );
         })}
       </nav>
+
+      {/* Language */}
+      <div style={{ padding:'8px 14px', borderTop:'1px solid var(--border)' }}>
+        <LanguageSwitcher />
+      </div>
 
       {/* User */}
       <div style={{ padding:14, borderTop:'1px solid var(--border)', display:'flex', alignItems:'center', gap:10 }}>
