@@ -8,6 +8,7 @@ const ReadEvent        = require('../models/ReadEvent');
 const Notification     = require('../models/Notification');
 const User             = require('../models/User');
 const { sendPush }     = require('../utils/push');
+const { getNoteQueue } = require('../queues/reminderQueue');
 
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -99,6 +100,25 @@ router.delete('/:apptId/notes/:noteId', auth, async (req, res, next) => {
     const note = await ConsultationNote.findOneAndDelete({ _id: req.params.noteId, appointmentId: appt._id });
     if (!note) return res.status(404).json({ message: 'Note not found' });
     res.status(204).send();
+  } catch (err) { next(err); }
+});
+
+// POST /api/appointments/:apptId/notes/:noteId/analyze — queue AI analysis
+router.post('/:apptId/notes/:noteId/analyze', auth, async (req, res, next) => {
+  try {
+    if (req.user.role !== 'doctor') return res.status(403).json({ message: 'Doctors only' });
+    if (!mongoose.isValidObjectId(req.params.noteId)) return res.status(400).json({ message: 'Invalid noteId' });
+
+    const appt = await getApptForDoctor(req.params.apptId, req.user.id);
+    if (!appt) return res.status(404).json({ message: 'Appointment not found' });
+
+    const note = await ConsultationNote.findOne({ _id: req.params.noteId, appointmentId: appt._id });
+    if (!note) return res.status(404).json({ message: 'Note not found' });
+    if (String(note.authorId) !== String(req.user.id)) return res.status(403).json({ message: 'Not the note author' });
+
+    await getNoteQueue().add('analyze-note', { noteId: String(note._id) });
+
+    res.status(202).json({ message: 'Analysis queued' });
   } catch (err) { next(err); }
 });
 

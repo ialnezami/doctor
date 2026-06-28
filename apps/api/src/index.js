@@ -8,6 +8,8 @@ const { initSocket } = require('./socket');
 const { startReminderWorker }                          = require('./workers/reminderWorker');
 const { startDigestWorker, registerDigestOrchestrator } = require('./workers/digestWorker');
 const { startSymptomWorker }                            = require('./workers/symptomWorker');
+const { startNoteWorker }                               = require('./workers/noteWorker');
+const { startLabWorker }                                = require('./workers/labWorker');
 
 const app = express();
 
@@ -53,6 +55,8 @@ connectDB().then(() => {
     startReminderWorker();
     startDigestWorker();
     startSymptomWorker();
+    startNoteWorker();
+    startLabWorker();
     registerDigestOrchestrator().catch(err =>
       console.error('[digest] orchestrator registration failed:', err.message)
     );

@@ -41,4 +41,22 @@ function getSymptomQueue() {
   return _symptomQueue;
 }
 
-module.exports = { getConnection, getReminderQueue, getDigestQueue, getSymptomQueue };
+let _noteQueue;
+
+function getNoteQueue() {
+  if (!_noteQueue) {
+    _noteQueue = new Queue('note-analysis', { connection: getConnection() });
+  }
+  return _noteQueue;
+}
+
+let _labQueue;
+
+function getLabQueue() {
+  if (!_labQueue) {
+    _labQueue = new Queue('lab-interpretation', { connection: getConnection() });
+  }
+  return _labQueue;
+}
+
+module.exports = { getConnection, getReminderQueue, getDigestQueue, getSymptomQueue, getNoteQueue, getLabQueue };
