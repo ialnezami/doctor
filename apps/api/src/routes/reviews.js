@@ -73,6 +73,48 @@ router.post('/', auth, requireRole('patient'), [
   }
 });
 
+// GET /api/reviews/mine — doctor views their own reviews with distribution
+router.get('/mine', auth, requireRole('doctor'), async (req, res, next) => {
+  try {
+    const PAGE_SIZE = 10;
+    const page      = Math.max(1, parseInt(req.query.page) || 1);
+    const skip      = (page - 1) * PAGE_SIZE;
+    const ratingFilter = req.query.rating ? { rating: parseInt(req.query.rating) } : {};
+
+    const doctorObjectId = new mongoose.Types.ObjectId(String(req.user.id));
+    const baseFilter     = { doctorId: req.user.id };
+    const pagedFilter    = { ...baseFilter, ...ratingFilter };
+
+    const [total, reviews, distRaw, doctor] = await Promise.all([
+      Review.countDocuments(pagedFilter),
+      Review.find(pagedFilter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(PAGE_SIZE)
+        .populate('patientId', 'name'),
+      Review.aggregate([
+        { $match: { doctorId: doctorObjectId } },
+        { $group: { _id: '$rating', count: { $sum: 1 } } },
+      ]),
+      Doctor.findOne({ userId: req.user.id }).select('averageRating reviewCount'),
+    ]);
+
+    const distribution = [1, 2, 3, 4, 5].reduce((acc, r) => {
+      acc[r] = distRaw.find(d => d._id === r)?.count || 0;
+      return acc;
+    }, {});
+
+    res.json({
+      reviews,
+      averageRating: doctor?.averageRating || 0,
+      reviewCount:   doctor?.reviewCount   || 0,
+      distribution,
+      page,
+      totalPages: Math.ceil(total / PAGE_SIZE) || 1,
+    });
+  } catch (err) { next(err); }
+});
+
 // PATCH /api/reviews/:id/flag — doctor flags a review on their own profile
 router.patch('/:id/flag', auth, requireRole('doctor'), [
   body('flagReason').optional().isLength({ max: 500 }).escape(),
