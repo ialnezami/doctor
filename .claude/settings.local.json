@@ -63,7 +63,18 @@
       "Skill(browse)",
       "Read(//Users/ibrahimalnezami/.claude/skills/gstack/browse/**)",
       "Bash(npx playwright *)",
-      "Bash(docker exec *)"
+      "Bash(docker exec *)",
+      "Bash(./update.sh web *)",
+      "Bash(curl *)",
+      "Bash(./update.sh api *)",
+      "Bash(/Users/ibrahimalnezami/.claude/skills/gstack/browse/dist/browse console *)",
+      "Bash(/Users/ibrahimalnezami/.claude/skills/gstack/browse/dist/browse goto *)",
+      "Skill(gsd-phase)",
+      "Skill(gsd-plan-phase)",
+      "WebSearch",
+      "Bash(docker-compose -f /Users/ibrahimalnezami/Desktop/doc/doctor/docker-compose.yml build web)",
+      "Bash(rm -f /Users/ibrahimalnezami/Desktop/doc/doctor/.git/index.lock)",
+      "Bash(rm -f /Users/ibrahimalnezami/Desktop/doc/doctor/.git/index)"
     ]
   }
 }
