@@ -20,15 +20,51 @@ const FLAG_STYLE = {
   critical: { color: 'var(--rose)',  bg: 'rgba(244,63,94,0.12)' },
 };
 
+function QRFullscreen({ url, rxNumber, onClose }) {
+  const canvasRef = useRef(null);
+  useEffect(() => {
+    if (canvasRef.current) {
+      QRCode.toCanvas(canvasRef.current, url, { width: 280, margin: 2, color: { dark: '#000000', light: '#ffffff' } });
+    }
+  }, [url]);
+
+  return (
+    <div onClick={onClose}
+      style={{ position:'fixed', inset:0, zIndex:2000, background:'rgba(0,0,0,0.92)', backdropFilter:'blur(8px)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:24 }}>
+      <div onClick={e => e.stopPropagation()} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:20 }}>
+        <div style={{ textAlign:'center' }}>
+          <div style={{ fontSize:13, fontWeight:700, color:'#0fe3b0', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:4 }}>MediConnect</div>
+          <div style={{ fontSize:12, color:'rgba(255,255,255,0.5)' }}>Prescription Verification</div>
+        </div>
+
+        <div style={{ background:'#fff', padding:16, borderRadius:16, boxShadow:'0 0 0 4px rgba(15,227,176,0.25)' }}>
+          <canvas ref={canvasRef} style={{ display:'block' }} />
+        </div>
+
+        <div style={{ textAlign:'center' }}>
+          <div style={{ fontFamily:'monospace', fontSize:12, color:'rgba(255,255,255,0.4)', marginBottom:6 }}>{rxNumber}</div>
+          <div style={{ fontSize:13, color:'rgba(255,255,255,0.7)' }}>Show this to your pharmacist to verify</div>
+        </div>
+
+        <button onClick={onClose}
+          style={{ marginTop:8, padding:'10px 28px', background:'transparent', border:'1px solid rgba(255,255,255,0.2)', borderRadius:24, color:'rgba(255,255,255,0.6)', fontSize:13, cursor:'pointer' }}>
+          Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function PrescriptionModal({ rx, rxNumber, onClose, t }) {
   const qrCanvasRef = useRef(null);
+  const [qrFullscreen, setQrFullscreen] = useState(false);
   const verifyUrl = rx.verificationToken
     ? `${window.location.origin}/rx/${rx.verificationToken}`
     : null;
 
   useEffect(() => {
     if (verifyUrl && qrCanvasRef.current) {
-      QRCode.toCanvas(qrCanvasRef.current, verifyUrl, { width: 100, margin: 1, color: { dark: '#0fe3b0', light: '#0d1525' } });
+      QRCode.toCanvas(qrCanvasRef.current, verifyUrl, { width: 80, margin: 1, color: { dark: '#0fe3b0', light: '#0d1525' } });
     }
   }, [verifyUrl]);
 
@@ -203,13 +239,18 @@ function PrescriptionModal({ rx, rxNumber, onClose, t }) {
 
           {/* QR Code */}
           {verifyUrl && (
-            <div style={{ display:'flex', alignItems:'center', gap:14, padding:'14px', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:8, marginBottom:16 }}>
-              <canvas ref={qrCanvasRef} style={{ borderRadius:6, flexShrink:0 }} />
-              <div>
-                <div style={{ fontSize:12, fontWeight:600, color:'var(--mint)', marginBottom:3 }}>Scan to Verify</div>
-                <div style={{ fontSize:11, color:'var(--text2)', lineHeight:1.5 }}>Pharmacists can scan this code to confirm the prescription is authentic and unaltered.</div>
+            <>
+              {qrFullscreen && <QRFullscreen url={verifyUrl} rxNumber={rxNumber} onClose={() => setQrFullscreen(false)} />}
+              <div style={{ display:'flex', alignItems:'center', gap:14, padding:'14px', background:'var(--bg3)', border:'1px solid rgba(15,227,176,0.2)', borderRadius:8, marginBottom:16, cursor:'pointer' }}
+                onClick={() => setQrFullscreen(true)}>
+                <canvas ref={qrCanvasRef} style={{ borderRadius:4, flexShrink:0 }} />
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:12, fontWeight:600, color:'var(--mint)', marginBottom:3 }}>Tap to enlarge QR</div>
+                  <div style={{ fontSize:11, color:'var(--text2)', lineHeight:1.5 }}>Show to pharmacist or take a photo to verify this prescription's authenticity.</div>
+                </div>
+                <div style={{ fontSize:18, color:'var(--text3)', flexShrink:0 }}>⛶</div>
               </div>
-            </div>
+            </>
           )}
 
           {/* Actions */}
