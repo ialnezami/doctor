@@ -1,0 +1,111 @@
+'use strict';
+/**
+ * Privacy routes — GDPR Article 15, 17, and 7(3) endpoints.
+ *
+ * All endpoints are patient-only (requireRole enforces this).
+ * Doctors and admins manage data retention via separate admin tooling.
+ *
+ * Rate limiting: erasure and consent endpoints inherit the global apiLimiter
+ * applied in index.js. These are low-frequency operations so no additional
+ * limiter is applied here.
+ */
+const router      = require('express').Router();
+const auth        = require('../middleware/auth');
+const requireRole = require('../middleware/rbac');
+const AuditLog    = require('../models/AuditLog');
+const { erasePatient, withdrawConsent } = require('../services/erasureService');
+
+// ---------------------------------------------------------------------------
+// DELETE /api/privacy/erase
+// GDPR Article 17 — Right to Erasure
+// ---------------------------------------------------------------------------
+// Auth: authenticated patient only.
+// Erases the requesting patient's own PHI — doctors cannot trigger this
+// on behalf of patients (patient autonomy, non-repudiation).
+//
+// Blocking conditions (checked in erasureService, not here):
+//   - Future pending or confirmed appointments must be cancelled first
+//   - Active (non-revoked, non-expired) SharedLinks must be revoked first
+//
+// Success: returns 200 with message. auth middleware will now reject this
+// user's tokens because erasedAt is set (checked on every request).
+//
+// 409 Conflict: blocking condition exists — message tells patient what to do.
+// 5xx: unexpected DB error — surfaces through errorHandler.
+// ---------------------------------------------------------------------------
+router.delete('/erase', auth, requireRole('patient'), async (req, res, next) => {
+  try {
+    await erasePatient(req.user.id, {
+      ip:        req.ip,
+      userAgent: req.headers['user-agent'],
+    });
+
+    // Erasure complete. The patient's account is deactivated — auth middleware
+    // will reject further requests using the same JWT (erasedAt check).
+    res.json({
+      message: 'Your data has been anonymized per GDPR Article 17. Your account is now deactivated.',
+    });
+  } catch (err) {
+    if (err.status === 409) {
+      // Blocking condition — structured response for client to act on
+      return res.status(409).json({ message: err.message });
+    }
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/privacy/consent/withdraw
+// GDPR Article 7(3) — Right to Withdraw Consent
+// ---------------------------------------------------------------------------
+// Auth: authenticated patient only.
+// Sets dataProcessingAllowed=false and consentWithdrawnAt.
+// Does NOT erase data immediately — the grace period (CONSENT_WITHDRAWAL_GRACE_DAYS,
+// default 30 days) allows account reactivation before erasure is triggered.
+//
+// Retention worker (Plan 09) monitors for expired grace periods and queues erasure.
+// ---------------------------------------------------------------------------
+router.post('/consent/withdraw', auth, requireRole('patient'), async (req, res, next) => {
+  try {
+    await withdrawConsent(req.user.id, {
+      ip:        req.ip,
+      userAgent: req.headers['user-agent'],
+    });
+
+    const graceDays = parseInt(process.env.CONSENT_WITHDRAWAL_GRACE_DAYS || '30', 10);
+    res.json({
+      message:          `Consent withdrawn. Your data will be anonymized after a ${graceDays}-day grace period unless you reactivate your account.`,
+      gracePeriodDays:  graceDays,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/privacy/audit-log
+// GDPR Article 15 — Right of Access / Transparency
+// ---------------------------------------------------------------------------
+// Auth: authenticated patient only.
+// Returns the last 100 audit entries targeting this patient's data.
+// Patients have the right to see who accessed their records (GDPR Art. 15(1)(c)).
+//
+// Returns: { entries: AuditLog[] } — PHI content is never stored in AuditLog
+// (meta contains only IDs and action context per AuditLog model constraints).
+// ---------------------------------------------------------------------------
+router.get('/audit-log', auth, requireRole('patient'), async (req, res, next) => {
+  try {
+    const entries = await AuditLog
+      .find({ targetUserId: req.user.id })
+      .select('action resourceType resourceId actorRole createdAt outcome meta')
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean();
+
+    res.json({ entries });
+  } catch (err) {
+    next(err);
+  }
+});
+
+module.exports = router;
