@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const { randomUUID } = require('crypto');
 const auth = require('../middleware/auth');
 const requireRole = require('../middleware/rbac');
 const Prescription = require('../models/Prescription');
@@ -14,6 +15,7 @@ router.post('/', auth, requireRole('doctor'), async (req, res, next) => {
       medications,
       instructions,
       validUntil: validUntil ? new Date(validUntil) : undefined,
+      verificationToken: randomUUID(),
     });
     res.status(201).json(rx);
   } catch (err) {
@@ -36,6 +38,33 @@ router.get('/', auth, async (req, res, next) => {
       .sort({ createdAt: -1 });
 
     res.json(rxList);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/prescriptions/verify/:token — PUBLIC, no auth required
+// Declared before /:id so Express doesn't treat "verify" as a Mongo ID
+router.get('/verify/:token', async (req, res, next) => {
+  try {
+    const rx = await Prescription.findOne({ verificationToken: req.params.token })
+      .populate('doctorId', 'name')
+      .populate('patientId', 'name');
+
+    if (!rx) return res.status(404).json({ valid: false, message: 'Prescription not found or token invalid' });
+
+    res.json({
+      valid: true,
+      prescription: {
+        id:           rx._id,
+        doctor:       rx.doctorId?.name,
+        patient:      rx.patientId?.name,
+        medications:  rx.medications,
+        instructions: rx.instructions,
+        validUntil:   rx.validUntil,
+        issuedAt:     rx.createdAt,
+      },
+    });
   } catch (err) {
     next(err);
   }
@@ -71,15 +100,15 @@ router.get('/:id/pdf', auth, async (req, res, next) => {
     const isOwner = [rx.doctorId._id.toString(), rx.patientId._id.toString()].includes(req.user.id);
     if (!isOwner) return res.status(403).json({ message: 'Forbidden' });
 
-    // Return structured data — PDF rendering handled by frontend
     res.json({
-      id: rx._id,
-      doctor: rx.doctorId.name,
-      patient: rx.patientId.name,
-      medications: rx.medications,
-      instructions: rx.instructions,
-      validUntil: rx.validUntil,
-      issuedAt: rx.createdAt,
+      id:                rx._id,
+      doctor:            rx.doctorId.name,
+      patient:           rx.patientId.name,
+      medications:       rx.medications,
+      instructions:      rx.instructions,
+      validUntil:        rx.validUntil,
+      issuedAt:          rx.createdAt,
+      verificationToken: rx.verificationToken,
     });
   } catch (err) {
     next(err);

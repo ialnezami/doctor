@@ -21,6 +21,7 @@ import PatientSettingsPage from '../pages/patient/PatientSettingsPage';
 import ReviewsPage        from '../pages/doctor/ReviewsPage';
 import LabDashboardPage   from '../pages/lab/LabDashboardPage';
 import ShareViewerPage    from '../pages/public/ShareViewerPage';
+import RxVerifyPage       from '../pages/public/RxVerifyPage';
 import ChatPage           from '../pages/shared/ChatPage';
 import VideoCallPage      from '../pages/shared/VideoCallPage';
 import AdminLoginPage from '../pages/admin/AdminLoginPage';
@@ -69,7 +70,8 @@ export default function AppRouter() {
         <Route path="/lab" element={<Protected role="laboratory"><LabDashboardPage /></Protected>} />
 
         {/* Public */}
-        <Route path="/s/:token" element={<ShareViewerPage />} />
+        <Route path="/s/:token"  element={<ShareViewerPage />} />
+        <Route path="/rx/:token" element={<RxVerifyPage />} />
 
         {/* Admin routes */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
