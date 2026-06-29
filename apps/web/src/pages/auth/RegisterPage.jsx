@@ -8,7 +8,7 @@ import GoogleSignInButton from '../../components/GoogleSignInButton';
 export default function RegisterPage() {
   const navigate = useNavigate();
   const setAuth = useAuthStore(s => s.login);
-  const [form, setForm] = useState({ name:'', email:'', password:'', role:'patient', specialty:'', labName:'' });
+  const [form, setForm] = useState({ name:'', email:'', password:'', role:'patient', specialty:'', labName:'', consentAccepted: true });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
