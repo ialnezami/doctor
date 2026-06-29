@@ -1,3 +1,4 @@
+'use strict';
 const router           = require('express').Router({ mergeParams: true });
 const { body, validationResult } = require('express-validator');
 const mongoose         = require('mongoose');
@@ -9,6 +10,7 @@ const Notification     = require('../models/Notification');
 const User             = require('../models/User');
 const { sendPush }     = require('../utils/push');
 const { getNoteQueue } = require('../queues/reminderQueue');
+const { auditLog }     = require('../middleware/auditLogger');
 
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -30,80 +32,92 @@ async function getApptForParty(apptId, userId) {
 router.post('/:apptId/notes', auth, [
   body('content').notEmpty().isLength({ max: 5000 }).withMessage('content required, max 5000 chars'),
   body('visibility').isIn(['private', 'shared']).withMessage('visibility must be private or shared'),
-], validate, async (req, res, next) => {
-  try {
-    if (req.user.role !== 'doctor') return res.status(403).json({ message: 'Doctors only' });
-    const appt = await getApptForDoctor(req.params.apptId, req.user.id);
-    if (!appt) return res.status(404).json({ message: 'Appointment not found' });
-    if (appt.status === 'validated') return res.status(409).json({ message: 'Cannot add notes to a validated appointment' });
+], validate,
+  auditLog('ConsultationNote', 'create', (req) => req.params.apptId),
+  async (req, res, next) => {
+    try {
+      if (req.user.role !== 'doctor') return res.status(403).json({ message: 'Doctors only' });
+      const appt = await getApptForDoctor(req.params.apptId, req.user.id);
+      if (!appt) return res.status(404).json({ message: 'Appointment not found' });
+      if (appt.status === 'validated') return res.status(409).json({ message: 'Cannot add notes to a validated appointment' });
 
-    const note = await ConsultationNote.create({
-      appointmentId: appt._id,
-      authorId: req.user.id,
-      content: req.body.content,
-      visibility: req.body.visibility,
-    });
-    res.status(201).json({ note });
-  } catch (err) { next(err); }
-});
+      const note = await ConsultationNote.create({
+        appointmentId: appt._id,
+        authorId: req.user.id,
+        content: req.body.content,
+        visibility: req.body.visibility,
+      });
+      res.status(201).json({ note });
+    } catch (err) { next(err); }
+  }
+);
 
 // GET /api/appointments/:apptId/notes
-router.get('/:apptId/notes', auth, async (req, res, next) => {
-  try {
-    const appt = await getApptForParty(req.params.apptId, req.user.id);
-    if (!appt) return res.status(404).json({ message: 'Appointment not found' });
+router.get('/:apptId/notes', auth,
+  auditLog('ConsultationNote', 'read', (req) => req.params.apptId),
+  async (req, res, next) => {
+    try {
+      const appt = await getApptForParty(req.params.apptId, req.user.id);
+      if (!appt) return res.status(404).json({ message: 'Appointment not found' });
 
-    const filter = { appointmentId: appt._id };
-    if (req.user.role === 'patient') filter.visibility = 'shared';
+      const filter = { appointmentId: appt._id };
+      if (req.user.role === 'patient') filter.visibility = 'shared';
 
-    const notes = await ConsultationNote.find(filter).sort({ createdAt: 1 });
-    res.json({ notes });
-  } catch (err) { next(err); }
-});
+      const notes = await ConsultationNote.find(filter).sort({ createdAt: 1 });
+      res.json({ notes });
+    } catch (err) { next(err); }
+  }
+);
 
 // PATCH /api/appointments/:apptId/notes/:noteId
 router.patch('/:apptId/notes/:noteId', auth, [
   body('content').optional().notEmpty().isLength({ max: 5000 }),
   body('visibility').optional().isIn(['private', 'shared']),
-], validate, async (req, res, next) => {
-  try {
-    if (req.user.role !== 'doctor') return res.status(403).json({ message: 'Doctors only' });
-    const appt = await getApptForDoctor(req.params.apptId, req.user.id);
-    if (!appt) return res.status(404).json({ message: 'Appointment not found' });
-    if (appt.status === 'validated') return res.status(409).json({ message: 'Cannot edit notes on a validated appointment' });
+], validate,
+  auditLog('ConsultationNote', 'update', (req) => req.params.noteId),
+  async (req, res, next) => {
+    try {
+      if (req.user.role !== 'doctor') return res.status(403).json({ message: 'Doctors only' });
+      const appt = await getApptForDoctor(req.params.apptId, req.user.id);
+      if (!appt) return res.status(404).json({ message: 'Appointment not found' });
+      if (appt.status === 'validated') return res.status(409).json({ message: 'Cannot edit notes on a validated appointment' });
 
-    if (!mongoose.isValidObjectId(req.params.noteId)) return res.status(400).json({ message: 'Invalid noteId' });
-    const { content, visibility } = req.body;
+      if (!mongoose.isValidObjectId(req.params.noteId)) return res.status(400).json({ message: 'Invalid noteId' });
+      const { content, visibility } = req.body;
 
-    const note = await ConsultationNote.findOne({
-      _id: req.params.noteId,
-      appointmentId: appt._id,
-    });
-    if (!note) return res.status(404).json({ message: 'Note not found' });
+      const note = await ConsultationNote.findOne({
+        _id: req.params.noteId,
+        appointmentId: appt._id,
+      });
+      if (!note) return res.status(404).json({ message: 'Note not found' });
 
-    // Apply only provided fields — schema validators (maxlength, enum) fire on .save()
-    if (content !== undefined)    note.content    = content;
-    if (visibility !== undefined) note.visibility = visibility;
+      // Apply only provided fields — schema validators (maxlength, enum) fire on .save()
+      if (content !== undefined)    note.content    = content;
+      if (visibility !== undefined) note.visibility = visibility;
 
-    await note.save(); // triggers pre-save encryption on content if modified
-    res.json({ note });
-  } catch (err) { next(err); }
-});
+      await note.save(); // triggers pre-save encryption on content if modified
+      res.json({ note });
+    } catch (err) { next(err); }
+  }
+);
 
 // DELETE /api/appointments/:apptId/notes/:noteId
-router.delete('/:apptId/notes/:noteId', auth, async (req, res, next) => {
-  try {
-    if (req.user.role !== 'doctor') return res.status(403).json({ message: 'Doctors only' });
-    const appt = await getApptForDoctor(req.params.apptId, req.user.id);
-    if (!appt) return res.status(404).json({ message: 'Appointment not found' });
-    if (appt.status === 'validated') return res.status(409).json({ message: 'Cannot delete notes on a validated appointment' });
+router.delete('/:apptId/notes/:noteId', auth,
+  auditLog('ConsultationNote', 'delete', (req) => req.params.noteId),
+  async (req, res, next) => {
+    try {
+      if (req.user.role !== 'doctor') return res.status(403).json({ message: 'Doctors only' });
+      const appt = await getApptForDoctor(req.params.apptId, req.user.id);
+      if (!appt) return res.status(404).json({ message: 'Appointment not found' });
+      if (appt.status === 'validated') return res.status(409).json({ message: 'Cannot delete notes on a validated appointment' });
 
-    if (!mongoose.isValidObjectId(req.params.noteId)) return res.status(400).json({ message: 'Invalid noteId' });
-    const note = await ConsultationNote.findOneAndDelete({ _id: req.params.noteId, appointmentId: appt._id });
-    if (!note) return res.status(404).json({ message: 'Note not found' });
-    res.status(204).send();
-  } catch (err) { next(err); }
-});
+      if (!mongoose.isValidObjectId(req.params.noteId)) return res.status(400).json({ message: 'Invalid noteId' });
+      const note = await ConsultationNote.findOneAndDelete({ _id: req.params.noteId, appointmentId: appt._id });
+      if (!note) return res.status(404).json({ message: 'Note not found' });
+      res.status(204).send();
+    } catch (err) { next(err); }
+  }
+);
 
 // POST /api/appointments/:apptId/notes/:noteId/analyze — queue AI analysis
 router.post('/:apptId/notes/:noteId/analyze', auth, async (req, res, next) => {

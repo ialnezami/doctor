@@ -1,3 +1,4 @@
+'use strict';
 const router = require('express').Router();
 const auth = require('../middleware/auth');
 const requireRole = require('../middleware/rbac');
@@ -5,6 +6,8 @@ const Patient = require('../models/Patient');
 const upload = require('../middleware/upload');
 const { uploadBuffer } = require('../utils/cloudinary');
 const { body, validationResult } = require('express-validator');
+const { auditLog } = require('../middleware/auditLogger');
+
 const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(422).json({ errors: errors.array() });
@@ -13,15 +16,18 @@ const validate = (req, res, next) => {
 const BLOOD_TYPES = ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
 
 // GET /api/patients/me
-router.get('/me', auth, requireRole('patient'), async (req, res, next) => {
-  try {
-    const patient = await Patient.findOne({ userId: req.user.id });
-    if (!patient) return res.status(404).json({ message: 'Profile not found' });
-    res.json(patient);
-  } catch (err) {
-    next(err);
+router.get('/me', auth, requireRole('patient'),
+  auditLog('Patient', 'read', null, (req) => req.user.id),
+  async (req, res, next) => {
+    try {
+      const patient = await Patient.findOne({ userId: req.user.id });
+      if (!patient) return res.status(404).json({ message: 'Profile not found' });
+      res.json(patient);
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 // PATCH /api/patients/me/location
 router.patch('/me/location', auth, requireRole('patient'), async (req, res, next) => {
@@ -70,28 +76,34 @@ router.patch('/me/profile', auth, requireRole('patient'), [
 });
 
 // GET /api/patients/by-user/:userId — doctor looks up a patient profile by User._id
-router.get('/by-user/:userId', auth, requireRole('doctor'), async (req, res, next) => {
-  try {
-    const patient = await Patient.findOne({ userId: req.params.userId }).populate('userId', 'name email');
-    if (!patient) return res.status(404).json({ message: 'Patient profile not found' });
-    res.json(patient);
-  } catch (err) { next(err); }
-});
+router.get('/by-user/:userId', auth, requireRole('doctor'),
+  auditLog('Patient', 'read', (req) => req.params.userId, (req) => req.params.userId),
+  async (req, res, next) => {
+    try {
+      const patient = await Patient.findOne({ userId: req.params.userId }).populate('userId', 'name email');
+      if (!patient) return res.status(404).json({ message: 'Patient profile not found' });
+      res.json(patient);
+    } catch (err) { next(err); }
+  }
+);
 
 // GET /api/patients/:id — doctor or own patient
-router.get('/:id', auth, async (req, res, next) => {
-  try {
-    const patient = await Patient.findById(req.params.id).populate('userId', 'name email');
-    if (!patient) return res.status(404).json({ message: 'Not found' });
+router.get('/:id', auth,
+  auditLog('Patient', 'read', (req) => req.params.id),
+  async (req, res, next) => {
+    try {
+      const patient = await Patient.findById(req.params.id).populate('userId', 'name email');
+      if (!patient) return res.status(404).json({ message: 'Not found' });
 
-    const isOwnRecord = patient.userId._id.toString() === req.user.id;
-    if (req.user.role === 'patient' && !isOwnRecord) return res.status(403).json({ message: 'Forbidden' });
+      const isOwnRecord = patient.userId._id.toString() === req.user.id;
+      if (req.user.role === 'patient' && !isOwnRecord) return res.status(403).json({ message: 'Forbidden' });
 
-    res.json(patient);
-  } catch (err) {
-    next(err);
+      res.json(patient);
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 // GET /api/patients/:id/notes
 router.get('/:id/notes', auth, async (req, res, next) => {
@@ -120,17 +132,20 @@ router.patch('/me/photo', auth, requireRole('patient'), upload.single('photo'), 
 });
 
 // POST /api/patients/:id/notes — doctors only
-router.post('/:id/notes', auth, requireRole('doctor'), async (req, res, next) => {
-  try {
-    const patient = await Patient.findById(req.params.id);
-    if (!patient) return res.status(404).json({ message: 'Not found' });
+router.post('/:id/notes', auth, requireRole('doctor'),
+  auditLog('Patient', 'create', (req) => req.params.id, (req) => req.params.id),
+  async (req, res, next) => {
+    try {
+      const patient = await Patient.findById(req.params.id);
+      if (!patient) return res.status(404).json({ message: 'Not found' });
 
-    patient.notes.push({ doctorId: req.user.id, content: req.body.content });
-    await patient.save();
-    res.status(201).json(patient.notes[patient.notes.length - 1]);
-  } catch (err) {
-    next(err);
+      patient.notes.push({ doctorId: req.user.id, content: req.body.content });
+      await patient.save();
+      res.status(201).json(patient.notes[patient.notes.length - 1]);
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 module.exports = router;
