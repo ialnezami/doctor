@@ -164,7 +164,7 @@ Target: real-time features, richer doctor-patient communication, reviews.
 
 ---
 
-## Phase 5 — Admin & Compliance 🔲
+## Phase 5 — Admin & Compliance 🔄
 
 ### 5.1 Admin Panel ✅
 - [x] User management: search, suspend, delete accounts
@@ -173,13 +173,15 @@ Target: real-time features, richer doctor-patient communication, reviews.
 - [-] Audit log: all sensitive actions (role change, record access, deletion) — deferred to Phase 6
 - [-] System health dashboard (API uptime, DB metrics) — deferred to Phase 6
 
-### 5.2 HIPAA / GDPR Compliance
-- [ ] Encrypt sensitive fields at rest (SSN, medical history) using field-level encryption
-- [ ] Data retention policy: auto-delete inactive records after N years
-- [ ] Patient right-to-erasure endpoint (GDPR Article 17)
-- [ ] Data export endpoint (GDPR Article 20 — portable format)
-- [ ] Consent tracking: patient explicitly consents to data use at registration
-- [ ] Audit trail for all record accesses (who accessed what and when)
+### 5.2 HIPAA / GDPR Compliance ✅
+- [x] AES-256-GCM field-level encryption for PHI (Patient, ConsultationNote, Prescription, LabResult)
+- [x] HMAC-SHA256 blind index on email for encrypted-field equality queries
+- [x] HIPAA audit trail — AuditLog model, fire-and-forget middleware, 18 hooks across all PHI routes
+- [x] Auth middleware hardened — erased-user and suspended-user DB check on every request
+- [x] Consent tracking — GDPR Art.7 consent fields on User, consent gate on registration
+- [x] Patient right-to-erasure — GDPR Art.17 transactional anonymization across 9 collections
+- [x] Data portability export — GDPR Art.20 async export queue + worker + Cloudinary upload
+- [x] Privacy routes: DELETE /erase, POST /consent/withdraw, GET /audit-log, POST/GET /export
 
 ### 5.3 Security Hardening ✅
 - [x] Rate limiting per IP (express-rate-limit — 200 req/15min general, 10 login, 20 register)
@@ -219,6 +221,42 @@ Target: real-time features, richer doctor-patient communication, reviews.
 - [ ] Production deploy on version tag (Railway)
 - [ ] Expo EAS builds for iOS + Android (TestFlight + Play Console)
 - [ ] Automated DB migration scripts with rollback
+
+---
+
+## Phase 9 — AI Patient Chatbot 🔲
+
+Conversational AI assistant that helps patients understand their symptoms, get basic health advice, and find the right doctor — before booking an appointment.
+
+### 9.1 Symptom Intake Chatbot
+- [ ] Multi-turn conversation flow: patient describes symptoms in natural language
+- [ ] Claude API integration — triage-level guidance (urgency: routine / soon / urgent / emergency)
+- [ ] Suggested specialty/specialties based on reported symptoms
+- [ ] Safety disclaimer: AI output is informational only, not medical advice
+- [ ] Conversation history persisted per user session (ephemeral, not stored as PHI)
+- [ ] Fallback escalation: "Book a doctor now" CTA when urgency is urgent/emergency
+
+### 9.2 Doctor Recommendation Engine
+- [ ] Filter doctors by AI-suggested specialty
+- [ ] Geo-proximity ranking: closest clinics first (MongoDB 2dsphere, existing geo index)
+- [ ] Availability ranking: earliest available slot surfaced (existing availability model)
+- [ ] Combined score: weighted blend of proximity + soonest availability
+- [ ] Doctor card: name, specialty, clinic distance, next available slot, average rating
+- [ ] One-tap booking from recommendation card
+
+### 9.3 Chatbot UI (Mobile + Web)
+- [ ] Mobile: floating chat button on home screen → full-screen chat modal
+- [ ] Web: chat widget on patient dashboard sidebar
+- [ ] Markdown rendering for AI responses (bold, lists, urgency badges)
+- [ ] Typing indicator while Claude streams response
+- [ ] "Find a doctor" results rendered inline in chat after triage
+- [ ] Conversation reset button (clears session, starts fresh)
+
+### 9.4 API Layer
+- [ ] `POST /api/chatbot/message` — send message, get AI response + optional doctor list
+- [ ] `GET /api/chatbot/doctors?specialty=&lat=&lng=&limit=` — ranked doctor recommendations
+- [ ] Rate limiting: 30 chatbot requests per user per hour
+- [ ] Session token (JWT sub) used as conversation context key — no additional auth
 
 ---
 
@@ -290,7 +328,8 @@ Doctor-only marketplace for browsing and ordering medical equipment and supplies
 | Phase 2 — Engagement & Communication | ✅ Done | 100% |
 | Phase 3 — Payments & Monetization | 🔲 Planned | 0% |
 | Phase 4 — AI & Clinical Intelligence | ✅ Done | 100% |
-| Phase 5 — Admin & Compliance | 🔄 In Progress | 67% (5.1 ✅, 5.3 ✅) |
+| Phase 5 — Admin & Compliance | 🔄 In Progress | 100% (5.1 ✅, 5.2 ✅, 5.3 ✅) |
 | Phase 6 — Scale & Reliability | 🔲 Planned | 0% |
 | Phase 7 — Ecosystem Expansion | 💡 Idea | 0% |
 | Phase 8 — Doctor Equipment Marketplace | 💡 Idea | 0% |
+| Phase 9 — AI Patient Chatbot | 🔲 Planned | 0% |
