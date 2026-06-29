@@ -28,15 +28,15 @@ router.patch('/me/location', auth, requireRole('patient'), async (req, res, next
   try {
     const { city, lat, lng } = req.body;
     if (!city) return res.status(422).json({ message: 'city is required' });
-    const update = { city };
+
+    const patient = await Patient.findOne({ userId: req.user.id });
+    if (!patient) return res.status(404).json({ message: 'Profile not found' });
+
+    patient.city = city;
     if (lat != null && lng != null) {
-      update.homeLocation = { type: 'Point', coordinates: [parseFloat(lng), parseFloat(lat)] };
+      patient.homeLocation = { type: 'Point', coordinates: [parseFloat(lng), parseFloat(lat)] };
     }
-    const patient = await Patient.findOneAndUpdate(
-      { userId: req.user.id },
-      { $set: update },
-      { new: true }
-    );
+    await patient.save();
     res.json(patient);
   } catch (err) {
     next(err);
@@ -54,19 +54,18 @@ router.patch('/me/profile', auth, requireRole('patient'), [
 ], validate, async (req, res, next) => {
   try {
     const { bloodType, dateOfBirth, allergies, conditions } = req.body;
-    const update = {};
-    if (bloodType !== undefined)   update.bloodType   = bloodType;
-    if (dateOfBirth !== undefined) update.dateOfBirth = new Date(dateOfBirth);
-    if (allergies !== undefined)   update.allergies   = allergies;
-    if (conditions !== undefined)  update.conditions  = conditions;
 
-    const patient = await Patient.findOneAndUpdate(
-      { userId: req.user.id },
-      { $set: update },
-      { new: true }
-    );
+    const patient = await Patient.findOne({ userId: req.user.id });
     if (!patient) return res.status(404).json({ message: 'Profile not found' });
-    res.json(patient);
+
+    // Only set fields that were provided — isModified() in hook fires on these
+    if (bloodType !== undefined)   patient.bloodType   = bloodType;
+    if (dateOfBirth !== undefined) patient.dateOfBirth = new Date(dateOfBirth);
+    if (allergies !== undefined)   patient.allergies   = allergies;
+    if (conditions !== undefined)  patient.conditions  = conditions;
+
+    await patient.save(); // triggers pre-save encryption hook on modified PHI fields
+    res.json(patient);    // post-init hook already decrypted on findOne; in-memory doc is plaintext
   } catch (err) { next(err); }
 });
 
@@ -110,12 +109,12 @@ router.patch('/me/photo', auth, requireRole('patient'), upload.single('photo'), 
   try {
     if (!req.file) return res.status(422).json({ message: 'photo file required' });
     const photoUrl = await uploadBuffer(req.file.buffer, 'mediconnect/patients');
-    const patient = await Patient.findOneAndUpdate(
-      { userId: req.user.id },
-      { $set: { photoUrl } },
-      { new: true }
-    );
+
+    const patient = await Patient.findOne({ userId: req.user.id });
     if (!patient) return res.status(404).json({ message: 'Patient profile not found' });
+
+    patient.photoUrl = photoUrl;
+    await patient.save();
     res.json({ photoUrl });
   } catch (err) { next(err); }
 });
