@@ -11,6 +11,7 @@ const notificationSchema = new mongoose.Schema({
       'notes_viewed',
       'appointment_reminder',
       'daily_digest',
+      'gdpr_export_ready',
     ],
     required: true,
   },

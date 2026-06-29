@@ -120,7 +120,8 @@ router.get('/:id/notes', auth, async (req, res, next) => {
 router.patch('/me/photo', auth, requireRole('patient'), upload.single('photo'), async (req, res, next) => {
   try {
     if (!req.file) return res.status(422).json({ message: 'photo file required' });
-    const photoUrl = await uploadBuffer(req.file.buffer, 'mediconnect/patients');
+    const uploadResult = await uploadBuffer(req.file.buffer, 'mediconnect/patients');
+    const photoUrl = uploadResult.secure_url;
 
     const patient = await Patient.findOne({ userId: req.user.id });
     if (!patient) return res.status(404).json({ message: 'Patient profile not found' });

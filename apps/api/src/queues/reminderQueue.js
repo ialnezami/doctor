@@ -59,4 +59,13 @@ function getLabQueue() {
   return _labQueue;
 }
 
-module.exports = { getConnection, getReminderQueue, getDigestQueue, getSymptomQueue, getNoteQueue, getLabQueue };
+let _exportQueue;
+
+function getExportQueue() {
+  if (!_exportQueue) {
+    _exportQueue = new Queue('gdpr-data-export', { connection: getConnection() });
+  }
+  return _exportQueue;
+}
+
+module.exports = { getConnection, getReminderQueue, getDigestQueue, getSymptomQueue, getNoteQueue, getLabQueue, getExportQueue };

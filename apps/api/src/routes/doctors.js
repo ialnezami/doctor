@@ -236,7 +236,8 @@ router.patch('/:id/photo', auth, requireRole('doctor'), upload.single('photo'), 
     if (doctor.userId.toString() !== req.user.id) return res.status(403).json({ message: 'Forbidden' });
     if (!req.file) return res.status(422).json({ message: 'photo file required' });
 
-    const photoUrl = await uploadBuffer(req.file.buffer, 'mediconnect/doctors');
+    const uploadResult = await uploadBuffer(req.file.buffer, 'mediconnect/doctors');
+    const photoUrl = uploadResult.secure_url;
     doctor.photoUrl = photoUrl;
     await doctor.save();
     res.json({ photoUrl });
