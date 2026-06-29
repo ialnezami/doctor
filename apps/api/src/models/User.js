@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const { hmacHash } = require('../utils/blindIndex');
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
@@ -18,13 +19,45 @@ const userSchema = new mongoose.Schema({
     emailEnabled: { type: Boolean, default: true },
   },
   isSuspended: { type: Boolean, default: false },
+
+  // GDPR Article 7 — explicit consent tracking
+  consentVersion:        { type: String,  default: null },  // e.g. "2024-01" — bump when terms change
+  consentTimestamp:      { type: Date,    default: null },  // when consent was given
+  consentIp:             { type: String,  default: null },  // IP at time of consent
+  consentWithdrawnAt:    { type: Date,    default: null },  // null = consent active; set = withdrawn
+  dataProcessingAllowed: { type: Boolean, default: false }, // false until explicit consent given
+
+  // GDPR Article 17 — erasure flag
+  // Set by erasureService; auth middleware rejects tokens when this is non-null
+  erasedAt: { type: Date, default: null },
+
+  // Email blind index for login lookup after email is encrypted
+  // HMAC-SHA256 of email.toLowerCase().trim() using BLIND_INDEX_KEY env var
+  // Populated by pre-save hook below; unique sparse index for login queries
+  emailHash: { type: String, default: null },
 }, { timestamps: true });
 
 userSchema.index({ location: '2dsphere' });
+userSchema.index({ emailHash: 1 }, { unique: true, sparse: true });
 
+// Hash password before saving (unchanged)
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password') || !this.password) return next(); // skip if no password set
   this.password = await bcrypt.hash(this.password, 12);
+  next();
+});
+
+// Maintain emailHash blind index whenever email changes.
+// Fails loudly if BLIND_INDEX_KEY is misconfigured — stale emailHash must never be silently stored.
+userSchema.pre('save', function (next) {
+  if (this.isModified('email') && this.email) {
+    try {
+      this.emailHash = hmacHash(this.email);
+    } catch (err) {
+      // BLIND_INDEX_KEY not set or invalid — propagate to caller so the save is rejected
+      return next(err);
+    }
+  }
   next();
 });
 
