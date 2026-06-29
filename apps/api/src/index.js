@@ -23,9 +23,17 @@ const app = express();
 
 app.set('trust proxy', 1);
 
-// HTTPS redirect in production
+// Health endpoint before any redirect — Railway's internal healthcheck hits this
+// directly without x-forwarded-proto, so it must respond before the HTTPS redirect.
+app.get('/health', (_, res) => res.json({ status: 'ok' }));
+
+// HTTPS redirect in production (skip /health to avoid redirect loop on Railway healthchecks)
 app.use((req, res, next) => {
-  if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] !== 'https') {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    req.path !== '/health' &&
+    req.headers['x-forwarded-proto'] !== 'https'
+  ) {
     return res.redirect(301, `https://${req.headers.host}${req.url}`);
   }
   next();
@@ -54,8 +62,6 @@ app.use('/api/reports',       require('./routes/reports'));
 app.use('/api/labs',          require('./routes/labs'));
 app.use('/api/users',         require('./routes/users'));
 app.use('/api/privacy',       require('./routes/privacy'));
-
-app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
 app.use(errorHandler);
 
