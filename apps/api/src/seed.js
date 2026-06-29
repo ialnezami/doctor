@@ -1,24 +1,10 @@
-'use strict';
-
-/**
- * Seed test accounts for all three roles.
- * Run: npm run seed --workspace=apps/api
- * Or:  node apps/api/src/seed.js
- *
- * Idempotent — safe to run multiple times. Skips accounts that already exist.
- */
-
-require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
-
 const mongoose = require('mongoose');
-const User     = require('./models/User');
-const Doctor   = require('./models/Doctor');
-const Patient  = require('./models/Patient');
-const Lab      = require('./models/Lab');
+const User = require('./models/User');
+const Doctor = require('./models/Doctor');
+const Patient = require('./models/Patient');
+const Lab = require('./models/Lab');
 
-const MONGO_URI = process.env.MONGODB_URI ?? 'mongodb://localhost:27017/mediconnect';
-
-const ACCOUNTS = [
+const seedData = [
   {
     role: 'doctor',
     name: 'Dr. Sarah Al-Rashid',
@@ -64,64 +50,64 @@ const ACCOUNTS = [
   },
 ];
 
-async function seedAccount(account) {
-  const { role, name, email, password, profile } = account;
+async function seed() {
+  try {
+    const mongoUri = process.env.MONGODB_URI || process.env.MONGODB_URL;
+    if (!mongoUri) {
+      throw new Error('MONGODB_URI or MONGODB_URL environment variable not set');
+    }
 
-  const existing = await User.findOne({ email });
-  if (existing) {
-    console.log(`  ℹ️  ${role} already exists: ${email}`);
-    return;
+    console.log('Connecting to MongoDB...');
+    await mongoose.connect(mongoUri);
+    console.log('Connected to MongoDB');
+
+    // Clear existing data
+    console.log('Clearing existing data...');
+    await User.deleteMany({});
+    await Doctor.deleteMany({});
+    await Patient.deleteMany({});
+    await Lab.deleteMany({});
+
+    // Seed data
+    for (const item of seedData) {
+      console.log(`Creating ${item.role}: ${item.name}`);
+
+      // Create user
+      const user = await User.create({
+        name: item.name,
+        email: item.email,
+        password: item.password,
+        role: item.role,
+      });
+
+      // Create role-specific profile
+      if (item.role === 'doctor') {
+        await Doctor.create({
+          userId: user._id,
+          ...item.profile,
+        });
+      } else if (item.role === 'patient') {
+        await Patient.create({
+          userId: user._id,
+          ...item.profile,
+        });
+      } else if (item.role === 'laboratory') {
+        await Lab.create({
+          userId: user._id,
+          ...item.profile,
+        });
+      }
+
+      console.log(`✓ Created ${item.role}: ${item.email}`);
+    }
+
+    console.log('\n✓ Database seeded successfully!');
+    process.exit(0);
+  } catch (error) {
+    console.error('Seed error:', error.message);
+    process.exit(1);
   }
-
-  const user = await User.create({ name, email, password, role });
-
-  if (role === 'doctor') {
-    await Doctor.create({ userId: user._id, ...profile });
-  } else if (role === 'patient') {
-    await Patient.create({ userId: user._id, ...profile });
-  } else if (role === 'laboratory') {
-    await Lab.create({ userId: user._id, ...profile });
-  }
-
-  console.log(`  ✅ Created ${role}: ${email}`);
 }
 
-async function main() {
-  console.log('Connecting to MongoDB:', MONGO_URI.replace(/\/\/.*@/, '//***@'));
-  await mongoose.connect(MONGO_URI);
-  console.log('Connected.\n');
+seed();
 
-  console.log('Seeding test accounts...');
-  for (const account of ACCOUNTS) {
-    await seedAccount(account);
-  }
-
-  console.log(`
-─────────────────────────────────────────
-  TEST CREDENTIALS
-─────────────────────────────────────────
-  PATIENT
-    Email:    patient.test@mediconnect.com
-    Password: Patient12345
-
-  DOCTOR
-    Email:    doctor.test@mediconnect.com
-    Password: Doctor12345
-    Specialty: General Practice
-    Availability: Mon–Fri 09:00–17:00
-    Auto-accept: YES
-
-  LABORATORY  (pre-approved)
-    Email:    lab.test@mediconnect.com
-    Password: Lab12345!
-─────────────────────────────────────────
-  Booking test: log in as patient → Find Doctor → search "Sarah" → book any weekday slot
-`);
-
-  await mongoose.disconnect();
-}
-
-main().catch(err => {
-  console.error('❌ Seed failed:', err.message);
-  process.exit(1);
-});
