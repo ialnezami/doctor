@@ -14,6 +14,7 @@ const auth        = require('../middleware/auth');
 const requireRole = require('../middleware/rbac');
 const AuditLog    = require('../models/AuditLog');
 const { erasePatient, withdrawConsent } = require('../services/erasureService');
+const { getExportQueue }                = require('../queues/reminderQueue');
 
 // ---------------------------------------------------------------------------
 // DELETE /api/privacy/erase
@@ -103,6 +104,99 @@ router.get('/audit-log', auth, requireRole('patient'), async (req, res, next) =>
       .lean();
 
     res.json({ entries });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/privacy/export
+// GDPR Article 20 — Right to Data Portability
+// ---------------------------------------------------------------------------
+// Auth: authenticated patient only.
+// Enqueues a background BullMQ job that collects all PHI, serializes to JSON,
+// uploads to Cloudinary, and notifies the patient via in-app Notification.
+//
+// Returns 202 (Accepted) with a jobId so the patient can poll job status.
+// The download URL is delivered via Notification — NOT in this response —
+// to minimize URL leakage surface (the response may be logged by proxies).
+//
+// Idempotency: jobId contains userId + timestamp, preventing BullMQ
+// deduplication conflicts on rapid retries.
+// ---------------------------------------------------------------------------
+router.post('/export', auth, requireRole('patient'), async (req, res, next) => {
+  try {
+    const job = await getExportQueue().add(
+      'export-patient-data',
+      { userId: req.user.id },
+      {
+        jobId:             `export-${req.user.id}-${Date.now()}`,
+        removeOnComplete:  { age: 24 * 60 * 60 },     // keep completed jobs 24h for status checks
+        removeOnFail:      { age: 7 * 24 * 60 * 60 }, // keep failed jobs 7 days for support triage
+      }
+    );
+
+    // Fire-and-forget audit — enqueue failure should not block the 202 response.
+    AuditLog.create({
+      actorId:      req.user.id,
+      actorRole:    'patient',
+      action:       'export',
+      resourceType: 'User',
+      resourceId:   req.user.id,
+      targetUserId: req.user.id,
+      ip:           req.ip,
+      userAgent:    req.headers['user-agent'] || null,
+      outcome:      'success',
+      meta:         { jobId: job.id, status: 'queued' },
+    }).catch(err => console.error('[audit] export enqueue log failed:', err.message));
+
+    res.status(202).json({
+      message: 'Export job queued. You will receive a notification when your data is ready.',
+      jobId:   job.id,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/privacy/export/:jobId
+// Check status of a previously enqueued export job.
+// ---------------------------------------------------------------------------
+// Auth: authenticated patient only.
+// Ownership: jobId is prefixed with the patient's userId — mismatches return 403.
+//
+// Possible states returned by BullMQ: 'waiting' | 'active' | 'completed' | 'failed'
+// On 'completed': download URL is in the patient's Notification (not exposed here).
+// On 'failed': failedReason is surfaced so the patient can retry or contact support.
+// ---------------------------------------------------------------------------
+router.get('/export/:jobId', auth, requireRole('patient'), async (req, res, next) => {
+  try {
+    const { jobId } = req.params;
+
+    // Ownership check before touching the queue — jobId format is
+    // `export-{userId}-{timestamp}`, so the userId must appear in the jobId.
+    if (!jobId.includes(req.user.id)) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    const queue = getExportQueue();
+    const job   = await queue.getJob(jobId);
+
+    if (!job) {
+      return res.status(404).json({ message: 'Export job not found or has expired' });
+    }
+
+    const state = await job.getState();
+
+    res.json({
+      jobId,
+      status:     state, // 'waiting' | 'active' | 'completed' | 'failed'
+      result:     state === 'completed'
+        ? { message: 'Check your notifications for the download link' }
+        : null,
+      failReason: state === 'failed' ? job.failedReason : null,
+    });
   } catch (err) {
     next(err);
   }
