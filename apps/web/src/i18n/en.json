@@ -106,7 +106,19 @@
     "years": "years",
     "recorded": "recorded",
     "downloadPdf": "↓ PDF",
-    "more": "+{{count}} more"
+    "more": "+{{count}} more",
+    "modal": {
+      "prescription": "Prescription",
+      "doctor": "Doctor",
+      "patient": "Patient",
+      "issued": "Issued",
+      "validUntil": "Valid Until",
+      "medications": "Medications",
+      "dosage": "Dosage",
+      "frequency": "Frequency",
+      "duration": "Duration",
+      "instructions": "Instructions"
+    }
   },
   "language": {
     "label": "Language",

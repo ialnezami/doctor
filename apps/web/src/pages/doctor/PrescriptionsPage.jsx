@@ -5,7 +5,31 @@ import { getPrescriptions, createPrescription } from '../../api/prescriptions';
 import { getAppointments } from '../../api/appointments';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import ComboSelect from '../../components/ui/ComboSelect';
 import { useIsMobile } from '../../hooks/useIsMobile';
+
+const DOSAGE_OPTIONS = [
+  '2.5mg','5mg','10mg','20mg','25mg','40mg','50mg',
+  '75mg','100mg','125mg','150mg','200mg','250mg',
+  '400mg','500mg','600mg','800mg','1g','1.5g','2g',
+  '5ml','10ml','15ml','20ml',
+  '1 puff','2 puffs','1 drop','2 drops',
+  '1 patch','½ tablet','1 tablet','2 tablets',
+];
+
+const FREQUENCY_OPTIONS = [
+  'Once daily','Twice daily','Three times daily','Four times daily',
+  'Every 6 hours','Every 8 hours','Every 12 hours','Every 24 hours',
+  'With meals','Before meals','After meals','Before breakfast',
+  'At bedtime','In the morning','As needed (PRN)',
+  'Alternate days','Weekly',
+];
+
+const DURATION_OPTIONS = [
+  '1 day','3 days','5 days','7 days','10 days','14 days',
+  '21 days','1 month','6 weeks','2 months','3 months',
+  '6 months','1 year','Ongoing','Until finished',
+];
 
 const emptyMed = { name:'', dosage:'', frequency:'', duration:'' };
 
@@ -157,10 +181,28 @@ export default function PrescriptionsPage() {
               {form.medications.map((med, i) => (
                 <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r-sm)', marginBottom:7 }}>
                   <div style={{ width:7, height:7, borderRadius:'50%', background:ACCENT[i % ACCENT.length], flexShrink:0 }} />
-                  <input value={med.name}      onChange={e => updateMed(i,'name',e.target.value)}      placeholder={t('prescriptions.drugName')} style={{ flex:2, background:'transparent', border:'none', outline:'none', color:'var(--text)', fontSize:13.5 }} />
-                  <input value={med.dosage}    onChange={e => updateMed(i,'dosage',e.target.value)}    placeholder={t('prescriptions.dose')}     style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'var(--mint)', fontSize:11.5, fontFamily:'var(--font-mono)' }} />
-                  <input value={med.frequency} onChange={e => updateMed(i,'frequency',e.target.value)} placeholder={t('prescriptions.freq')}     style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'var(--text2)', fontSize:11.5 }} />
-                  <input value={med.duration}  onChange={e => updateMed(i,'duration',e.target.value)}  placeholder={t('prescriptions.duration')} style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'var(--text2)', fontSize:11.5 }} />
+                  <input value={med.name} onChange={e => updateMed(i,'name',e.target.value)} placeholder={t('prescriptions.drugName')} style={{ flex:2, background:'transparent', border:'none', outline:'none', color:'var(--text)', fontSize:13.5 }} />
+                  <ComboSelect
+                    value={med.dosage}
+                    onChange={val => updateMed(i,'dosage',val)}
+                    options={DOSAGE_OPTIONS}
+                    placeholder={t('prescriptions.dose')}
+                    inputStyle={{ flex:1, color:'var(--mint)', fontSize:11.5, fontFamily:'var(--font-mono)' }}
+                  />
+                  <ComboSelect
+                    value={med.frequency}
+                    onChange={val => updateMed(i,'frequency',val)}
+                    options={FREQUENCY_OPTIONS}
+                    placeholder={t('prescriptions.freq')}
+                    inputStyle={{ flex:1, color:'var(--text2)', fontSize:11.5 }}
+                  />
+                  <ComboSelect
+                    value={med.duration}
+                    onChange={val => updateMed(i,'duration',val)}
+                    options={DURATION_OPTIONS}
+                    placeholder={t('prescriptions.duration')}
+                    inputStyle={{ flex:1, color:'var(--text2)', fontSize:11.5 }}
+                  />
                   {form.medications.length > 1 && (
                     <button type="button" onClick={() => removeMed(i)}
                       style={{ background:'transparent', border:'none', color:'var(--rose)', fontSize:16, cursor:'pointer', padding:'0 2px', lineHeight:1, flexShrink:0, opacity:0.7 }}
