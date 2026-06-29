@@ -74,16 +74,18 @@ router.patch('/:apptId/notes/:noteId', auth, [
 
     if (!mongoose.isValidObjectId(req.params.noteId)) return res.status(400).json({ message: 'Invalid noteId' });
     const { content, visibility } = req.body;
-    const update = {};
-    if (content !== undefined) update.content = content;
-    if (visibility !== undefined) update.visibility = visibility;
 
-    const note = await ConsultationNote.findOneAndUpdate(
-      { _id: req.params.noteId, appointmentId: appt._id },
-      { $set: update },
-      { new: true, runValidators: true }
-    );
+    const note = await ConsultationNote.findOne({
+      _id: req.params.noteId,
+      appointmentId: appt._id,
+    });
     if (!note) return res.status(404).json({ message: 'Note not found' });
+
+    // Apply only provided fields — schema validators (maxlength, enum) fire on .save()
+    if (content !== undefined)    note.content    = content;
+    if (visibility !== undefined) note.visibility = visibility;
+
+    await note.save(); // triggers pre-save encryption on content if modified
     res.json({ note });
   } catch (err) { next(err); }
 });
