@@ -17,4 +17,58 @@ const prescriptionSchema = new mongoose.Schema({
   verificationToken: { type: String, unique: true, sparse: true, index: true },
 }, { timestamps: true });
 
+// ---------------------------------------------------------------------------
+// PHI Encryption hooks (HIPAA/GDPR compliance)
+// ---------------------------------------------------------------------------
+// PHI fields encrypted: instructions, medications[].name/dosage/frequency/duration
+//
+// Medication subdoc fields are iterated explicitly via MED_FIELDS. The sentinel
+// check (!String(field).includes('|')) is an additional guard against re-encrypting
+// already-encrypted values when only unrelated prescription fields are modified.
+// isModified('medications') is the primary guard.
+//
+// Decrypt errors must not crash reads — only doc ID is logged.
+// ---------------------------------------------------------------------------
+
+const { encrypt, decrypt } = require('../utils/fieldEncryption');
+
+// All medication subdoc fields are PHI (drug name, dosage, frequency, duration)
+const MED_FIELDS = ['name', 'dosage', 'frequency', 'duration'];
+
+prescriptionSchema.pre('save', function (next) {
+  try {
+    if (this.isModified('instructions') && this.instructions != null) {
+      this.instructions = encrypt(this.instructions);
+    }
+    if (this.isModified('medications') && Array.isArray(this.medications)) {
+      this.medications = this.medications.map(med => {
+        const m = med.toObject ? med.toObject() : { ...med };
+        MED_FIELDS.forEach(f => {
+          if (m[f] != null && !String(m[f]).includes('|')) {
+            m[f] = encrypt(String(m[f]));
+          }
+        });
+        return m;
+      });
+    }
+    next();
+  } catch (err) { next(err); }
+});
+
+prescriptionSchema.post('init', function (doc) {
+  try {
+    if (doc.instructions != null) doc.instructions = decrypt(doc.instructions);
+    if (Array.isArray(doc.medications)) {
+      doc.medications = doc.medications.map(med => {
+        MED_FIELDS.forEach(f => {
+          if (med[f] != null) med[f] = decrypt(String(med[f]));
+        });
+        return med;
+      });
+    }
+  } catch (err) {
+    console.error('[encrypt] Prescription decrypt error on doc', doc._id, ':', err.message);
+  }
+});
+
 module.exports = mongoose.model('Prescription', prescriptionSchema);
