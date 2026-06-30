@@ -17,18 +17,17 @@ const DOSAGE_OPTIONS = [
   '1 patch','½ tablet','1 tablet','2 tablets',
 ];
 
-const FREQUENCY_OPTIONS = [
-  'Once daily','Twice daily','Three times daily','Four times daily',
-  'Every 6 hours','Every 8 hours','Every 12 hours','Every 24 hours',
-  'With meals','Before meals','After meals','Before breakfast',
-  'At bedtime','In the morning','As needed (PRN)',
-  'Alternate days','Weekly',
+const FREQUENCY_KEYS = [
+  'onceDaily','twiceDaily','threeTimesDaily','fourTimesDaily',
+  'every6h','every8h','every12h','every24h',
+  'withMeals','beforeMeals','afterMeals','beforeBreakfast',
+  'atBedtime','inMorning','asNeeded','alternateDays','weekly',
 ];
 
-const DURATION_OPTIONS = [
-  '1 day','3 days','5 days','7 days','10 days','14 days',
-  '21 days','1 month','6 weeks','2 months','3 months',
-  '6 months','1 year','Ongoing','Until finished',
+const DURATION_KEYS = [
+  '1day','3days','5days','7days','10days','14days',
+  '21days','1month','6weeks','2months','3months',
+  '6months','1year','ongoing','untilFinished',
 ];
 
 const emptyMed = { name:'', dosage:'', frequency:'', duration:'' };
@@ -36,6 +35,8 @@ const emptyMed = { name:'', dosage:'', frequency:'', duration:'' };
 export default function PrescriptionsPage() {
   const { t } = useTranslation();
   const location = useLocation();
+  const FREQUENCY_OPTIONS = FREQUENCY_KEYS.map(k => t(`prescriptions.frequencyOptions.${k}`));
+  const DURATION_OPTIONS  = DURATION_KEYS.map(k => t(`prescriptions.durationOptions.${k}`));
   const isMobile = useIsMobile();
 
   const presetPatientId   = location.state?.patientId   || '';
