@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
+import QRCode from 'qrcode';
 import { getPrescriptions, createPrescription } from '../../api/prescriptions';
 import { getAppointments } from '../../api/appointments';
 import Card from '../../components/ui/Card';
@@ -31,6 +32,37 @@ const DURATION_KEYS = [
 ];
 
 const emptyMed = { name:'', dosage:'', frequency:'', duration:'' };
+
+function RxQR({ token }) {
+  const canvasRef = useRef(null);
+  const [enlarged, setEnlarged] = useState(false);
+  const url = `${window.location.origin}/rx/${token}`;
+
+  useEffect(() => {
+    if (!token || !canvasRef.current) return;
+    QRCode.toCanvas(canvasRef.current, url, { width: 72, margin: 1, color: { dark: '#0fe3b0', light: '#0a1628' } });
+  }, [token, url]);
+
+  return (
+    <>
+      <canvas
+        ref={canvasRef}
+        title="Scan to verify prescription"
+        onClick={() => setEnlarged(true)}
+        style={{ cursor: 'pointer', borderRadius: 6, border: '1px solid rgba(15,227,176,0.2)', flexShrink: 0 }}
+      />
+      {enlarged && (
+        <div
+          onClick={() => setEnlarged(false)}
+          style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', zIndex:1000, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:16 }}
+        >
+          <canvas ref={el => { if (el) QRCode.toCanvas(el, url, { width: 260, margin: 2, color: { dark: '#0fe3b0', light: '#0a1628' } }); }} style={{ borderRadius:10 }} />
+          <span style={{ color:'#94a3b8', fontSize:12 }}>Tap anywhere to close</span>
+        </div>
+      )}
+    </>
+  );
+}
 
 export default function PrescriptionsPage() {
   const { t } = useTranslation();
@@ -235,6 +267,7 @@ export default function PrescriptionsPage() {
             </div>
             {rxList.map((rx, i) => (
               <div key={rx._id || i} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r-sm)', marginBottom:8 }}>
+                {rx.verificationToken && <RxQR token={rx.verificationToken} />}
                 <span style={{ fontFamily:'var(--font-mono)', fontSize:10, color:'var(--mint)', minWidth:64 }}>RX-{String(i+48).padStart(4,'0')}</span>
                 <div style={{ flex:1 }}>
                   <div style={{ fontSize:13.5, fontWeight:500 }}>{rx.patientId?.name || t('appointments.details.patient')}</div>
