@@ -140,8 +140,14 @@ export default function PatientSettingsPage() {
               <input
                 type="date"
                 value={profile.dateOfBirth}
+                min="1900-01-01"
                 max={new Date().toISOString().slice(0, 10)}
-                onChange={e => setProfile(p => ({ ...p, dateOfBirth: e.target.value }))}
+                onChange={e => {
+                  const val = e.target.value;
+                  const year = val ? parseInt(val.slice(0, 4), 10) : 0;
+                  if (year > 0 && year < 1900) return;
+                  setProfile(p => ({ ...p, dateOfBirth: val }));
+                }}
                 style={inputStyle}
               />
             </div>
