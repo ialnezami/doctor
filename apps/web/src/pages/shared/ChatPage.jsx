@@ -55,7 +55,7 @@ export default function ChatPage() {
   useEffect(() => {
     loadHistory(null);
 
-    const socket = io(SOCKET_URL, { auth: { token }, transports: ['websocket'] });
+    const socket = io(SOCKET_URL, { auth: { token }, transports: ['polling', 'websocket'] });
     socketRef.current = socket;
 
     socket.on('connect', () => {
