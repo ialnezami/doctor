@@ -6,7 +6,7 @@ import useAuthStore from '../../store/authStore';
 import { getMessages, uploadAttachment } from '../../api/chat';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-const SOCKET_URL = API_BASE.replace('/api', '');
+const SOCKET_URL = new URL(API_BASE).origin;
 
 export default function ChatPage() {
   const { id: appointmentId } = useParams();
