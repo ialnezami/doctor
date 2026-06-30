@@ -2,7 +2,8 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "node src/seed.js && node src/index.js"
+preDeployCommand = "node src/seed.js"
+startCommand = "node src/index.js"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
