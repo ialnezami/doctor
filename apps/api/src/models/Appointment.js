@@ -27,6 +27,10 @@ const appointmentSchema = new mongoose.Schema({
   notes: String,
   videoRoomName: { type: String, default: '' },
   remindersDisabled: { type: Boolean, default: false },
+  locationId:      { type: mongoose.Schema.Types.ObjectId, default: null },
+  locationName:    { type: String, default: '' },
+  locationAddress: { type: String, default: '' },
+  locationType:    { type: String, enum: ['bookable', 'hospital', null], default: null },
   reminder24hJobId:  { type: String,  default: null },
   reminder1hJobId:   { type: String,  default: null },
   symptomText:     { type: String, default: null },
@@ -46,6 +50,6 @@ const appointmentSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Prevent querying a cancelled or completed slot as "booked"
-appointmentSchema.index({ doctorId: 1, date: 1, 'timeSlot.start': 1 });
+appointmentSchema.index({ doctorId: 1, locationId: 1, date: 1, 'timeSlot.start': 1 });
 
 module.exports = mongoose.model('Appointment', appointmentSchema);
