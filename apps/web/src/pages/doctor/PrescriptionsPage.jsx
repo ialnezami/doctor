@@ -64,6 +64,15 @@ function RxQR({ token }) {
   );
 }
 
+function RxQRLarge({ token }) {
+  const url = `${window.location.origin}/rx/${token}`;
+  return (
+    <canvas ref={el => {
+      if (el) QRCode.toCanvas(el, url, { width: 200, margin: 2, color: { dark: '#0fe3b0', light: '#0a1628' } });
+    }} style={{ borderRadius: 10, display: 'block', margin: '0 auto' }} />
+  );
+}
+
 export default function PrescriptionsPage() {
   const { t } = useTranslation();
   const location = useLocation();
@@ -78,6 +87,7 @@ export default function PrescriptionsPage() {
   const [patients, setPatients] = useState([]);
   const [form, setForm] = useState({ patientId: presetPatientId, instructions:'', medications:[{ ...emptyMed }] });
   const [saving, setSaving] = useState(false);
+  const [createdRx, setCreatedRx] = useState(null); // triggers success modal
 
   const load = () => getPrescriptions().then(setRxList).catch(() => {});
   useEffect(() => { load(); }, []);
@@ -94,7 +104,7 @@ export default function PrescriptionsPage() {
     }).catch(() => {});
   }, []);
 
-  const printRx = (rx) => {
+  const printRx = async (rx) => {
     const pdfTitle   = t('prescriptions.pdf.title');
     const pdfDate    = t('prescriptions.pdf.date');
     const pdfRx      = t('prescriptions.pdf.rx');
@@ -108,12 +118,19 @@ export default function PrescriptionsPage() {
       t('prescriptions.pdf.duration'),
     ];
 
+    let qrImg = '';
+    if (rx.verificationToken) {
+      const url = `${window.location.origin}/rx/${rx.verificationToken}`;
+      const dataUrl = await QRCode.toDataURL(url, { width: 120, margin: 1, color: { dark: '#000000', light: '#ffffff' } });
+      qrImg = `<img src="${dataUrl}" width="120" height="120" style="display:block" alt="QR" />`;
+    }
+
     const el = document.createElement('div');
     el.id = '__rx_print__';
     el.innerHTML = `
       <style>@media not print { #__rx_print__ { display:none; } } @media print { body > *:not(#__rx_print__) { display:none; } }</style>
-      <div style="font-family:Georgia,serif;padding:40px;max-width:600px;margin:0 auto;color:#000">
-        <div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:14px;margin-bottom:20px">
+      <div style="font-family:Georgia,serif;padding:40px;max-width:620px;margin:0 auto;color:#000">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:14px;margin-bottom:20px">
           <div><h2 style="margin:0;font-size:22px">MediConnect</h2><p style="margin:4px 0 0;font-size:12px;color:#555">${pdfTitle}</p></div>
           <div style="text-align:right;font-size:12px">
             <div>${pdfDate}: ${new Date(rx.createdAt).toLocaleDateString()}</div>
@@ -126,7 +143,16 @@ export default function PrescriptionsPage() {
           <tbody>${(rx.medications||[]).map(m=>`<tr>${[m.name,m.dosage,m.frequency,m.duration].map(v=>`<td style="border:1px solid #ddd;padding:6px 10px">${v||'—'}</td>`).join('')}</tr>`).join('')}</tbody>
         </table>
         ${rx.instructions ? `<div style="margin-top:18px;font-size:13px"><strong>${pdfInstr}:</strong> ${rx.instructions}</div>` : ''}
-        <div style="margin-top:36px;border-top:1px solid #ccc;padding-top:14px;font-size:11px;color:#555;text-align:center">${pdfFooter}</div>
+        ${qrImg ? `
+        <div style="margin-top:28px;display:flex;align-items:center;gap:20px;border-top:1px solid #eee;padding-top:20px">
+          ${qrImg}
+          <div style="font-size:11px;color:#555;line-height:1.6">
+            <strong style="font-size:12px;color:#000">Verify this prescription</strong><br/>
+            Scan the QR code or visit:<br/>
+            <span style="font-family:monospace;font-size:10px">${window.location.origin}/rx/${rx.verificationToken}</span>
+          </div>
+        </div>` : ''}
+        <div style="margin-top:24px;border-top:1px solid #ccc;padding-top:14px;font-size:11px;color:#555;text-align:center">${pdfFooter}</div>
       </div>`;
     document.body.appendChild(el);
     window.print();
@@ -145,9 +171,10 @@ export default function PrescriptionsPage() {
   const submit = async (e) => {
     e.preventDefault(); setSaving(true);
     try {
-      await createPrescription(form);
+      const rx = await createPrescription(form);
       load();
       setForm({ patientId: presetPatientId, instructions:'', medications:[{ ...emptyMed }] });
+      setCreatedRx(rx);
     } catch {} finally { setSaving(false); }
   };
 
@@ -281,6 +308,43 @@ export default function PrescriptionsPage() {
           </div>
         </div>
       </div>
+
+      {createdRx && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.75)', zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+          <div style={{ background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:28, maxWidth:380, width:'100%', textAlign:'center' }}>
+            <div style={{ fontSize:13, fontWeight:600, color:'var(--mint)', marginBottom:4 }}>✓ {t('prescriptions.saveSign')}</div>
+            <div style={{ fontSize:11, color:'var(--text3)', marginBottom:20 }}>
+              RX-{String(createdRx._id).slice(-6).toUpperCase()}
+            </div>
+
+            {createdRx.verificationToken && (
+              <>
+                <RxQRLarge token={createdRx.verificationToken} />
+                <div style={{ marginTop:14, display:'flex', alignItems:'center', gap:8, background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r-sm)', padding:'8px 12px' }}>
+                  <span style={{ flex:1, fontFamily:'var(--font-mono)', fontSize:10.5, color:'var(--text2)', textAlign:'left', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                    {window.location.origin}/rx/{createdRx.verificationToken}
+                  </span>
+                  <button
+                    onClick={() => navigator.clipboard?.writeText(`${window.location.origin}/rx/${createdRx.verificationToken}`)}
+                    style={{ background:'transparent', border:'none', color:'var(--mint)', cursor:'pointer', fontSize:12, flexShrink:0 }}
+                  >
+                    Copy
+                  </button>
+                </div>
+              </>
+            )}
+
+            <div style={{ display:'flex', gap:10, marginTop:20 }}>
+              <Button variant="ghost" full onClick={() => { printRx(createdRx); }}>
+                🖨 {t('prescriptions.print')}
+              </Button>
+              <Button full onClick={() => setCreatedRx(null)}>
+                {t('common.done', 'Done')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
