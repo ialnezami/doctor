@@ -66,6 +66,17 @@ router.get('/', auth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// GET /api/doctors/public/:id — no auth, for shareable doctor profile page
+router.get('/public/:id', async (req, res, next) => {
+  try {
+    const doctor = await Doctor.findById(req.params.id)
+      .populate('userId', 'name email')
+      .select('-availabilitySlots -autoAcceptAppointments -timezone');
+    if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
+    res.json(doctor);
+  } catch (err) { next(err); }
+});
+
 // GET /api/doctors/me — doctor fetches own full profile (must be before /:id)
 router.get('/me', auth, requireRole('doctor'), async (req, res, next) => {
   try {
@@ -182,8 +193,14 @@ router.put('/:id', auth, requireRole('doctor'), async (req, res, next) => {
     if (!doctor) return res.status(404).json({ message: 'Not found' });
     if (doctor.userId.toString() !== req.user.id) return res.status(403).json({ message: 'Forbidden' });
 
-    const { specialty, clinicAddress, bio, consultationFee, yearsOfExperience } = req.body;
-    Object.assign(doctor, { specialty, clinicAddress, bio, consultationFee, yearsOfExperience });
+    const { specialty, clinicAddress, bio, consultationFee, yearsOfExperience,
+            licenseNumber, languages, education, achievements } = req.body;
+    Object.assign(doctor, { specialty, clinicAddress, bio, consultationFee, yearsOfExperience,
+      ...(licenseNumber  !== undefined && { licenseNumber }),
+      ...(languages      !== undefined && { languages }),
+      ...(education      !== undefined && { education }),
+      ...(achievements   !== undefined && { achievements }),
+    });
     await doctor.save();
     res.json(doctor);
   } catch (err) {
