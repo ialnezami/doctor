@@ -4,6 +4,7 @@ const { body, query, validationResult } = require('express-validator');
 const adminAuth  = require('../middleware/adminAuth');
 const User    = require('../models/User');
 const Doctor  = require('../models/Doctor');
+const Patient = require('../models/Patient');
 const Lab     = require('../models/Lab');
 const Review  = require('../models/Review');
 const Appointment = require('../models/Appointment');
@@ -210,6 +211,58 @@ router.patch('/reports/:id/dismiss', adminAuth, async (req, res, next) => {
     );
     if (!report) return res.status(404).json({ message: 'Report not found' });
     res.json(report);
+  } catch (err) { next(err); }
+});
+
+// GET /api/admin/map/users?role= — pins for admin Leaflet map
+router.get('/map/users', adminAuth, async (req, res, next) => {
+  try {
+    const { role } = req.query;
+    const roleFilter = role ? { role } : { role: { $in: ['doctor', 'patient'] } };
+
+    const users = await User.find(roleFilter).select('name role location').lean();
+    const uids  = users.map(u => u._id);
+
+    const [doctors, patients] = await Promise.all([
+      Doctor.find({ userId: { $in: uids } }).select('userId locations clinicAddress').lean(),
+      Patient.find({ userId: { $in: uids } }).select('userId homeLocation city').lean(),
+    ]);
+
+    const doctorMap  = Object.fromEntries(doctors.map(d => [d.userId.toString(), d]));
+    const patientMap = Object.fromEntries(patients.map(p => [p.userId.toString(), p]));
+
+    const pins = [];
+    for (const user of users) {
+      const uid = user._id.toString();
+      let coordinates = null;
+      let address     = '';
+
+      if (user.role === 'doctor') {
+        const doc      = doctorMap[uid];
+        const bookable = doc?.locations?.find(
+          l => l.type === 'bookable' && l.coordinates?.coordinates?.some(c => c !== 0)
+        );
+        if (bookable) {
+          coordinates = bookable.coordinates.coordinates;
+          address     = bookable.address || bookable.name;
+        } else if (user.location?.coordinates?.some(c => c !== 0)) {
+          coordinates = user.location.coordinates;
+          address     = doc?.clinicAddress || '';
+        }
+      } else if (user.role === 'patient') {
+        const pat = patientMap[uid];
+        if (pat?.homeLocation?.coordinates?.some(c => c !== 0)) {
+          coordinates = pat.homeLocation.coordinates;
+          address     = pat.city || '';
+        }
+      }
+
+      if (coordinates) {
+        pins.push({ _id: user._id, name: user.name, role: user.role, coordinates, address });
+      }
+    }
+
+    res.json(pins);
   } catch (err) { next(err); }
 });
 

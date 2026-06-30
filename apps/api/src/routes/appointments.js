@@ -79,33 +79,46 @@ async function cancelReminders(appt) {
 // POST /api/appointments — patient books
 router.post('/', auth, requireRole('patient'), async (req, res, next) => {
   try {
-    const { doctorId, date, timeSlot, visitType, reason } = req.body;
+    const { doctorId, date, timeSlot, visitType, reason, locationId } = req.body;
 
-    // Atomic double-booking check
+    if (!locationId) return res.status(400).json({ message: 'locationId is required' });
+
+    // Resolve location and validate it is bookable
+    const doctorProfile = await Doctor.findOne({ userId: doctorId });
+    if (!doctorProfile) return res.status(404).json({ message: 'Doctor profile not found' });
+
+    const loc = doctorProfile.locations.id(locationId);
+    if (!loc) return res.status(404).json({ message: 'Location not found' });
+    if (loc.type !== 'bookable')
+      return res.status(400).json({ message: 'This location does not accept online bookings' });
+
+    // Conflict check per-location — doctor can have different slots at different places
     const conflict = await Appointment.findOne({
       doctorId,
-      date: new Date(date),
+      locationId: loc._id,
+      date:       new Date(date),
       'timeSlot.start': timeSlot.start,
-      status: { $in: ['pending', 'confirmed'] },
+      status:     { $nin: ['cancelled'] },
     });
-
-    if (conflict) {
-      return res.status(409).json({ message: 'This slot is already booked' });
-    }
+    if (conflict) return res.status(409).json({ message: 'This slot is already booked' });
 
     // Auto-accept if doctor has autoAcceptAppointments enabled
-    const doctorProfile = await Doctor.findOne({ userId: doctorId }).select('autoAcceptAppointments');
     const status = doctorProfile?.autoAcceptAppointments ? 'confirmed' : 'pending';
 
-    const appt = await Appointment.create({
+    const appt = new Appointment({
       doctorId,
-      patientId: req.user.id,
-      date: new Date(date),
+      patientId:       req.user.id,
+      date:            new Date(date),
       timeSlot,
-      visitType,
-      reason,
+      visitType:       visitType || 'initial',
+      reason:          reason || '',
+      locationId:      loc._id,
+      locationName:    loc.name,
+      locationAddress: loc.address,
+      locationType:    loc.type,
       status,
     });
+    await appt.save();
 
     if (appt.status === 'confirmed') {
       await scheduleReminders(appt);

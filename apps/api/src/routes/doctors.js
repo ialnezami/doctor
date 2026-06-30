@@ -314,15 +314,41 @@ router.patch('/:id/settings', auth, requireRole('doctor'), async (req, res, next
   } catch (err) { next(err); }
 });
 
-// GET /api/doctors/:id/slots
+// GET /api/doctors/:id/slots?locationId=&date=
 router.get('/:id/slots', auth, async (req, res, next) => {
   try {
-    const doctor = await Doctor.findById(req.params.id).select('availabilitySlots');
-    if (!doctor) return res.status(404).json({ message: 'Not found' });
-    res.json(doctor.availabilitySlots);
-  } catch (err) {
-    next(err);
-  }
+    const { locationId, date } = req.query;
+    if (!locationId) return res.status(400).json({ message: 'locationId is required' });
+    if (!date)       return res.status(400).json({ message: 'date is required' });
+
+    const doctor = await Doctor.findById(req.params.id);
+    if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
+
+    const loc = doctor.locations.id(locationId);
+    if (!loc) return res.status(404).json({ message: 'Location not found' });
+    if (loc.type !== 'bookable')
+      return res.status(400).json({ message: 'This location does not accept online bookings' });
+
+    const d = new Date(date);
+    const dayOfWeek = d.getUTCDay();
+    const avail = loc.slots.find(s => s.dayOfWeek === dayOfWeek);
+    if (!avail) return res.json([]);
+
+    const allSlots = generateSlots(avail.startTime, avail.endTime);
+
+    const startOfDay = new Date(date + 'T00:00:00.000Z');
+    const endOfDay   = new Date(date + 'T23:59:59.999Z');
+
+    const booked = await Appointment.find({
+      doctorId:   doctor.userId,
+      locationId: loc._id,
+      date:       { $gte: startOfDay, $lte: endOfDay },
+      status:     { $nin: ['cancelled'] },
+    }).select('timeSlot');
+
+    const bookedTimes = new Set(booked.map(a => a.timeSlot.start));
+    res.json(allSlots.filter(s => !bookedTimes.has(s)));
+  } catch (err) { next(err); }
 });
 
 // POST /api/doctors/:id/slots — doctor sets availability
