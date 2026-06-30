@@ -88,6 +88,87 @@ router.get('/me', auth, requireRole('doctor'), async (req, res, next) => {
   }
 });
 
+// POST /api/doctors/me/locations — add a location
+router.post('/me/locations', auth, requireRole('doctor'), async (req, res, next) => {
+  try {
+    const { name, address, coordinates, type, contactNote, slots } = req.body;
+    if (!name || !type) return res.status(400).json({ message: 'name and type are required' });
+    if (!['bookable', 'hospital'].includes(type))
+      return res.status(400).json({ message: 'type must be bookable or hospital' });
+
+    const doctor = await Doctor.findOne({ userId: req.user.id });
+    if (!doctor) return res.status(404).json({ message: 'Doctor profile not found' });
+
+    doctor.locations.push({
+      name,
+      address:     address || '',
+      coordinates: coordinates || { type: 'Point', coordinates: [0, 0] },
+      type,
+      contactNote: contactNote || '',
+      slots:       type === 'bookable' ? (slots || []) : [],
+    });
+    await doctor.save();
+    res.status(201).json(doctor.locations[doctor.locations.length - 1]);
+  } catch (err) { next(err); }
+});
+
+// PATCH /api/doctors/me/locations/:locId — edit a location
+router.patch('/me/locations/:locId', auth, requireRole('doctor'), async (req, res, next) => {
+  try {
+    const doctor = await Doctor.findOne({ userId: req.user.id });
+    if (!doctor) return res.status(404).json({ message: 'Doctor profile not found' });
+
+    const loc = doctor.locations.id(req.params.locId);
+    if (!loc) return res.status(404).json({ message: 'Location not found' });
+
+    const { name, address, coordinates, type, contactNote, slots } = req.body;
+    if (name        !== undefined) loc.name = name;
+    if (address     !== undefined) loc.address = address;
+    if (coordinates !== undefined) loc.coordinates = coordinates;
+    if (type !== undefined) {
+      if (!['bookable', 'hospital'].includes(type))
+        return res.status(400).json({ message: 'type must be bookable or hospital' });
+      loc.type = type;
+    }
+    if (contactNote !== undefined) loc.contactNote = contactNote;
+    if (slots       !== undefined) loc.slots = loc.type === 'bookable' ? slots : [];
+
+    await doctor.save();
+    res.json(loc);
+  } catch (err) { next(err); }
+});
+
+// DELETE /api/doctors/me/locations/:locId — remove a location (guards future appointments)
+router.delete('/me/locations/:locId', auth, requireRole('doctor'), async (req, res, next) => {
+  try {
+    const doctor = await Doctor.findOne({ userId: req.user.id });
+    if (!doctor) return res.status(404).json({ message: 'Doctor profile not found' });
+
+    const loc = doctor.locations.id(req.params.locId);
+    if (!loc) return res.status(404).json({ message: 'Location not found' });
+
+    const future = await Appointment.findOne({
+      locationId: loc._id,
+      date:       { $gte: new Date() },
+      status:     { $nin: ['cancelled', 'completed'] },
+    });
+    if (future) return res.status(400).json({ message: 'Cannot delete location with upcoming appointments. Cancel them first.' });
+
+    loc.deleteOne();
+    await doctor.save();
+    res.json({ message: 'Location removed' });
+  } catch (err) { next(err); }
+});
+
+// GET /api/doctors/:id/locations — public, no auth
+router.get('/:id/locations', async (req, res, next) => {
+  try {
+    const doctor = await Doctor.findById(req.params.id).select('locations');
+    if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
+    res.json(doctor.locations);
+  } catch (err) { next(err); }
+});
+
 // GET /api/doctors/:id
 router.get('/:id', auth, async (req, res, next) => {
   try {
