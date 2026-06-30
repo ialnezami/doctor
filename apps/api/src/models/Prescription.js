@@ -2,9 +2,14 @@ const mongoose = require('mongoose');
 
 const medicationSchema = new mongoose.Schema({
   name:      { type: String, required: true },
-  dosage:    { type: String, required: true }, // "5mg"
-  frequency: { type: String, required: true }, // "1×/day"
-  duration:  { type: String, required: true }, // "30 days"
+  dosage:    { type: String, required: true },
+  frequency: { type: String, required: true },
+  duration:  { type: String, required: true },
+}, { _id: false });
+
+const analysisSchema = new mongoose.Schema({
+  name:         { type: String, required: true },
+  instructions: { type: String, default: '' },
 }, { _id: false });
 
 const prescriptionSchema = new mongoose.Schema({
@@ -12,6 +17,7 @@ const prescriptionSchema = new mongoose.Schema({
   patientId:         { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   appointmentId:     { type: mongoose.Schema.Types.ObjectId, ref: 'Appointment' },
   medications:       { type: [medicationSchema], required: true },
+  analyses:          { type: [analysisSchema], default: [] },
   instructions:      String,
   validUntil:        Date,
   verificationToken: { type: String, unique: true, sparse: true, index: true },
@@ -32,7 +38,6 @@ const prescriptionSchema = new mongoose.Schema({
 
 const { encrypt, decrypt } = require('../utils/fieldEncryption');
 
-// All medication subdoc fields are PHI (drug name, dosage, frequency, duration)
 const MED_FIELDS = ['name', 'dosage', 'frequency', 'duration'];
 
 prescriptionSchema.pre('save', function (next) {
@@ -44,11 +49,17 @@ prescriptionSchema.pre('save', function (next) {
       this.medications = this.medications.map(med => {
         const m = med.toObject ? med.toObject() : { ...med };
         MED_FIELDS.forEach(f => {
-          if (m[f] != null && !String(m[f]).includes('|')) {
-            m[f] = encrypt(String(m[f]));
-          }
+          if (m[f] != null && !String(m[f]).includes('|')) m[f] = encrypt(String(m[f]));
         });
         return m;
+      });
+    }
+    if (this.isModified('analyses') && Array.isArray(this.analyses)) {
+      this.analyses = this.analyses.map(a => {
+        const item = a.toObject ? a.toObject() : { ...a };
+        if (item.name != null && !String(item.name).includes('|')) item.name = encrypt(String(item.name));
+        if (item.instructions != null && !String(item.instructions).includes('|')) item.instructions = encrypt(String(item.instructions));
+        return item;
       });
     }
     next();
@@ -60,11 +71,15 @@ prescriptionSchema.post('init', function (doc) {
     if (doc.instructions != null) doc.instructions = decrypt(doc.instructions);
     if (Array.isArray(doc.medications)) {
       doc.medications = doc.medications.map(med => {
-        MED_FIELDS.forEach(f => {
-          if (med[f] != null) med[f] = decrypt(String(med[f]));
-        });
+        MED_FIELDS.forEach(f => { if (med[f] != null) med[f] = decrypt(String(med[f])); });
         return med;
       });
+    }
+    if (Array.isArray(doc.analyses)) {
+      doc.analyses = doc.analyses.map(a => ({
+        name:         a.name != null ? decrypt(String(a.name)) : a.name,
+        instructions: a.instructions != null ? decrypt(String(a.instructions)) : a.instructions,
+      }));
     }
   } catch (err) {
     console.error('[encrypt] Prescription decrypt error on doc', doc._id, ':', err.message);

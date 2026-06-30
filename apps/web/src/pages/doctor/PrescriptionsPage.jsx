@@ -31,7 +31,24 @@ const DURATION_KEYS = [
   '6months','1year','ongoing','untilFinished',
 ];
 
-const emptyMed = { name:'', dosage:'', frequency:'', duration:'' };
+const emptyMed      = { name:'', dosage:'', frequency:'', duration:'' };
+const emptyAnalysis = { name:'', instructions:'' };
+
+const LAB_TESTS = [
+  'CBC (Complete Blood Count)', 'Blood Glucose (Fasting)', 'Blood Glucose (Random)',
+  'HbA1c', 'Lipid Panel', 'Total Cholesterol', 'HDL / LDL',
+  'Liver Function Tests (LFT)', 'AST / ALT / ALP / GGT / Bilirubin',
+  'Kidney Function Tests (KFT)', 'Creatinine / Urea / BUN / eGFR',
+  'Electrolytes (Na / K / Cl / HCO₃)', 'Thyroid (TSH)', 'Free T3 / Free T4',
+  'Urine Analysis (UA)', 'Urine Culture', 'Blood Culture',
+  'CRP (C-Reactive Protein)', 'ESR (Erythrocyte Sedimentation Rate)',
+  'INR / PT / PTT', 'D-Dimer', 'Ferritin / Serum Iron / TIBC',
+  'Vitamin D (25-OH)', 'Vitamin B12', 'Folic Acid',
+  'PSA (Prostate-Specific Antigen)', 'Beta-hCG (Pregnancy Test)',
+  'COVID-19 PCR', 'Influenza A/B', 'Hepatitis B (HBsAg)', 'Hepatitis C (Anti-HCV)',
+  'HIV Antibody', 'Serum Protein Electrophoresis', 'Chest X-Ray', 'ECG',
+  'Abdominal Ultrasound', 'Echocardiogram',
+];
 
 function RxQR({ token }) {
   const canvasRef = useRef(null);
@@ -85,7 +102,8 @@ export default function PrescriptionsPage() {
 
   const [rxList, setRxList] = useState([]);
   const [patients, setPatients] = useState([]);
-  const [form, setForm] = useState({ patientId: presetPatientId, instructions:'', medications:[{ ...emptyMed }] });
+  const [form, setForm] = useState({ patientId: presetPatientId, instructions:'', medications:[{ ...emptyMed }], analyses:[] });
+  const [labQuery, setLabQuery] = useState('');
   const [saving, setSaving] = useState(false);
   const [createdRx, setCreatedRx] = useState(null); // triggers success modal
 
@@ -143,6 +161,13 @@ export default function PrescriptionsPage() {
           <tbody>${(rx.medications||[]).map(m=>`<tr>${[m.name,m.dosage,m.frequency,m.duration].map(v=>`<td style="border:1px solid #ddd;padding:6px 10px">${v||'—'}</td>`).join('')}</tr>`).join('')}</tbody>
         </table>
         ${rx.instructions ? `<div style="margin-top:18px;font-size:13px"><strong>${pdfInstr}:</strong> ${rx.instructions}</div>` : ''}
+        ${(rx.analyses||[]).length > 0 ? `
+        <div style="margin-top:20px">
+          <strong style="font-size:13px">${t('prescriptions.analyses','Lab Analysis Requests')}:</strong>
+          <ul style="margin:8px 0 0;padding-left:20px;font-size:13px">
+            ${rx.analyses.map(a=>`<li><strong>${a.name}</strong>${a.instructions?` — ${a.instructions}`:''}</li>`).join('')}
+          </ul>
+        </div>` : ''}
         ${qrImg ? `
         <div style="margin-top:28px;display:flex;align-items:center;gap:20px;border-top:1px solid #eee;padding-top:20px">
           ${qrImg}
@@ -159,6 +184,10 @@ export default function PrescriptionsPage() {
     document.body.removeChild(el);
   };
 
+  const addAnalysis    = (name) => { setForm(p => ({ ...p, analyses: [...p.analyses, { ...emptyAnalysis, name }] })); setLabQuery(''); };
+  const removeAnalysis = (i)    => setForm(p => ({ ...p, analyses: p.analyses.filter((_,idx) => idx !== i) }));
+  const updateAnalysis = (i, v) => setForm(p => { const a=[...p.analyses]; a[i]={...a[i],instructions:v}; return {...p,analyses:a}; });
+
   const addMed = () => setForm(p => ({ ...p, medications: [...p.medications, { ...emptyMed }] }));
   const removeMed = (i) => setForm(p => ({
     ...p,
@@ -173,7 +202,7 @@ export default function PrescriptionsPage() {
     try {
       const rx = await createPrescription(form);
       load();
-      setForm({ patientId: presetPatientId, instructions:'', medications:[{ ...emptyMed }] });
+      setForm({ patientId: presetPatientId, instructions:'', medications:[{ ...emptyMed }], analyses:[] });
       setCreatedRx(rx);
     } catch {} finally { setSaving(false); }
   };
@@ -276,6 +305,52 @@ export default function PrescriptionsPage() {
                 style={{ width:'100%', padding:'9px', background:'transparent', border:'1px dashed var(--border2)', borderRadius:'var(--r-sm)', color:'var(--text2)', fontSize:12.5, marginTop:4, cursor:'pointer' }}>
                 {t('prescriptions.addMedication')}
               </button>
+
+              <div style={{ height:1, background:'var(--border)', margin:'14px 0' }} />
+              {/* Lab Analysis Requests */}
+              <div style={{ fontSize:11.5, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:10 }}>
+                {t('prescriptions.analyses', 'Lab Analysis Requests')}
+              </div>
+              <div style={{ position:'relative', marginBottom:8 }}>
+                <input
+                  value={labQuery}
+                  onChange={e => setLabQuery(e.target.value)}
+                  placeholder={t('prescriptions.searchTest', 'Search test (e.g. CBC, HbA1c…)')}
+                  style={{ width:'100%', background:'var(--bg3)', border:'1px solid var(--border2)', borderRadius:'var(--r-sm)', padding:'9px 13px', color:'var(--text)', fontSize:13, outline:'none' }}
+                />
+                {labQuery.length > 0 && (
+                  <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:'var(--r-sm)', zIndex:50, maxHeight:180, overflowY:'auto', marginTop:2 }}>
+                    {LAB_TESTS.filter(t => t.toLowerCase().includes(labQuery.toLowerCase())).slice(0,8).map(test => (
+                      <div key={test} onMouseDown={() => addAnalysis(test)}
+                        style={{ padding:'8px 13px', fontSize:12.5, cursor:'pointer', color:'var(--text)' }}
+                        onMouseEnter={e => e.currentTarget.style.background='var(--bg3)'}
+                        onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                        {test}
+                      </div>
+                    ))}
+                    {LAB_TESTS.filter(t => t.toLowerCase().includes(labQuery.toLowerCase())).length === 0 && (
+                      <div onMouseDown={() => addAnalysis(labQuery)}
+                        style={{ padding:'8px 13px', fontSize:12.5, cursor:'pointer', color:'var(--mint)' }}>
+                        + Add "{labQuery}"
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              {form.analyses.map((a, i) => (
+                <div key={i} style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r-sm)', padding:'10px 12px', marginBottom:7 }}>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
+                    <span style={{ fontSize:13, fontWeight:500, color:'var(--amber)' }}>🧪 {a.name}</span>
+                    <button type="button" onClick={() => removeAnalysis(i)} style={{ background:'transparent', border:'none', color:'var(--rose)', fontSize:16, cursor:'pointer', lineHeight:1 }}>×</button>
+                  </div>
+                  <input
+                    value={a.instructions}
+                    onChange={e => updateAnalysis(i, e.target.value)}
+                    placeholder={t('prescriptions.analysisInstructions', 'Instructions (e.g. fasting 8h, urgent…)')}
+                    style={{ width:'100%', background:'transparent', border:'none', borderBottom:'1px solid var(--border)', outline:'none', color:'var(--text2)', fontSize:12, padding:'4px 0' }}
+                  />
+                </div>
+              ))}
 
               <div style={{ height:1, background:'var(--border)', margin:'14px 0' }} />
               <div>
