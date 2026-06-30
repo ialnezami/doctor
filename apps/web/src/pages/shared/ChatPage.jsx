@@ -171,11 +171,11 @@ export default function ChatPage() {
           const seen  = mine && isLast && otherLastRead && otherLastRead > new Date(msg.createdAt);
 
           return (
-            <div key={msg._id} style={{ display:'flex', flexDirection:'column', alignItems: mine ? 'flex-end' : 'flex-start', marginBottom:6 }}>
+            <div key={msg._id} style={{ display:'flex', flexDirection:'column', alignItems: mine ? 'flex-start' : 'flex-end', marginBottom:6 }}>
               <div style={{
                 maxWidth:'82%', padding:'9px 13px', borderRadius:14,
-                borderBottomRightRadius: mine ? 4 : 14,
-                borderBottomLeftRadius: mine ? 14 : 4,
+                borderBottomRightRadius: mine ? 14 : 4,
+                borderBottomLeftRadius: mine ? 4 : 14,
                 background: mine ? 'rgba(15,227,176,0.18)' : 'var(--bg3)',
                 border: mine ? '1px solid rgba(15,227,176,0.3)' : '1px solid var(--border)',
               }}>
