@@ -24,6 +24,8 @@ const TIMEZONES = [
 
 const DAY_KEYS = ['sun','mon','tue','wed','thu','fri','sat'];
 
+const SHARE_BASE = 'https://web-production-1d93d.up.railway.app';
+
 export default function DoctorSettingsPage() {
   const { user } = useAuthStore();
   const { t } = useTranslation();
@@ -37,6 +39,15 @@ export default function DoctorSettingsPage() {
   const [pushEnabled, setPushEnabled] = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(true);
 
+  // Rich profile fields
+  const [licenseNumber, setLicenseNumber] = useState('');
+  const [languagesRaw, setLanguagesRaw] = useState('');   // comma-separated string
+  const [education, setEducation] = useState([]);          // [{degree, institution, year}]
+  const [achievementsRaw, setAchievementsRaw] = useState(''); // comma-separated string
+
+  // Share panel UI state
+  const [copied, setCopied] = useState(false);
+
   const DAYS = DAY_KEYS.map(k => t(`common.days.${k}`));
 
   useEffect(() => {
@@ -47,6 +58,10 @@ export default function DoctorSettingsPage() {
         setAutoAccept(profile.autoAcceptAppointments || false);
         setSlots(profile.availabilitySlots || []);
         setTimezone(profile.timezone || 'UTC');
+        setLicenseNumber(profile.licenseNumber || '');
+        setLanguagesRaw((profile.languages || []).join(', '));
+        setEducation(profile.education || []);
+        setAchievementsRaw((profile.achievements || []).join(', '));
       }
     }).catch(() => {});
 
@@ -62,11 +77,26 @@ export default function DoctorSettingsPage() {
   const removeSlot = (i) => setSlots(s => s.filter((_, idx) => idx !== i));
   const updateSlot = (i, key, val) => setSlots(s => s.map((sl, idx) => idx === i ? { ...sl, [key]: val } : sl));
 
+  // Education helpers
+  const addEduRow = () => setEducation(e => [...e, { degree: '', institution: '', year: '' }]);
+  const removeEduRow = (i) => setEducation(e => e.filter((_, idx) => idx !== i));
+  const updateEdu = (i, key, val) => setEducation(e => e.map((row, idx) => idx === i ? { ...row, [key]: val } : row));
+
   const save = async () => {
     if (!doctorId) return;
     setSaving(true);
     try {
-      await updateDoctorSettings(doctorId, { autoAcceptAppointments: autoAccept, availabilitySlots: slots, timezone });
+      const languages = languagesRaw.split(',').map(s => s.trim()).filter(Boolean);
+      const achievements = achievementsRaw.split(',').map(s => s.trim()).filter(Boolean);
+      await updateDoctorSettings(doctorId, {
+        autoAcceptAppointments: autoAccept,
+        availabilitySlots: slots,
+        timezone,
+        licenseNumber: licenseNumber.trim() || undefined,
+        languages,
+        education,
+        achievements,
+      });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {}
@@ -75,9 +105,157 @@ export default function DoctorSettingsPage() {
 
   const saveLabel = saving ? t('settings.saving') : saved ? t('settings.saved') : t('settings.saveSettings');
 
+  const shareUrl = doctorId ? `${SHARE_BASE}/dr/${doctorId}` : null;
+
+  const handleCopy = () => {
+    if (!shareUrl) return;
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      const el = document.createElement('textarea');
+      el.value = shareUrl;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const inputStyle = {
+    width: '100%',
+    padding: '8px 10px',
+    borderRadius: 6,
+    border: '1px solid var(--border)',
+    background: 'var(--bg3)',
+    color: 'var(--text)',
+    fontSize: 13,
+    boxSizing: 'border-box',
+  };
+
   return (
     <div style={{ padding: isMobile ? 14 : 26, maxWidth:600 }}>
       <div style={{ fontFamily:'var(--font-display)', fontSize:21, fontWeight:500, marginBottom:24 }}>{t('settings.title')}</div>
+
+      {/* Share Profile */}
+      {doctorId && (
+        <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:20, marginBottom:20 }}>
+          <div style={{ fontSize:14, fontWeight:500, marginBottom:4 }}>Share Your Profile</div>
+          <div style={{ fontSize:12, color:'var(--text2)', marginBottom:12 }}>
+            Send this link to patients — no login required to view.
+          </div>
+          <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+            <input
+              readOnly
+              value={shareUrl}
+              style={{ ...inputStyle, color:'var(--text2)', cursor:'text', flex:1 }}
+            />
+            <button
+              onClick={handleCopy}
+              style={{
+                background: copied ? 'var(--mint,#0fe3b0)' : 'var(--bg3)',
+                border: '1px solid var(--border)',
+                color: copied ? '#060d18' : 'var(--text)',
+                borderRadius: 6,
+                padding: '8px 14px',
+                fontSize: 12,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                fontWeight: copied ? 600 : 400,
+                transition: 'background .2s, color .2s',
+              }}
+            >
+              {copied ? '✓ Copied!' : 'Copy Link'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Rich Profile Info */}
+      <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:20, marginBottom:20 }}>
+        <div style={{ fontSize:14, fontWeight:500, marginBottom:14 }}>Profile Information</div>
+
+        {/* License Number */}
+        <div style={{ marginBottom:14 }}>
+          <label style={{ display:'block', fontSize:12, color:'var(--text2)', marginBottom:5 }}>License Number</label>
+          <input
+            type="text"
+            value={licenseNumber}
+            onChange={e => setLicenseNumber(e.target.value)}
+            placeholder="e.g. MD-123456"
+            style={inputStyle}
+          />
+        </div>
+
+        {/* Languages */}
+        <div style={{ marginBottom:14 }}>
+          <label style={{ display:'block', fontSize:12, color:'var(--text2)', marginBottom:5 }}>Languages Spoken</label>
+          <input
+            type="text"
+            value={languagesRaw}
+            onChange={e => setLanguagesRaw(e.target.value)}
+            placeholder="e.g. English, Arabic, French"
+            style={inputStyle}
+          />
+          <div style={{ fontSize:11, color:'var(--text3,#64748b)', marginTop:4 }}>Comma-separated list</div>
+        </div>
+
+        {/* Achievements */}
+        <div style={{ marginBottom:14 }}>
+          <label style={{ display:'block', fontSize:12, color:'var(--text2)', marginBottom:5 }}>Achievements</label>
+          <input
+            type="text"
+            value={achievementsRaw}
+            onChange={e => setAchievementsRaw(e.target.value)}
+            placeholder="e.g. Board Certified, Fellow of ACS, Top Doctor 2024"
+            style={inputStyle}
+          />
+          <div style={{ fontSize:11, color:'var(--text3,#64748b)', marginTop:4 }}>Comma-separated list</div>
+        </div>
+
+        {/* Education */}
+        <div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+            <label style={{ fontSize:12, color:'var(--text2)' }}>Education</label>
+            <Button variant="ghost" style={{ padding:'3px 10px', fontSize:11 }} onClick={addEduRow}>+ Add</Button>
+          </div>
+          {education.length === 0 && (
+            <p style={{ fontSize:12, color:'var(--text3,#64748b)', margin:0 }}>No education entries yet.</p>
+          )}
+          {education.map((row, i) => (
+            <div key={i} style={{ display:'flex', gap:8, alignItems:'flex-start', marginBottom:8, flexWrap:'wrap' }}>
+              <input
+                type="text"
+                value={row.degree}
+                onChange={e => updateEdu(i, 'degree', e.target.value)}
+                placeholder="Degree (e.g. MD)"
+                style={{ ...inputStyle, flex:'2 1 120px' }}
+              />
+              <input
+                type="text"
+                value={row.institution}
+                onChange={e => updateEdu(i, 'institution', e.target.value)}
+                placeholder="Institution"
+                style={{ ...inputStyle, flex:'3 1 160px' }}
+              />
+              <input
+                type="text"
+                value={row.year}
+                onChange={e => updateEdu(i, 'year', e.target.value)}
+                placeholder="Year"
+                style={{ ...inputStyle, flex:'1 1 70px' }}
+                maxLength={4}
+              />
+              <button
+                onClick={() => removeEduRow(i)}
+                style={{ background:'none', border:'none', color:'var(--rose,#f43f5e)', cursor:'pointer', fontSize:18, padding:'6px 2px', lineHeight:1 }}
+              >×</button>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Auto-accept */}
       <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:20, marginBottom:20 }}>
