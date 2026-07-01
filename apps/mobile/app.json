@@ -25,6 +25,12 @@
     "newArchEnabled": false,
     "plugins": [
       "expo-web-browser"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "5b17fba3-c130-40d7-8dec-374eaf132d1e"
+      }
+    },
+    "owner": "ialnezami"
   }
 }

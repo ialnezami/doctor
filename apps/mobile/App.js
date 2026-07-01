@@ -3,6 +3,7 @@ import { registerRootComponent } from 'expo';
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import './src/i18n';
 import { getSavedLanguage, applyRTL } from './src/i18n';
 import i18n from './src/i18n';
@@ -31,10 +32,10 @@ function App() {
   }
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="light" />
       <AppNavigator />
-    </>
+    </GestureHandlerRootView>
   );
 }
 
