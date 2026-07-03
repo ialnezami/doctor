@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import C from '../constants/colors';
+import useAuthStore from '../store/authStore';
 import PatientBottomTabs from './PatientBottomTabs';
 
 const DRAWER_WIDTH = 270;
@@ -22,6 +23,7 @@ const DRAWER_ITEMS = [
 export default function PatientDrawer() {
   const navigation  = useNavigation();
   const { t }       = useTranslation();
+  const logout      = useAuthStore(s => s.logout);
   const insets      = useSafeAreaInsets();
   const translateX  = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const [open, setOpen] = useState(false);
@@ -92,6 +94,16 @@ export default function PatientDrawer() {
             <Text style={styles.drawerItemText}>{t(labelKey)}</Text>
           </TouchableOpacity>
         ))}
+
+        <View style={styles.drawerDivider} />
+
+        <TouchableOpacity
+          style={[styles.drawerItem, styles.logoutItem]}
+          onPress={() => { closeDrawer(); setTimeout(logout, ANIM_CLOSE + 30); }}
+        >
+          <Text style={styles.drawerIcon}>🚪</Text>
+          <Text style={styles.logoutText}>{t('profile.logout', 'Sign out')}</Text>
+        </TouchableOpacity>
       </Animated.View>
     </View>
   );
@@ -155,4 +167,7 @@ const styles = StyleSheet.create({
   },
   drawerIcon:     { fontSize: 18, marginRight: 14 },
   drawerItemText: { color: C.text, fontSize: 16 },
+  drawerDivider:  { height: 1, backgroundColor: C.border, marginHorizontal: 20, marginVertical: 8 },
+  logoutItem:     {},
+  logoutText:     { color: C.rose, fontSize: 16 },
 });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Picker } from '@react-native-picker/picker';
-import { View, Text, Switch, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Switch, TouchableOpacity, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getMyDoctorProfile, updateDoctorSettings } from '../../api/doctors';
 import { getMe } from '../../api/auth';
@@ -132,20 +132,58 @@ export default function SettingsScreen() {
 
         <Text style={s.sectionLabel}>Availability</Text>
         <View style={s.card}>
-          {slots.length === 0 && <Text style={{ fontSize:12, color:C.text3, marginBottom:8 }}>No availability set.</Text>}
-          {slots.map((sl, i) => (
-            <View key={i} style={{ flexDirection:'row', alignItems:'center', gap:8, marginBottom:10 }}>
-              <Text style={{ fontSize:12, color:C.text2, width:34 }}>{DAYS[sl.dayOfWeek]}</Text>
-              <Text style={s.slotTime}>{sl.startTime}</Text>
-              <Text style={{ fontSize:11, color:C.text3 }}>–</Text>
-              <Text style={s.slotTime}>{sl.endTime}</Text>
-              <TouchableOpacity onPress={() => setSlots(ss => ss.filter((_,idx) => idx!==i))} style={{ marginLeft:'auto' }}>
-                <Text style={{ color:C.rose, fontSize:18, lineHeight:20 }}>×</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-          <TouchableOpacity onPress={() => setSlots(ss => [...ss, { dayOfWeek:1, startTime:'09:00', endTime:'17:00' }])}
-            style={s.addBtn}>
+          {slots.length === 0 && (
+            <Text style={{ fontSize:12, color:C.text3, marginBottom:8 }}>No availability set.</Text>
+          )}
+          {slots.map((sl, i) => {
+            const update = (field, val) =>
+              setSlots(ss => ss.map((x, idx) => idx === i ? { ...x, [field]: val } : x));
+            return (
+              <View key={i} style={s.slotRow}>
+                <View style={s.slotDayPicker}>
+                  <Picker
+                    selectedValue={sl.dayOfWeek}
+                    onValueChange={val => update('dayOfWeek', val)}
+                    style={{ color: C.text, height: 36 }}
+                    dropdownIconColor={C.text2}
+                  >
+                    {DAYS.map((d, idx) => (
+                      <Picker.Item key={d} label={d} value={idx} color={C.text} />
+                    ))}
+                  </Picker>
+                </View>
+                <TextInput
+                  style={s.timeInput}
+                  value={sl.startTime}
+                  onChangeText={val => update('startTime', val)}
+                  placeholder="09:00"
+                  placeholderTextColor={C.text3}
+                  keyboardType="numbers-and-punctuation"
+                  maxLength={5}
+                />
+                <Text style={{ fontSize:11, color:C.text3 }}>–</Text>
+                <TextInput
+                  style={s.timeInput}
+                  value={sl.endTime}
+                  onChangeText={val => update('endTime', val)}
+                  placeholder="17:00"
+                  placeholderTextColor={C.text3}
+                  keyboardType="numbers-and-punctuation"
+                  maxLength={5}
+                />
+                <TouchableOpacity
+                  onPress={() => setSlots(ss => ss.filter((_, idx) => idx !== i))}
+                  hitSlop={6}
+                >
+                  <Text style={{ color:C.rose, fontSize:20, lineHeight:22 }}>×</Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })}
+          <TouchableOpacity
+            onPress={() => setSlots(ss => [...ss, { dayOfWeek: 1, startTime: '09:00', endTime: '17:00' }])}
+            style={s.addBtn}
+          >
             <Text style={s.addBtnTxt}>+ Add day</Text>
           </TouchableOpacity>
         </View>
@@ -167,8 +205,10 @@ const s = StyleSheet.create({
   rowTitle: { fontSize:14, fontWeight:'500', color:C.text },
   rowSub: { fontSize:12, color:C.text2, marginTop:2 },
   sectionLabel: { fontSize:11, fontWeight:'600', color:C.text2, textTransform:'uppercase', letterSpacing:0.5, marginBottom:8 },
-  slotTime: { fontSize:12, color:C.text, backgroundColor:C.bg3, paddingHorizontal:8, paddingVertical:4, borderRadius:6 },
-  addBtn: { marginTop:4 },
+  slotRow:      { flexDirection:'row', alignItems:'center', gap:6, marginBottom:10 },
+  slotDayPicker:{ flex:1, backgroundColor:C.bg3, borderRadius:6, borderWidth:1, borderColor:C.border, overflow:'hidden', height:40, justifyContent:'center' },
+  timeInput:    { width:54, fontSize:13, color:C.text, backgroundColor:C.bg3, borderWidth:1, borderColor:C.border, borderRadius:6, paddingHorizontal:8, paddingVertical:6, textAlign:'center' },
+  addBtn:       { marginTop:4 },
   addBtnTxt: { fontSize:13, color:C.mint },
   saveBtn: { backgroundColor:C.mint, borderRadius:12, padding:14, alignItems:'center', marginTop:8 },
   saveBtnTxt: { fontSize:15, fontWeight:'700', color:'#000' },
