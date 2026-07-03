@@ -67,39 +67,46 @@ async function suggestSlots(doctorId, patientId) {
 
   const contextString = buildSlotContext(doctor, history);
 
-  const client = getClient();
-  const response = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 400,
-    system: SLOT_SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: contextString }],
-  });
-
-  const rawText = response.content[0]?.text || '';
-
   try {
-    const parsed = JSON.parse(rawText);
-    const suggestions = parsed?.suggestions;
-    if (!Array.isArray(suggestions)) return [];
+    const client = getClient();
+    const response = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 400,
+      system: SLOT_SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: contextString }],
+    });
 
-    // Validate each suggestion has required shape
-    return suggestions
-      .filter(s =>
-        typeof s.dayOfWeek === 'number' &&
-        s.dayOfWeek >= 0 &&
-        s.dayOfWeek <= 6 &&
-        typeof s.time === 'string' &&
-        /^\d{2}:\d{2}$/.test(s.time) &&
-        typeof s.reason === 'string'
-      )
-      .slice(0, 5)
-      .map(s => ({
-        dayOfWeek: s.dayOfWeek,
-        time: s.time,
-        reason: s.reason.slice(0, 200),
-      }));
+    const rawText = response.content[0]?.text || '';
+
+    try {
+      const parsed = JSON.parse(rawText);
+      const suggestions = parsed?.suggestions;
+      if (!Array.isArray(suggestions)) return [];
+
+      return suggestions
+        .filter(s =>
+          typeof s.dayOfWeek === 'number' &&
+          s.dayOfWeek >= 0 &&
+          s.dayOfWeek <= 6 &&
+          typeof s.time === 'string' &&
+          /^\d{2}:\d{2}$/.test(s.time) &&
+          typeof s.reason === 'string'
+        )
+        .slice(0, 5)
+        .map(s => ({
+          dayOfWeek: s.dayOfWeek,
+          time: s.time,
+          reason: s.reason.slice(0, 200),
+        }));
+    } catch (parseErr) {
+      console.error('[smartScheduling] suggestSlots JSON parse error:', parseErr.message);
+      return [];
+    }
   } catch (err) {
-    console.error('[smartScheduling] suggestSlots JSON parse error:', err.message);
+    // Anthropic API errors (invalid key, network, etc.) must not propagate —
+    // the error handler would forward err.status (401 for auth failure) to
+    // the mobile client, incorrectly triggering a patient logout.
+    console.error('[smartScheduling] suggestSlots AI call error:', err.message);
     return [];
   }
 }

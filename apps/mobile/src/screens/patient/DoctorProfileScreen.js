@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { getDoctor, getAvailableSlots, getSuggestedSlots } from '../../api/doctors';
+import { getDoctor, getAvailableSlots } from '../../api/doctors';
 import { getDoctorReviews } from '../../api/reviews';
 import C from '../../constants/colors';
 
@@ -59,10 +59,6 @@ export default function DoctorProfileScreen({ route, navigation }) {
   const [slots, setSlots]                     = useState([]);
   const [slotsLoading, setSlotsLoading]       = useState(false);
   const [reviewData, setReviewData]           = useState({ reviews: [], averageRating: 0, reviewCount: 0 });
-  const [smartSuggestions, setSmartSuggestions] = useState([]);
-  const [smartDisclaimer, setSmartDisclaimer]   = useState('');
-  const [smartLoading, setSmartLoading]         = useState(false);
-
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() + i); return d;
   });
@@ -70,18 +66,8 @@ export default function DoctorProfileScreen({ route, navigation }) {
   useEffect(() => { getDoctor(doctorId).then(setDoctor).catch(() => {}); }, [doctorId]);
 
   useEffect(() => {
-    setSmartLoading(true);
-    getSuggestedSlots(doctorId)
-      .then(data => {
-        setSmartSuggestions(data?.suggestions || []);
-        setSmartDisclaimer(data?.disclaimer || '');
-      })
-      .catch(() => setSmartSuggestions([]))
-      .finally(() => setSmartLoading(false));
-  }, [doctorId]);
-  useEffect(() => {
     if (doctorUserId) {
-      getDoctorReviews(doctorUserId, 1).then(setReviewData).catch(() => {});
+      getDoctorReviews(doctorId, 1).then(setReviewData).catch(() => {});
     }
   }, [doctorUserId]);
   useEffect(() => {
@@ -155,37 +141,6 @@ export default function DoctorProfileScreen({ route, navigation }) {
           ))}
         </View>
 
-        {/* Smart Suggestions section */}
-        {(smartLoading || smartSuggestions.length > 0) && (
-          <View style={{ paddingHorizontal: 16, marginBottom: 20 }}>
-            <Text style={s.sectionTitle}>Smart suggestions</Text>
-            {smartLoading ? (
-              <ActivityIndicator color={C.mint} style={{ marginTop: 8 }} />
-            ) : (
-              <>
-                {smartSuggestions.map((sg, idx) => (
-                  <TouchableOpacity
-                    key={idx}
-                    onPress={() => {
-                      const date = nextDateForDay(sg.dayOfWeek);
-                      setSelectedDate(date);
-                    }}
-                    style={ss.suggCard}
-                  >
-                    <View style={ss.suggHeader}>
-                      <Text style={ss.suggDay}>{DAY_NAMES[sg.dayOfWeek]}</Text>
-                      <Text style={ss.suggTime}>{sg.time}</Text>
-                    </View>
-                    <Text style={ss.suggReason}>{sg.reason}</Text>
-                  </TouchableOpacity>
-                ))}
-                {!!smartDisclaimer && (
-                  <Text style={ss.disclaimer}>{smartDisclaimer}</Text>
-                )}
-              </>
-            )}
-          </View>
-        )}
 
         {reviews.length > 0 && (
           <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>

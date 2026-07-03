@@ -19,9 +19,11 @@ export default function MedicalRecordsScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([getPatientMe(), getPrescriptions()])
-      .then(([p, rx]) => { setPatient(p); setRxList(rx); })
-      .catch(() => {})
+    Promise.allSettled([getPatientMe(), getPrescriptions()])
+      .then(([patientResult, rxResult]) => {
+        if (patientResult.status === 'fulfilled') setPatient(patientResult.value);
+        if (rxResult.status === 'fulfilled') setRxList(Array.isArray(rxResult.value) ? rxResult.value : []);
+      })
       .finally(() => setLoading(false));
   }, []);
 
