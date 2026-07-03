@@ -18,7 +18,7 @@ function getSocketUrl() {
     return process.env.EXPO_PUBLIC_API_URL.replace('/api', '');
   }
   const host = Constants.expoConfig?.hostUri?.split(':')[0] ?? 'localhost';
-  return `http://${host}:3001`;
+  return `http://${host}:3000`;
 }
 
 export default function ChatScreen({ route, navigation }) {
@@ -32,6 +32,7 @@ export default function ChatScreen({ route, navigation }) {
   const [oldestId, setOldestId]       = useState(null);
   const [hasMore, setHasMore]         = useState(true);
   const [otherLastRead, setOtherLastRead] = useState(null);
+  const [socketConnected, setSocketConnected] = useState(false);
 
   const socketRef = useRef(null);
   const listRef   = useRef(null);
@@ -59,13 +60,20 @@ export default function ChatScreen({ route, navigation }) {
 
     const socket = io(getSocketUrl(), {
       auth: { token },
-      transports: ['websocket'],
+      transports: ['polling', 'websocket'],
     });
     socketRef.current = socket;
 
     socket.on('connect', () => {
+      setSocketConnected(true);
       socket.emit('join_chat', { appointmentId });
       socket.emit('mark_read', { appointmentId });
+    });
+
+    socket.on('disconnect', () => setSocketConnected(false));
+    socket.on('connect_error', (err) => {
+      setSocketConnected(false);
+      console.warn('[chat] socket connect_error:', err.message);
     });
 
     socket.on('new_message', (msg) => {
@@ -119,7 +127,11 @@ export default function ChatScreen({ route, navigation }) {
 
   const sendText = () => {
     const trimmed = text.trim();
-    if (!trimmed || !socketRef.current?.connected) return;
+    if (!trimmed) return;
+    if (!socketRef.current?.connected) {
+      Alert.alert('Not connected', 'Chat is reconnecting — please try again in a moment.');
+      return;
+    }
     socketRef.current.emit('send_message', { appointmentId, type: 'text', text: trimmed });
     setText('');
   };
@@ -227,6 +239,11 @@ export default function ChatScreen({ route, navigation }) {
         <Text style={s.title}>{otherPartyName}</Text>
       </View>
 
+      {!socketConnected && (
+        <View style={s.offlineBanner}>
+          <Text style={s.offlineText}>Connecting to chat…</Text>
+        </View>
+      )}
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={0}>
         <FlatList
           ref={listRef}
@@ -288,4 +305,6 @@ const s = StyleSheet.create({
   sendBtn:     { backgroundColor: C.mint, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10 },
   sendDisabled:{ opacity: 0.4 },
   sendTxt:     { color: '#000', fontWeight: '700', fontSize: 13 },
+  offlineBanner: { backgroundColor: '#f59e0b', paddingVertical: 4, alignItems: 'center' },
+  offlineText:   { color: '#000', fontSize: 12, fontWeight: '600' },
 });
