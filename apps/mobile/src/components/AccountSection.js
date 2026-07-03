@@ -6,7 +6,7 @@ import { updateMe, changePassword } from '../api/auth';
 import useAuthStore from '../store/authStore';
 import C from '../constants/colors';
 
-export default function AccountSection({ user }) {
+export default function AccountSection({ user, hideLogout = false }) {
   const { logout, updateUser } = useAuthStore();
 
   const [name, setName] = useState(user?.name ?? '');
@@ -110,9 +110,11 @@ export default function AccountSection({ user }) {
         </View>
       )}
 
-      <TouchableOpacity style={s.logoutBtn} onPress={logout}>
-        <Text style={s.logoutTxt}>Log Out</Text>
-      </TouchableOpacity>
+      {!hideLogout && (
+        <TouchableOpacity style={s.logoutBtn} onPress={logout}>
+          <Text style={s.logoutTxt}>Log Out</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

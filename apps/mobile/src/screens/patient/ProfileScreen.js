@@ -64,7 +64,7 @@ export default function ProfileScreen() {
           <Text style={s.heading}>Profile</Text>
         </View>
 
-        <AccountSection user={me ?? storeUser} />
+        <AccountSection user={me ?? storeUser} hideLogout />
 
         <Text style={s.sectionLabel}>Medical Profile</Text>
         <View style={s.card}>
