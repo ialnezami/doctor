@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Switch, ScrollView } from 'react-native';
+import { View, Text, Switch, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { getNotificationPrefs, updateNotificationPrefs } from '../../api/users';
 import C from '../../constants/colors';
 
 export default function PatientSettingsScreen() {
+  const navigation = useNavigation();
   const [pushEnabled,  setPushEnabled]  = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(true);
 
@@ -20,9 +22,12 @@ export default function PatientSettingsScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
       <ScrollView contentContainerStyle={{ padding: 20 }}>
-        <Text style={{ fontSize: 22, fontWeight: '700', color: C.text, marginBottom: 20 }}>
-          Settings
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8} style={{ marginRight: 12 }}>
+            <Text style={{ fontSize: 32, color: C.mint, lineHeight: 34 }}>‹</Text>
+          </TouchableOpacity>
+          <Text style={{ fontSize: 22, fontWeight: '700', color: C.text }}>Settings</Text>
+        </View>
 
         <View style={{ backgroundColor: C.bg3, borderRadius: 8, borderWidth: 1, borderColor: C.border, padding: 12 }}>
           <Text style={{ fontSize: 13, fontWeight: '500', color: C.text, marginBottom: 12 }}>

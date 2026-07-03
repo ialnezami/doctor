@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import C from '../../constants/colors';
 import { getPatientMe } from '../../api/patients';
@@ -13,6 +14,7 @@ function calcAge(dob) {
 }
 
 export default function MedicalRecordsScreen() {
+  const navigation = useNavigation();
   const { t } = useTranslation();
   const [patient, setPatient] = useState(null);
   const [rxList,  setRxList]  = useState([]);
@@ -43,6 +45,9 @@ export default function MedicalRecordsScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
       <View style={s.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} hitSlop={8}>
+          <Text style={s.backArrow}>‹</Text>
+        </TouchableOpacity>
         <Text style={s.title}>{t('records.title')}</Text>
       </View>
       <ScrollView style={{ padding: 16 }} showsVerticalScrollIndicator={false}>
@@ -108,8 +113,10 @@ export default function MedicalRecordsScreen() {
 }
 
 const s = StyleSheet.create({
-  header:      { padding: 20, borderBottomWidth: 1, borderBottomColor: C.border },
-  title:       { fontSize: 22, fontWeight: '700', color: C.text },
+  header:    { flexDirection: 'row', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: C.border },
+  backBtn:   { marginRight: 12 },
+  backArrow: { fontSize: 32, color: C.mint, lineHeight: 34 },
+  title:     { fontSize: 22, fontWeight: '700', color: C.text },
   section:     { fontSize: 10, fontWeight: '600', letterSpacing: 0.8, color: C.text2, marginBottom: 12, textTransform: 'uppercase' },
   profileCard: { backgroundColor: C.card, borderRadius: 10, borderWidth: 1, borderColor: C.border, padding: 16, marginBottom: 20 },
   vitals:      { flexDirection: 'row', gap: 10 },

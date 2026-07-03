@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { listNotifications, markNotificationRead, markAllRead } from '../../api/notifications';
 import C from '../../constants/colors';
 
@@ -13,6 +13,7 @@ const TYPE_ICON = {
 };
 
 export default function NotificationsScreen() {
+  const navigation = useNavigation();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount]     = useState(0);
   const [loading, setLoading]             = useState(true);
@@ -46,13 +47,18 @@ export default function NotificationsScreen() {
   return (
     <SafeAreaView style={s.container}>
       <View style={s.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} hitSlop={8}>
+          <Text style={s.backArrow}>‹</Text>
+        </TouchableOpacity>
         <Text style={s.title}>
           Notifications{unreadCount > 0 ? <Text style={s.badge}> ({unreadCount})</Text> : null}
         </Text>
-        {unreadCount > 0 && (
+        {unreadCount > 0 ? (
           <TouchableOpacity onPress={handleMarkAll}>
             <Text style={s.markAll}>Mark all read</Text>
           </TouchableOpacity>
+        ) : (
+          <View style={s.headerSpacer} />
         )}
       </View>
 
@@ -83,8 +89,11 @@ export default function NotificationsScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   center:    { flex: 1, backgroundColor: C.bg, justifyContent: 'center', alignItems: 'center' },
-  header:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: C.border },
-  title:     { fontSize: 20, fontWeight: '700', color: C.text },
+  header:       { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: C.border },
+  backBtn:      { marginRight: 12 },
+  backArrow:    { fontSize: 32, color: C.mint, lineHeight: 34 },
+  headerSpacer: { width: 70 },
+  title:        { flex: 1, fontSize: 20, fontWeight: '700', color: C.text },
   badge:     { color: C.mint },
   markAll:   { color: C.blue, fontSize: 13 },
   card:      { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: 10, padding: 14, borderWidth: 1, borderColor: C.border },

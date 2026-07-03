@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { getMe } from '../../api/auth';
 import { getPatientMe, updatePatientProfile } from '../../api/patients';
 import useAuthStore from '../../store/authStore';
@@ -13,6 +14,7 @@ import C from '../../constants/colors';
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 export default function ProfileScreen() {
+  const navigation = useNavigation();
   const { user: storeUser } = useAuthStore();
   const [me, setMe] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -55,7 +57,12 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={s.safe}>
       <ScrollView contentContainerStyle={s.content}>
-        <Text style={s.heading}>Profile</Text>
+        <View style={s.headerRow}>
+          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8}>
+            <Text style={s.backArrow}>‹</Text>
+          </TouchableOpacity>
+          <Text style={s.heading}>Profile</Text>
+        </View>
 
         <AccountSection user={me ?? storeUser} />
 
@@ -116,7 +123,9 @@ export default function ProfileScreen() {
 const s = StyleSheet.create({
   safe:          { flex: 1, backgroundColor: C.bg },
   content:       { padding: 20, paddingBottom: 40 },
-  heading:       { fontSize: 22, fontWeight: '700', color: C.text, marginBottom: 20 },
+  headerRow:     { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  backArrow:     { fontSize: 32, color: C.mint, lineHeight: 34, marginRight: 12 },
+  heading:       { fontSize: 22, fontWeight: '700', color: C.text },
   sectionLabel:  { fontSize: 11, fontWeight: '700', color: C.text3, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8, marginTop: 8 },
   card:          { backgroundColor: C.bg2, borderRadius: 12, padding: 16, marginBottom: 12 },
   fieldLabel:    { fontSize: 12, color: C.text3, marginBottom: 6 },
