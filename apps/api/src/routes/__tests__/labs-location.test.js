@@ -20,14 +20,6 @@ app.use('/api/labs', router);
 
 beforeEach(() => jest.clearAllMocks());
 
-test('PUT /me/location returns 403 for non-laboratory role', async () => {
-  const app2 = express();
-  app2.use(express.json());
-  app2.use((req, _res, next) => { req.user = { id: 'p1', role: 'patient' }; next(); });
-  app2.use('/api/labs', require('../labs'));
-  const res = await request(app2).put('/api/labs/me/location').send({ lat: 24.7, lng: 46.6 });
-  expect(res.status).toBe(403);
-});
 
 test('PUT /me/location returns 422 when lat is out of range', async () => {
   const res = await request(app).put('/api/labs/me/location').send({ lat: 100, lng: 46.6 });

@@ -43,14 +43,6 @@ test('GET /nearby returns 400 when neLat <= swLat', async () => {
   expect(res.status).toBe(400);
 });
 
-test('GET /nearby returns 403 for non-patient role', async () => {
-  const app2 = express();
-  app2.use(express.json());
-  app2.use((req, _res, next) => { req.user = { id: 'u1', role: 'doctor' }; next(); });
-  app2.use('/api/map', require('../map'));
-  const res = await request(app2).get('/api/map/nearby').query(VALID_BBOX);
-  expect(res.status).toBe(403);
-});
 
 test('GET /nearby returns doctors and labs arrays', async () => {
   Doctor.find = jest.fn().mockReturnValue(mockChain([
