@@ -62,6 +62,7 @@ app.use('/api/reports',       require('./routes/reports'));
 app.use('/api/labs',          require('./routes/labs'));
 app.use('/api/users',         require('./routes/users'));
 app.use('/api/privacy',       require('./routes/privacy'));
+app.use('/api/map',           require('./routes/map'));
 
 app.use(errorHandler);
 
