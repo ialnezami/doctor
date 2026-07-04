@@ -15,7 +15,8 @@ import C from '../../constants/colors';
 
 function getSocketUrl() {
   if (process.env.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL.replace('/api', '');
+    // Remove only the trailing /api path segment, never touch the domain
+    return process.env.EXPO_PUBLIC_API_URL.replace(/\/api\/?$/, '');
   }
   const host = Constants.expoConfig?.hostUri?.split(':')[0] ?? 'localhost';
   return `http://${host}:3000`;
@@ -58,9 +59,14 @@ export default function ChatScreen({ route, navigation }) {
   useEffect(() => {
     loadHistory(null);
 
-    const socket = io(getSocketUrl(), {
+    const url = getSocketUrl();
+    console.log('[chat] connecting to:', url);
+    const socket = io(url, {
       auth: { token },
       transports: ['polling', 'websocket'],
+      timeout: 10000,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 2000,
     });
     socketRef.current = socket;
 

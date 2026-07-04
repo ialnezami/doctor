@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import C from '../constants/colors';
 
+import HomeScreen from '../screens/patient/HomeScreen';
 import PatientStack from './PatientStack';
 import MyAppointmentsScreen from '../screens/patient/MyAppointmentsScreen';
 
@@ -18,6 +19,14 @@ export default function PatientBottomTabs() {
       tabBarActiveTintColor: C.mint,
       tabBarInactiveTintColor: C.text3,
     }}>
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          tabBarLabel: 'Home',
+          tabBarIcon: () => <Text style={{ fontSize: 20 }}>🏠</Text>,
+        }}
+      />
       <Tab.Screen
         name="Find Doctor"
         component={PatientStack}
