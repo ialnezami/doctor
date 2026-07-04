@@ -42,4 +42,21 @@ router.patch('/me', auth, requireRole('laboratory'), [
   } catch (err) { next(err); }
 });
 
+// PUT /api/labs/me/location
+router.put('/me/location', auth, requireRole('laboratory'), [
+  body('lat').isFloat({ min: -90, max: 90 }).withMessage('lat must be between -90 and 90'),
+  body('lng').isFloat({ min: -180, max: 180 }).withMessage('lng must be between -180 and 180'),
+], validate, async (req, res, next) => {
+  try {
+    const { lat, lng } = req.body;
+    const lab = await Lab.findOneAndUpdate(
+      { userId: req.user.id },
+      { $set: { 'location.type': 'Point', 'location.coordinates': [lng, lat] } },
+      { new: true }
+    );
+    if (!lab) return res.status(404).json({ message: 'Lab profile not found' });
+    res.json({ message: 'Location updated', location: lab.location });
+  } catch (err) { next(err); }
+});
+
 module.exports = router;
