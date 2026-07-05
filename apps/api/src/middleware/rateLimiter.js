@@ -29,4 +29,16 @@ const loginLimiter = rateLimit({
   message: { message: 'Too many failed login attempts — account temporarily locked. Try again in 15 minutes.' },
 });
 
-module.exports = { apiLimiter, registerLimiter, loginLimiter };
+// Chatbot: 30 messages per user per hour.
+// MUST be applied AFTER auth middleware so req.user.id is populated.
+// Keyed by user ID (not IP) — IP cycling cannot bypass per-user limits.
+const chatbotLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 30,
+  keyGenerator: (req) => req.user?.id || req.ip,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Chatbot rate limit exceeded — 30 messages per hour allowed.' },
+});
+
+module.exports = { apiLimiter, registerLimiter, loginLimiter, chatbotLimiter };

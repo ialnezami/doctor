@@ -1,11 +1,16 @@
 'use strict';
 
 // doctorRanking.js uses MongoDB $geoNear aggregation.
-// These tests are skipped (no test DB) — they document the expected behavior.
-// Integration tests should run against mongodb-memory-server in a future CI phase.
+// The describe.skip block documents integration behavior pending a test DB.
+// The unit describe block uses a mocked Doctor.aggregate.
 
 jest.mock('../../models/Doctor');
 const Doctor = require('../../models/Doctor');
+const { getRankedDoctors } = require('../doctorRanking');
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
 describe.skip('doctorRanking — integration (requires test DB)', () => {
   it.todo('$geoNear pipeline returns doctors sorted by score ascending');
@@ -18,15 +23,6 @@ describe.skip('doctorRanking — integration (requires test DB)', () => {
 });
 
 describe('doctorRanking — unit (mocked Doctor.aggregate)', () => {
-  let getRankedDoctors;
-
-  beforeEach(() => {
-    jest.resetModules();
-    // Re-mock after resetModules
-    jest.mock('../../models/Doctor');
-    getRankedDoctors = require('../doctorRanking').getRankedDoctors;
-  });
-
   it('passes coordinates as [lng, lat] to $geoNear (GeoJSON order)', async () => {
     const mockDoctors = [{ _id: 'd1', specialty: 'cardiology', score: 0.1 }];
     Doctor.aggregate = jest.fn().mockResolvedValue(mockDoctors);
@@ -35,7 +31,8 @@ describe('doctorRanking — unit (mocked Doctor.aggregate)', () => {
 
     const pipeline = Doctor.aggregate.mock.calls[0][0];
     const geoNear = pipeline[0].$geoNear;
-    expect(geoNear.near.coordinates).toEqual([46.6753, 24.7136]); // [lng, lat]
+    // GeoJSON order: [longitude, latitude]
+    expect(geoNear.near.coordinates).toEqual([46.6753, 24.7136]);
   });
 
   it('throws on invalid lat (> 90)', async () => {
@@ -51,9 +48,9 @@ describe('doctorRanking — unit (mocked Doctor.aggregate)', () => {
   });
 
   it('triggers specialty fallback when first query returns fewer than 3 results', async () => {
-    // First call (with specialty) returns 2 results → triggers fallback
-    // Second call (without specialty) returns 5 results
-    const few = [{ _id: 'd1' }, { _id: 'd2' }];
+    // First call (with specialty) returns 2 doctors → triggers fallback
+    // Second call (without specialty) returns 5 doctors
+    const few  = [{ _id: 'd1' }, { _id: 'd2' }];
     const many = [{ _id: 'd1' }, { _id: 'd2' }, { _id: 'd3' }, { _id: 'd4' }, { _id: 'd5' }];
     Doctor.aggregate = jest.fn()
       .mockResolvedValueOnce(few)
@@ -65,7 +62,7 @@ describe('doctorRanking — unit (mocked Doctor.aggregate)', () => {
     expect(Doctor.aggregate).toHaveBeenCalledTimes(2);
   });
 
-  it('does not trigger fallback when enough results with specialty', async () => {
+  it('does not trigger fallback when enough results with specialty (>= 3)', async () => {
     const plenty = [{ _id: 'd1' }, { _id: 'd2' }, { _id: 'd3' }];
     Doctor.aggregate = jest.fn().mockResolvedValue(plenty);
 
