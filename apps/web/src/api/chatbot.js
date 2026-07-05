@@ -98,3 +98,20 @@ export async function resetSession() {
 export async function fetchDoctors({ specialty, lat, lng, limit = 5 }) {
   return client.get('/chatbot/doctors', { params: { specialty, lat, lng, limit } });
 }
+
+export async function fetchDoctorSlots(doctorId, date) {
+  const res = await client.get(`/doctors/${doctorId}/available-slots`, { params: { date } });
+  return res.data;
+}
+
+export async function bookFromChat({ doctorUserId, locationId, date, timeSlot, reason }) {
+  const res = await client.post('/appointments', {
+    doctorId: doctorUserId,
+    locationId,
+    date,
+    timeSlot: { start: timeSlot },
+    visitType: 'initial',
+    reason: reason || 'Booked via AI assistant',
+  });
+  return res.data;
+}

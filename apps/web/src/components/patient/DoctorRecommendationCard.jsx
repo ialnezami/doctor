@@ -7,9 +7,10 @@
  *
  * Props:
  *   doctor    — doctor object
- *   onSelect  — (doctorId: string) => void — called on click/enter
+ *   onSelect  — (doctorId: string) => void — navigate to profile
+ *   onBook    — (doctor) => void — open inline booking flow
  */
-export default function DoctorRecommendationCard({ doctor, onSelect }) {
+export default function DoctorRecommendationCard({ doctor, onSelect, onBook }) {
   const name = doctor?.user?.name ?? 'Unknown Doctor';
   const specialty = doctor?.specialty ?? '';
   const distKm =
@@ -61,41 +62,48 @@ export default function DoctorRecommendationCard({ doctor, onSelect }) {
     overflow: 'hidden',
   };
 
+  const hasBookableLocation = (doctor.locations || []).some(l => l.type === 'bookable');
+
   return (
-    <button
-      style={cardStyle}
-      onClick={() => onSelect(doctor._id)}
-      aria-label={`View doctor ${name}`}
-    >
-      <div style={avatarStyle}>
-        {photoUrl ? (
-          <img src={photoUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        ) : (
-          initials
+    <div style={{ ...cardStyle, flexDirection: 'column', alignItems: 'stretch', gap: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={avatarStyle}>
+          {photoUrl ? (
+            <img src={photoUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            initials
+          )}
+        </div>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {name}
+          </div>
+          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{specialty}</div>
+          <div style={{ display: 'flex', gap: 12, marginTop: 4, flexWrap: 'wrap', fontSize: 12, color: '#6b7280' }}>
+            {rating != null && <span>&#9733; {rating} ({reviewCount})</span>}
+            {distKm != null && <span>{distKm} km away</span>}
+            {fee != null && <span>{fee} SAR</span>}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+        <button
+          onClick={() => onSelect(doctor._id)}
+          style={{ flex: 1, padding: '6px 0', borderRadius: 7, border: '1px solid #d1d5db', background: '#fff', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', color: '#374151' }}
+        >
+          View profile
+        </button>
+        {hasBookableLocation && onBook && (
+          <button
+            onClick={() => onBook(doctor)}
+            style={{ flex: 1, padding: '6px 0', borderRadius: 7, border: 'none', background: '#2563eb', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            Book appointment
+          </button>
         )}
       </div>
-
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {name}
-        </div>
-        <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-          {specialty}
-        </div>
-        <div style={{ display: 'flex', gap: 12, marginTop: 4, flexWrap: 'wrap', fontSize: 12, color: '#6b7280' }}>
-          {rating != null && (
-            <span>&#9733; {rating} ({reviewCount})</span>
-          )}
-          {distKm != null && (
-            <span>{distKm} km away</span>
-          )}
-          {fee != null && (
-            <span>${fee}</span>
-          )}
-        </div>
-      </div>
-
-      <span style={{ color: '#9ca3af', fontSize: 18, flexShrink: 0 }}>›</span>
-    </button>
+    </div>
   );
 }

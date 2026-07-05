@@ -4,6 +4,7 @@ import { useChatbotStream } from '../../hooks/useChatbotStream';
 import ChatMessage from './ChatMessage';
 import UrgencyBadge from './UrgencyBadge';
 import DoctorRecommendationCard from './DoctorRecommendationCard';
+import ChatBookingFlow from './ChatBookingFlow';
 
 /**
  * ChatWidget — sliding right-panel AI health assistant.
@@ -31,6 +32,7 @@ export default function ChatWidget({ isOpen, onClose, patientLocation }) {
     useChatbotStream({ lat, lng });
 
   const [input, setInput] = useState('');
+  const [bookingDoctor, setBookingDoctor] = useState(null);
   const listRef = useRef(null);
 
   // Escape key closes widget
@@ -220,8 +222,15 @@ export default function ChatWidget({ isOpen, onClose, patientLocation }) {
             <div style={{ fontWeight: 600, fontSize: 13, color: '#374151', marginBottom: 8 }}>
               Recommended doctors near you
             </div>
-            {doctors.map((d) => (
-              <DoctorRecommendationCard key={d._id} doctor={d} onSelect={onDoctorSelect} />
+            {bookingDoctor && (
+              <ChatBookingFlow
+                doctor={bookingDoctor}
+                onDone={(msg) => { setBookingDoctor(null); send(msg); }}
+                onCancel={() => setBookingDoctor(null)}
+              />
+            )}
+            {!bookingDoctor && doctors.map((d) => (
+              <DoctorRecommendationCard key={d._id} doctor={d} onSelect={onDoctorSelect} onBook={setBookingDoctor} />
             ))}
           </div>
         )}

@@ -1,5 +1,5 @@
 /**
- * ChatFloatingBubble — fixed bottom-right toggle button for the AI chat widget.
+ * ChatFloatingBubble — fixed bottom-center toggle button for the AI chat widget.
  *
  * Always rendered at the layout level (PatientLayout), not per-page.
  * zIndex 9999 ensures it floats above all page content and the AppLayout sidebar.
@@ -12,7 +12,8 @@ export default function ChatFloatingBubble({ onClick, isOpen }) {
   const bubbleStyle = {
     position: 'fixed',
     bottom: 24,
-    right: 24,
+    left: '50%',
+    transform: 'translateX(-50%)',
     zIndex: 9999,
     width: 56,
     height: 56,

@@ -89,6 +89,7 @@ function buildPipeline(lngNum, latNum, specialty, limit) {
     {
       $project: {
         _id: 1,
+        userId: 1,
         specialty: 1,
         photoUrl: 1,
         averageRating: 1,
@@ -96,6 +97,7 @@ function buildPipeline(lngNum, latNum, specialty, limit) {
         consultationFee: 1,
         distMeters: 1,
         score: 1,
+        'user._id': 1,
         'user.name': 1,
         locations: {
           $filter: { input: '$locations', as: 'l', cond: { $eq: ['$$l.type', 'bookable'] } },
