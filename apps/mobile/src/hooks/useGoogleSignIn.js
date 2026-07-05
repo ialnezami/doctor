@@ -18,7 +18,7 @@ export default function useGoogleSignIn() {
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest(
     GOOGLE_CONFIGURED
       ? { webClientId: WEB_CLIENT_ID, iosClientId: IOS_CLIENT_ID }
-      : { webClientId: undefined, iosClientId: undefined }
+      : { webClientId: 'unconfigured', iosClientId: 'unconfigured' }
   );
 
   useEffect(() => {
@@ -43,5 +43,5 @@ export default function useGoogleSignIn() {
     promptAsync();
   }, [promptAsync]);
 
-  return { signIn, loading, error, ready: !!request };
+  return { signIn, loading, error, ready: GOOGLE_CONFIGURED && !!request };
 }
