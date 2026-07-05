@@ -4,7 +4,11 @@ import { fetchDoctorSlots, bookFromChat } from '../../api/chatbot';
 const NEXT_DAYS = 7;
 
 function formatDate(d) {
-  return d.toISOString().split('T')[0];
+  // Use local year/month/day — toISOString() converts to UTC which can shift the date in GMT+3
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 function dayLabel(d) {
