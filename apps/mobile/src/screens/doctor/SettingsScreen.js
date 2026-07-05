@@ -11,10 +11,10 @@ import C from '../../constants/colors';
 
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const PREDEFINED_APPT_TYPES = [
-  { key: 'initial',   label: 'Initial Consultation', duration: 30, enabled: true },
-  { key: 'follow-up', label: 'Follow-up',            duration: 20, enabled: true },
-  { key: 'check-up',  label: 'Check-up',             duration: 30, enabled: true },
-  { key: 'urgent',    label: 'Urgent',               duration: 15, enabled: true },
+  { key: 'initial',   label: 'Initial Consultation', duration: 30, fee: 0, enabled: true },
+  { key: 'follow-up', label: 'Follow-up',            duration: 20, fee: 0, enabled: true },
+  { key: 'check-up',  label: 'Check-up',             duration: 30, fee: 0, enabled: true },
+  { key: 'urgent',    label: 'Urgent',               duration: 15, fee: 0, enabled: true },
 ];
 const PRESET_DURATIONS = [15, 20, 30];
 
@@ -205,6 +205,18 @@ export default function SettingsScreen() {
                     maxLength={3}
                   />
                 )}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                  <TextInput
+                    style={[s.timeInput, { width: 56 }]}
+                    value={String(at.fee ?? 0)}
+                    onChangeText={v => setApptTypes(a => a.map((x, idx) => idx === i ? { ...x, fee: parseFloat(v) || 0 } : x))}
+                    keyboardType="decimal-pad"
+                    placeholder="0"
+                    placeholderTextColor={C.text3}
+                    maxLength={6}
+                  />
+                  <Text style={{ fontSize: 10, color: C.text3 }}>SAR</Text>
+                </View>
                 {!isPredefined && (
                   <TouchableOpacity onPress={() => setApptTypes(a => a.filter((_, idx) => idx !== i))} hitSlop={6}>
                     <Text style={{ color: C.rose, fontSize: 20, lineHeight: 22 }}>×</Text>
@@ -214,7 +226,7 @@ export default function SettingsScreen() {
             );
           })}
           <TouchableOpacity
-            onPress={() => setApptTypes(a => [...a, { key: `custom_${Date.now()}`, label: '', duration: 30, enabled: true }])}
+            onPress={() => setApptTypes(a => [...a, { key: `custom_${Date.now()}`, label: '', duration: 30, fee: 0, enabled: true }])}
             style={s.addBtn}
           >
             <Text style={s.addBtnTxt}>+ Add custom type</Text>

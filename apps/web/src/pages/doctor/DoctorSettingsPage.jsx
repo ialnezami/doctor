@@ -28,7 +28,7 @@ const PREDEFINED_KEYS = ['initial', 'follow-up', 'check-up', 'urgent'];
 const DEFAULT_DURATIONS = { initial: 30, 'follow-up': 20, 'check-up': 30, urgent: 15 };
 const PRESET_DURATIONS = [15, 20, 30];
 const DEFAULT_APPT_TYPES = PREDEFINED_KEYS.map(key => ({
-  key, label: '', duration: DEFAULT_DURATIONS[key], enabled: true,
+  key, label: '', duration: DEFAULT_DURATIONS[key], fee: 0, enabled: true,
 }));
 
 const SHARE_BASE = 'https://web-production-1d93d.up.railway.app';
@@ -376,6 +376,15 @@ export default function DoctorSettingsPage() {
                   onChange={e => updateApptType(i, 'duration', parseInt(e.target.value) || 30)}
                   style={{ ...inputStyle, width:54, textAlign:'center' }} />
               )}
+              <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                <input
+                  type="number" min="0" value={at.fee ?? 0}
+                  onChange={e => updateApptType(i, 'fee', parseFloat(e.target.value) || 0)}
+                  placeholder="0"
+                  style={{ ...inputStyle, width:64, textAlign:'center' }}
+                />
+                <span style={{ fontSize:11, color:'var(--text3)', whiteSpace:'nowrap' }}>SAR</span>
+              </div>
               {!isPredefined && (
                 <button onClick={() => removeApptType(i)} style={{ background:'none', border:'none', color:'var(--rose)', cursor:'pointer', fontSize:18, padding:'2px', lineHeight:1 }}>×</button>
               )}

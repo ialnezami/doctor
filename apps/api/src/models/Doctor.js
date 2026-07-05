@@ -28,6 +28,7 @@ const appointmentTypeSchema = new mongoose.Schema({
   key:      { type: String, required: true },
   label:    { type: String, default: '' },
   duration: { type: Number, default: 30 },
+  fee:      { type: Number, default: 0 },
   enabled:  { type: Boolean, default: true },
 }, { _id: false });
 
