@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createAppointment } from '../../api/appointments';
+import { getDoctorLocations } from '../../api/doctors';
 import C from '../../constants/colors';
 
 const VISIT_TYPES = ['initial','follow-up','check-up','urgent'];
@@ -13,13 +14,27 @@ function addThirtyMin(time) {
 }
 
 export default function BookAppointmentScreen({ route, navigation }) {
-  const { doctorUserId, doctorName, specialty, date, slot } = route.params;
+  const { doctorId, doctorUserId, doctorName, specialty, date, slot } = route.params;
   const [visitType, setVisitType] = useState('initial');
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [locations, setLocations] = useState([]);
+  const [locationId, setLocationId] = useState(null);
+
+  useEffect(() => {
+    if (!doctorId) return;
+    getDoctorLocations(doctorId)
+      .then(locs => {
+        const bookable = (locs || []).filter(l => l.type === 'bookable');
+        setLocations(bookable);
+        if (bookable.length > 0) setLocationId(bookable[0]._id);
+      })
+      .catch(() => {});
+  }, [doctorId]);
 
   const submit = async () => {
+    if (!locationId) { setError('Please select a location'); return; }
     setLoading(true); setError('');
     try {
       const appt = await createAppointment({
@@ -28,6 +43,7 @@ export default function BookAppointmentScreen({ route, navigation }) {
         timeSlot: { start: slot, end: addThirtyMin(slot) },
         visitType,
         reason,
+        locationId,
       });
       navigation.replace('SymptomInput', {
         appointmentId: appt._id || appt.id,
@@ -56,6 +72,28 @@ export default function BookAppointmentScreen({ route, navigation }) {
             <View><Text style={s.label}>Time</Text><Text style={s.value}>{slot}</Text></View>
           </View>
         </View>
+
+        {locations.length > 1 && (
+          <>
+            <Text style={s.sectionLabel}>Location</Text>
+            <View style={{ gap:8, marginBottom:20 }}>
+              {locations.map(loc => (
+                <TouchableOpacity key={loc._id} onPress={() => setLocationId(loc._id)}
+                  style={[s.locBtn, locationId === loc._id && s.locBtnActive]}>
+                  <Text style={[s.locTxt, locationId === loc._id && s.locTxtActive]}>{loc.name}</Text>
+                  {!!loc.address && <Text style={s.locAddr}>{loc.address}</Text>}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        )}
+
+        {locations.length === 1 && (
+          <View style={{ marginBottom:20 }}>
+            <Text style={s.sectionLabel}>Location</Text>
+            <Text style={{ fontSize:13, color:C.text2 }}>{locations[0].name}{locations[0].address ? ` · ${locations[0].address}` : ''}</Text>
+          </View>
+        )}
 
         <Text style={s.sectionLabel}>Visit Type</Text>
         <View style={{ flexDirection:'row', flexWrap:'wrap', gap:8, marginBottom:20 }}>
@@ -92,6 +130,11 @@ const s = StyleSheet.create({
   value: { fontSize:15, fontWeight:'600', color:C.text },
   subValue: { fontSize:12, color:C.mint, marginTop:2 },
   sectionLabel: { fontSize:11, fontWeight:'600', color:C.text2, textTransform:'uppercase', letterSpacing:0.5, marginBottom:8 },
+  locBtn: { padding:12, borderRadius:10, borderWidth:1, borderColor:C.border2, backgroundColor:C.bg2 },
+  locBtnActive: { borderColor:C.mint, backgroundColor:C.bg3 },
+  locTxt: { fontSize:13, fontWeight:'500', color:C.text2 },
+  locTxtActive: { color:C.mint },
+  locAddr: { fontSize:11, color:C.text3, marginTop:2 },
   typeChip: { paddingHorizontal:14, paddingVertical:7, borderRadius:20, borderWidth:1, borderColor:C.border2 },
   typeChipActive: { borderColor:C.mint, backgroundColor:C.bg3 },
   typeChipTxt: { fontSize:12.5, color:C.text2, textTransform:'capitalize' },

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getDoctor } from '../../api/doctors';
+import { getDoctor, getDoctorLocations } from '../../api/doctors';
 import { createAppointment } from '../../api/appointments';
 import Button from '../../components/ui/Button';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -17,6 +17,8 @@ export default function BookAppointmentPage() {
   const date = params.get('date') || '';
   const slot = params.get('slot') || '';
   const [doctor, setDoctor] = useState(null);
+  const [locations, setLocations] = useState([]);
+  const [locationId, setLocationId] = useState(null);
   const [visitType, setVisitType] = useState('initial');
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,7 +26,18 @@ export default function BookAppointmentPage() {
 
   useEffect(() => { getDoctor(doctorId).then(setDoctor).catch(() => {}); }, [doctorId]);
 
+  useEffect(() => {
+    getDoctorLocations(doctorId)
+      .then(locs => {
+        const bookable = (locs || []).filter(l => l.type === 'bookable');
+        setLocations(bookable);
+        if (bookable.length > 0) setLocationId(bookable[0]._id);
+      })
+      .catch(() => {});
+  }, [doctorId]);
+
   const submit = async () => {
+    if (!locationId) { setError('Please select a location'); return; }
     setLoading(true); setError('');
     try {
       const appt = await createAppointment({
@@ -33,6 +46,7 @@ export default function BookAppointmentPage() {
         timeSlot: { start: slot, end: addThirtyMin(slot) },
         visitType,
         reason,
+        locationId,
       });
       navigate(`/book/confirmed?status=${appt.status}`);
     } catch (e) {
@@ -41,6 +55,8 @@ export default function BookAppointmentPage() {
       setLoading(false);
     }
   };
+
+  const labelStyle = { display:'block', fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text2)', marginBottom:8 };
 
   return (
     <div style={{ padding: isMobile ? 14 : 26, maxWidth:520 }}>
@@ -56,8 +72,32 @@ export default function BookAppointmentPage() {
         </div>
       </div>
 
+      {locations.length > 1 && (
+        <div style={{ marginBottom:20 }}>
+          <label style={labelStyle}>Location</label>
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            {locations.map(loc => (
+              <button key={loc._id} onClick={() => setLocationId(loc._id)}
+                style={{ textAlign:'left', padding:'10px 14px', borderRadius:'var(--r-sm)', border:`1px solid ${locationId===loc._id ? 'var(--mint)' : 'var(--border2)'}`, background: locationId===loc._id ? 'var(--bg3)' : 'transparent', cursor:'pointer' }}>
+                <div style={{ fontSize:13, fontWeight:500, color: locationId===loc._id ? 'var(--mint)' : 'var(--text)' }}>{loc.name}</div>
+                {loc.address && <div style={{ fontSize:11, color:'var(--text3)', marginTop:2 }}>{loc.address}</div>}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {locations.length === 1 && (
+        <div style={{ marginBottom:20 }}>
+          <label style={labelStyle}>Location</label>
+          <div style={{ fontSize:13, color:'var(--text2)' }}>
+            {locations[0].name}{locations[0].address ? ` · ${locations[0].address}` : ''}
+          </div>
+        </div>
+      )}
+
       <div style={{ marginBottom:16 }}>
-        <label style={{ display:'block', fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text2)', marginBottom:8 }}>{t('book.visitType')}</label>
+        <label style={labelStyle}>{t('book.visitType')}</label>
         <div style={{ display:'flex', gap:7, flexWrap:'wrap' }}>
           {VISIT_TYPES.map(vt => (
             <button key={vt} onClick={() => setVisitType(vt)}
@@ -69,14 +109,14 @@ export default function BookAppointmentPage() {
       </div>
 
       <div style={{ marginBottom:20 }}>
-        <label style={{ display:'block', fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text2)', marginBottom:8 }}>{t('book.reason')}</label>
+        <label style={labelStyle}>{t('book.reason')}</label>
         <textarea value={reason} onChange={e => setReason(e.target.value)} rows={3}
           placeholder={t('book.reasonPlaceholder')}
           style={{ width:'100%', background:'var(--bg2)', border:'1px solid var(--border2)', borderRadius:'var(--r-sm)', padding:'10px 13px', color:'var(--text)', fontSize:13, outline:'none', resize:'vertical', boxSizing:'border-box' }} />
       </div>
 
       {error && <p style={{ color:'var(--rose)', fontSize:13, marginBottom:12 }}>{error}</p>}
-      <Button full disabled={loading} onClick={submit} style={{ padding:13, fontSize:14 }}>
+      <Button full disabled={loading || !locationId} onClick={submit} style={{ padding:13, fontSize:14 }}>
         {loading ? t('book.submitting') : t('book.submit')}
       </Button>
     </div>

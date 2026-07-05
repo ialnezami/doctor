@@ -129,6 +129,7 @@ export default function DoctorProfileScreen({ route, navigation }) {
           {slots.map(sl => (
             <TouchableOpacity key={sl.time} disabled={!sl.available}
               onPress={() => navigation.navigate('BookAppointment', {
+                doctorId,
                 doctorUserId,
                 doctorName: name,
                 specialty: doctor.specialty,
