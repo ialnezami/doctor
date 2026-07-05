@@ -16,7 +16,9 @@ export default function useGoogleSignIn() {
   const [error, setError] = useState('');
 
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest(
-    GOOGLE_CONFIGURED ? { webClientId: WEB_CLIENT_ID, iosClientId: IOS_CLIENT_ID } : null
+    GOOGLE_CONFIGURED
+      ? { webClientId: WEB_CLIENT_ID, iosClientId: IOS_CLIENT_ID }
+      : { webClientId: undefined, iosClientId: undefined }
   );
 
   useEffect(() => {
@@ -36,6 +38,7 @@ export default function useGoogleSignIn() {
   }, [response]);
 
   const signIn = useCallback(() => {
+    if (!GOOGLE_CONFIGURED) return;
     setError('');
     promptAsync();
   }, [promptAsync]);
