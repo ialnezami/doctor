@@ -34,6 +34,7 @@ export default function DoctorSettingsPage() {
   const [autoAccept, setAutoAccept] = useState(false);
   const [slots, setSlots] = useState([]);
   const [timezone, setTimezone] = useState('UTC');
+  const [consultationFee, setConsultationFee] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(true);
@@ -58,6 +59,7 @@ export default function DoctorSettingsPage() {
         setAutoAccept(profile.autoAcceptAppointments || false);
         setSlots(profile.availabilitySlots || []);
         setTimezone(profile.timezone || 'UTC');
+        setConsultationFee(profile.consultationFee != null ? String(profile.consultationFee) : '');
         setLicenseNumber(profile.licenseNumber || '');
         setLanguagesRaw((profile.languages || []).join(', '));
         setEducation(profile.education || []);
@@ -88,10 +90,12 @@ export default function DoctorSettingsPage() {
     try {
       const languages = languagesRaw.split(',').map(s => s.trim()).filter(Boolean);
       const achievements = achievementsRaw.split(',').map(s => s.trim()).filter(Boolean);
+      const fee = consultationFee.trim() === '' ? 0 : Number(consultationFee);
       await updateDoctorSettings(doctorId, {
         autoAcceptAppointments: autoAccept,
         availabilitySlots: slots,
         timezone,
+        consultationFee: fee,
         licenseNumber: licenseNumber.trim() || undefined,
         languages,
         education,
@@ -301,6 +305,23 @@ export default function DoctorSettingsPage() {
             </button>
           </div>
         ))}
+      </div>
+
+      {/* Consultation Fee */}
+      <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:20, marginBottom:20 }}>
+        <div style={{ fontSize:14, fontWeight:500, marginBottom:4 }}>Consultation Fee</div>
+        <div style={{ fontSize:12, color:'var(--text2)', marginBottom:10 }}>Amount patients pay per appointment</div>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <input
+            type="number"
+            min="0"
+            value={consultationFee}
+            onChange={e => setConsultationFee(e.target.value.replace(/[^0-9.]/g, ''))}
+            placeholder="0"
+            style={{ ...inputStyle, width:120 }}
+          />
+          <span style={{ fontSize:13, color:'var(--text2)' }}>SAR</span>
+        </div>
       </div>
 
       {/* Availability */}

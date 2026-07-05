@@ -185,23 +185,16 @@ router.get('/:id/available-slots', auth, async (req, res, next) => {
     const { date } = req.query;
     if (!date) return res.status(422).json({ message: 'date query param required (YYYY-MM-DD)' });
 
-    const doctor = await Doctor.findById(req.params.id).select('locations userId');
+    const doctor = await Doctor.findById(req.params.id).select('availabilitySlots userId');
     if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
 
     const d = new Date(date);
     const dayOfWeek = d.getUTCDay(); // 0=Sun
 
-    // Aggregate slots from all bookable locations for this day
-    const availSlots = (doctor.locations ?? [])
-      .filter(l => l.type === 'bookable')
-      .flatMap(l => (l.slots ?? []).filter(s => s.dayOfWeek === dayOfWeek));
+    const avail = (doctor.availabilitySlots ?? []).find(s => s.dayOfWeek === dayOfWeek);
+    if (!avail) return res.json([]);
 
-    if (!availSlots.length) return res.json([]);
-
-    // Union of all time slots across bookable locations, sorted
-    const timeSet = new Set();
-    for (const avail of availSlots) generateSlots(avail.startTime, avail.endTime).forEach(t => timeSet.add(t));
-    const allSlots = [...timeSet].sort();
+    const allSlots = generateSlots(avail.startTime, avail.endTime);
 
     // Find already-booked start times for this doctor on this date
     const startOfDay = new Date(date + 'T00:00:00.000Z');
