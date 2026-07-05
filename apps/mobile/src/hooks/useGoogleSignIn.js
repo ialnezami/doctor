@@ -6,15 +6,18 @@ import { googleSignIn } from '../api/auth';
 
 WebBrowser.maybeCompleteAuthSession();
 
+const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+const IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+const GOOGLE_CONFIGURED = !!(WEB_CLIENT_ID && IOS_CLIENT_ID);
+
 export default function useGoogleSignIn() {
   const setAuth = useAuthStore(s => s.login);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-  });
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest(
+    GOOGLE_CONFIGURED ? { webClientId: WEB_CLIENT_ID, iosClientId: IOS_CLIENT_ID } : null
+  );
 
   useEffect(() => {
     if (!response) return;

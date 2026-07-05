@@ -22,7 +22,6 @@
       },
       "package": "io.mediconnect.app"
     },
-    "newArchEnabled": false,
     "plugins": [
       "expo-web-browser",
       "expo-font"
