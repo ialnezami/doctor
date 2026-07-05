@@ -10,6 +10,13 @@ import AccountSection from '../../components/AccountSection';
 import C from '../../constants/colors';
 
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const PREDEFINED_APPT_TYPES = [
+  { key: 'initial',   label: 'Initial Consultation', duration: 30, enabled: true },
+  { key: 'follow-up', label: 'Follow-up',            duration: 20, enabled: true },
+  { key: 'check-up',  label: 'Check-up',             duration: 30, enabled: true },
+  { key: 'urgent',    label: 'Urgent',               duration: 15, enabled: true },
+];
+const PRESET_DURATIONS = [15, 20, 30];
 
 const TIMEZONES = [
   { label: 'UTC',                 value: 'UTC' },
@@ -34,6 +41,7 @@ export default function SettingsScreen() {
   const [slots, setSlots] = useState([]);
   const [timezone, setTimezone] = useState('UTC');
   const [consultationFee, setConsultationFee] = useState('');
+  const [apptTypes, setApptTypes] = useState([]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [pushEnabled,  setPushEnabled]  = useState(true);
@@ -50,6 +58,7 @@ export default function SettingsScreen() {
       setSlots(doc.availabilitySlots || []);
       setTimezone(doc.timezone || 'UTC');
       setConsultationFee(doc.consultationFee != null ? String(doc.consultationFee) : '');
+      setApptTypes(doc.appointmentTypes?.length ? doc.appointmentTypes : PREDEFINED_APPT_TYPES);
     }).catch(() => {});
   }, []);
 
@@ -67,7 +76,7 @@ export default function SettingsScreen() {
     setSaving(true);
     try {
       const fee = consultationFee.trim() === '' ? 0 : Number(consultationFee);
-      await updateDoctorSettings(doctorId, { autoAcceptAppointments: autoAccept, availabilitySlots: slots, timezone, consultationFee: fee });
+      await updateDoctorSettings(doctorId, { autoAcceptAppointments: autoAccept, availabilitySlots: slots, timezone, consultationFee: fee, appointmentTypes: apptTypes });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {} finally { setSaving(false); }
@@ -148,6 +157,68 @@ export default function SettingsScreen() {
             />
             <Text style={{ fontSize: 14, color: C.text2 }}>SAR</Text>
           </View>
+        </View>
+
+        <Text style={s.sectionLabel}>Appointment Types</Text>
+        <View style={s.card}>
+          <Text style={s.rowSub}>Set duration per visit type. Disabled types won't show to patients.</Text>
+          <View style={{ height: 10 }} />
+          {apptTypes.map((at, i) => {
+            const isPredefined = ['initial','follow-up','check-up','urgent'].includes(at.key);
+            const isCustomDuration = !PRESET_DURATIONS.includes(at.duration);
+            return (
+              <View key={at.key + i} style={[s.slotRow, { flexWrap: 'wrap', opacity: at.enabled ? 1 : 0.5 }]}>
+                <Switch
+                  value={at.enabled}
+                  onValueChange={v => setApptTypes(a => a.map((x, idx) => idx === i ? { ...x, enabled: v } : x))}
+                  trackColor={{ true: C.mint }}
+                  thumbColor="#fff"
+                />
+                {isPredefined ? (
+                  <Text style={[s.rowTitle, { flex: 1, fontSize: 13 }]}>{at.label}</Text>
+                ) : (
+                  <TextInput
+                    style={[s.timeInput, { flex: 1, textAlign: 'left', paddingHorizontal: 8 }]}
+                    value={at.label}
+                    onChangeText={v => setApptTypes(a => a.map((x, idx) => idx === i ? { ...x, label: v } : x))}
+                    placeholder="Type name"
+                    placeholderTextColor={C.text3}
+                  />
+                )}
+                <View style={s.slotDayPicker}>
+                  <Picker
+                    selectedValue={isCustomDuration ? 0 : at.duration}
+                    onValueChange={v => setApptTypes(a => a.map((x, idx) => idx === i ? { ...x, duration: v === 0 ? 45 : v } : x))}
+                    style={{ color: C.text, height: 36 }}
+                    dropdownIconColor={C.text2}
+                  >
+                    {PRESET_DURATIONS.map(d => <Picker.Item key={d} label={`${d} min`} value={d} color={C.text} />)}
+                    <Picker.Item label="Custom" value={0} color={C.text} />
+                  </Picker>
+                </View>
+                {isCustomDuration && (
+                  <TextInput
+                    style={s.timeInput}
+                    value={String(at.duration)}
+                    onChangeText={v => setApptTypes(a => a.map((x, idx) => idx === i ? { ...x, duration: parseInt(v) || 30 } : x))}
+                    keyboardType="number-pad"
+                    maxLength={3}
+                  />
+                )}
+                {!isPredefined && (
+                  <TouchableOpacity onPress={() => setApptTypes(a => a.filter((_, idx) => idx !== i))} hitSlop={6}>
+                    <Text style={{ color: C.rose, fontSize: 20, lineHeight: 22 }}>×</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            );
+          })}
+          <TouchableOpacity
+            onPress={() => setApptTypes(a => [...a, { key: `custom_${Date.now()}`, label: '', duration: 30, enabled: true }])}
+            style={s.addBtn}
+          >
+            <Text style={s.addBtnTxt}>+ Add custom type</Text>
+          </TouchableOpacity>
         </View>
 
         <Text style={s.sectionLabel}>Availability</Text>

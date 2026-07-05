@@ -20,12 +20,14 @@ export default function ChatMessage({ role, content }) {
     maxWidth: '85%',
     margin: '6px 12px',
     padding: '10px 14px',
-    borderRadius: 12,
-    backgroundColor: isUser ? '#2563eb' : '#f3f4f6',
-    color: isUser ? '#fff' : '#111827',
+    borderRadius: isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+    backgroundColor: isUser ? 'var(--mint, #0fe3b0)' : 'var(--bg3, #111f35)',
+    color: isUser ? '#060d18' : 'var(--text, #e2e8f0)',
+    border: isUser ? 'none' : '1px solid var(--border, #1e3a5f)',
     fontSize: 14,
-    lineHeight: 1.5,
+    lineHeight: 1.6,
     wordBreak: 'break-word',
+    boxShadow: isUser ? '0 1px 4px rgba(15,227,176,0.18)' : 'none',
   };
 
   return (

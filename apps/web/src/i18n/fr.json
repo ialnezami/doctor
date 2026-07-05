@@ -307,7 +307,27 @@
     },
     "saveSettings": "Enregistrer",
     "saving": "Enregistrement…",
-    "saved": "Enregistré ✓"
+    "saved": "Enregistré ✓",
+    "apptTypes": {
+      "title": "Types de rendez-vous",
+      "desc": "Configurez la durée par type de visite. Les types désactivés n'apparaissent pas aux patients.",
+      "addCustom": "+ Ajouter un type personnalisé",
+      "duration": "Durée",
+      "labelPlaceholder": "Nom du type",
+      "noTypes": "Aucun type de rendez-vous configuré.",
+      "types": {
+        "initial": "Consultation initiale",
+        "follow-up": "Suivi",
+        "check-up": "Bilan de santé",
+        "urgent": "Urgent"
+      },
+      "durations": {
+        "15": "15 min",
+        "20": "20 min",
+        "30": "30 min",
+        "custom": "Personnalisé"
+      }
+    }
   },
   "reviews": {
     "title": "Mes avis",

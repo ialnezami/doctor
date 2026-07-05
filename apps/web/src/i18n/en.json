@@ -285,7 +285,27 @@
     },
     "saveSettings": "Save Settings",
     "saving": "Saving…",
-    "saved": "Saved ✓"
+    "saved": "Saved ✓",
+    "apptTypes": {
+      "title": "Appointment Types",
+      "desc": "Set duration per visit type. Disabled types won't show to patients.",
+      "addCustom": "+ Add custom type",
+      "duration": "Duration",
+      "labelPlaceholder": "Type name",
+      "noTypes": "No appointment types configured.",
+      "types": {
+        "initial": "Initial Consultation",
+        "follow-up": "Follow-up",
+        "check-up": "Check-up",
+        "urgent": "Urgent"
+      },
+      "durations": {
+        "15": "15 min",
+        "20": "20 min",
+        "30": "30 min",
+        "custom": "Custom"
+      }
+    }
   },
   "reviews": {
     "title": "My Reviews",

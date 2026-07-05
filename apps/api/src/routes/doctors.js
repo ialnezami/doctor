@@ -272,7 +272,7 @@ router.patch('/:id/settings', auth, requireRole('doctor'), async (req, res, next
     if (!doctor) return res.status(404).json({ message: 'Not found' });
     if (doctor.userId.toString() !== req.user.id) return res.status(403).json({ message: 'Forbidden' });
 
-    const { autoAcceptAppointments, availabilitySlots, timezone, consultationFee } = req.body;
+    const { autoAcceptAppointments, availabilitySlots, timezone, consultationFee, appointmentTypes } = req.body;
 
     if (timezone !== undefined) {
       if (!IANAZone.isValidZone(timezone)) {
@@ -289,9 +289,10 @@ router.patch('/:id/settings', auth, requireRole('doctor'), async (req, res, next
     if (autoAcceptAppointments !== undefined) doctor.autoAcceptAppointments = autoAcceptAppointments;
     if (availabilitySlots !== undefined) doctor.availabilitySlots = availabilitySlots;
     if (timezone !== undefined && IANAZone.isValidZone(timezone)) doctor.timezone = timezone;
+    if (appointmentTypes !== undefined) doctor.appointmentTypes = appointmentTypes;
 
     await doctor.save();
-    res.json({ autoAcceptAppointments: doctor.autoAcceptAppointments, availabilitySlots: doctor.availabilitySlots, timezone: doctor.timezone, consultationFee: doctor.consultationFee });
+    res.json({ autoAcceptAppointments: doctor.autoAcceptAppointments, availabilitySlots: doctor.availabilitySlots, timezone: doctor.timezone, consultationFee: doctor.consultationFee, appointmentTypes: doctor.appointmentTypes });
   } catch (err) { next(err); }
 });
 
