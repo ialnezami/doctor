@@ -272,7 +272,7 @@ router.patch('/:id/settings', auth, requireRole('doctor'), async (req, res, next
     if (!doctor) return res.status(404).json({ message: 'Not found' });
     if (doctor.userId.toString() !== req.user.id) return res.status(403).json({ message: 'Forbidden' });
 
-    const { autoAcceptAppointments, availabilitySlots, timezone } = req.body;
+    const { autoAcceptAppointments, availabilitySlots, timezone, consultationFee } = req.body;
 
     if (timezone !== undefined) {
       if (!IANAZone.isValidZone(timezone)) {
@@ -280,13 +280,18 @@ router.patch('/:id/settings', auth, requireRole('doctor'), async (req, res, next
       }
     }
 
+    if (consultationFee !== undefined) {
+      const fee = Number(consultationFee);
+      if (isNaN(fee) || fee < 0) return res.status(400).json({ message: 'consultationFee must be a non-negative number.' });
+      doctor.consultationFee = fee;
+    }
+
     if (autoAcceptAppointments !== undefined) doctor.autoAcceptAppointments = autoAcceptAppointments;
     if (availabilitySlots !== undefined) doctor.availabilitySlots = availabilitySlots;
-    if (timezone !== undefined && IANAZone.isValidZone(timezone)) {
-      doctor.timezone = timezone;
-    }
+    if (timezone !== undefined && IANAZone.isValidZone(timezone)) doctor.timezone = timezone;
+
     await doctor.save();
-    res.json({ autoAcceptAppointments: doctor.autoAcceptAppointments, availabilitySlots: doctor.availabilitySlots, timezone: doctor.timezone });
+    res.json({ autoAcceptAppointments: doctor.autoAcceptAppointments, availabilitySlots: doctor.availabilitySlots, timezone: doctor.timezone, consultationFee: doctor.consultationFee });
   } catch (err) { next(err); }
 });
 

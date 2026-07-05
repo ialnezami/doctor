@@ -33,6 +33,7 @@ export default function SettingsScreen() {
   const [autoAccept, setAutoAccept] = useState(false);
   const [slots, setSlots] = useState([]);
   const [timezone, setTimezone] = useState('UTC');
+  const [consultationFee, setConsultationFee] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [pushEnabled,  setPushEnabled]  = useState(true);
@@ -48,6 +49,7 @@ export default function SettingsScreen() {
       setAutoAccept(doc.autoAcceptAppointments || false);
       setSlots(doc.availabilitySlots || []);
       setTimezone(doc.timezone || 'UTC');
+      setConsultationFee(doc.consultationFee != null ? String(doc.consultationFee) : '');
     }).catch(() => {});
   }, []);
 
@@ -64,7 +66,8 @@ export default function SettingsScreen() {
     if (!doctorId) return;
     setSaving(true);
     try {
-      await updateDoctorSettings(doctorId, { autoAcceptAppointments: autoAccept, availabilitySlots: slots, timezone });
+      const fee = consultationFee.trim() === '' ? 0 : Number(consultationFee);
+      await updateDoctorSettings(doctorId, { autoAcceptAppointments: autoAccept, availabilitySlots: slots, timezone, consultationFee: fee });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {} finally { setSaving(false); }
@@ -127,6 +130,23 @@ export default function SettingsScreen() {
               trackColor={{ false: C.border, true: C.mint }}
               thumbColor="#fff"
             />
+          </View>
+        </View>
+
+        <Text style={s.sectionLabel}>Pricing</Text>
+        <View style={s.card}>
+          <Text style={s.rowTitle}>Consultation Fee</Text>
+          <Text style={s.rowSub}>Amount patients pay per appointment</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 8 }}>
+            <TextInput
+              style={[s.timeInput, { flex: 1, textAlign: 'left', paddingHorizontal: 12 }]}
+              value={consultationFee}
+              onChangeText={val => setConsultationFee(val.replace(/[^0-9.]/g, ''))}
+              placeholder="0"
+              placeholderTextColor={C.text3}
+              keyboardType="numeric"
+            />
+            <Text style={{ fontSize: 14, color: C.text2 }}>SAR</Text>
           </View>
         </View>
 
