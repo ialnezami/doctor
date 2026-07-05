@@ -1,6 +1,10 @@
 'use strict';
 
 const rateLimit = require('express-rate-limit');
+// ipKeyGenerator normalises IPv6 addresses for consistent rate-limit keying.
+// Required by express-rate-limit@8+ when using a custom keyGenerator that
+// can fall back to req.ip — avoids the ERR_ERL_KEY_GEN_IPV6 ValidationError.
+const { ipKeyGenerator } = require('express-rate-limit');
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -35,7 +39,10 @@ const loginLimiter = rateLimit({
 const chatbotLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 30,
-  keyGenerator: (req) => req.user?.id || req.ip,
+  // Primary key: authenticated user ID (JWT sub) — bypasses IP cycling.
+  // Fallback to ipKeyGenerator only if auth middleware hasn't populated req.user
+  // (should not happen in normal flow since auth runs before this limiter).
+  keyGenerator: (req) => req.user?.id || ipKeyGenerator(req),
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'Chatbot rate limit exceeded — 30 messages per hour allowed.' },
