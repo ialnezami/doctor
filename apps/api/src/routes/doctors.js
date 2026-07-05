@@ -191,7 +191,7 @@ router.get('/:id/available-slots', auth, async (req, res, next) => {
     const d = new Date(date);
     const dayOfWeek = d.getUTCDay(); // 0=Sun
 
-    const avail = doctor.availabilitySlots.find(s => s.dayOfWeek === dayOfWeek);
+    const avail = (doctor.availabilitySlots ?? []).find(s => s.dayOfWeek === dayOfWeek);
     if (!avail) return res.json([]); // doctor not available that day
 
     const allSlots = generateSlots(avail.startTime, avail.endTime);
