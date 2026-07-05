@@ -59,7 +59,7 @@ export default function DoctorProfileScreen({ route, navigation }) {
   const [slots, setSlots]                     = useState([]);
   const [slotsLoading, setSlotsLoading]       = useState(false);
   const [reviewData, setReviewData]           = useState({ reviews: [], averageRating: 0, reviewCount: 0 });
-  const days = Array.from({ length: 7 }, (_, i) => {
+  const days = Array.from({ length: 30 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() + i); return d;
   });
 
