@@ -272,7 +272,10 @@ router.patch('/:id/settings', auth, requireRole('doctor'), async (req, res, next
     if (!doctor) return res.status(404).json({ message: 'Not found' });
     if (doctor.userId.toString() !== req.user.id) return res.status(403).json({ message: 'Forbidden' });
 
-    const { autoAcceptAppointments, availabilitySlots, timezone, consultationFee, appointmentTypes } = req.body;
+    const {
+      autoAcceptAppointments, availabilitySlots, timezone, consultationFee, appointmentTypes,
+      bio, licenseNumber, languages, education, achievements, yearsOfExperience,
+    } = req.body;
 
     if (timezone !== undefined) {
       if (!IANAZone.isValidZone(timezone)) {
@@ -286,13 +289,40 @@ router.patch('/:id/settings', auth, requireRole('doctor'), async (req, res, next
       doctor.consultationFee = fee;
     }
 
+    if (yearsOfExperience !== undefined) {
+      const yoe = Number(yearsOfExperience);
+      if (isNaN(yoe) || yoe < 0) return res.status(400).json({ message: 'yearsOfExperience must be a non-negative number.' });
+      doctor.yearsOfExperience = yoe;
+    }
+
     if (autoAcceptAppointments !== undefined) doctor.autoAcceptAppointments = autoAcceptAppointments;
     if (availabilitySlots !== undefined) doctor.availabilitySlots = availabilitySlots;
     if (timezone !== undefined && IANAZone.isValidZone(timezone)) doctor.timezone = timezone;
     if (appointmentTypes !== undefined) doctor.appointmentTypes = appointmentTypes;
+    if (bio !== undefined) doctor.bio = bio.trim();
+    if (licenseNumber !== undefined) doctor.licenseNumber = licenseNumber.trim();
+    if (Array.isArray(languages)) doctor.languages = languages.filter(l => typeof l === 'string' && l.trim()).map(l => l.trim());
+    if (Array.isArray(achievements)) doctor.achievements = achievements.filter(a => typeof a === 'string' && a.trim()).map(a => a.trim());
+    if (Array.isArray(education)) doctor.education = education.map(e => ({
+      degree:      (e.degree || '').trim(),
+      institution: (e.institution || '').trim(),
+      year:        e.year ? Number(e.year) : null,
+    }));
 
     await doctor.save();
-    res.json({ autoAcceptAppointments: doctor.autoAcceptAppointments, availabilitySlots: doctor.availabilitySlots, timezone: doctor.timezone, consultationFee: doctor.consultationFee, appointmentTypes: doctor.appointmentTypes });
+    res.json({
+      autoAcceptAppointments: doctor.autoAcceptAppointments,
+      availabilitySlots: doctor.availabilitySlots,
+      timezone: doctor.timezone,
+      consultationFee: doctor.consultationFee,
+      appointmentTypes: doctor.appointmentTypes,
+      bio: doctor.bio,
+      licenseNumber: doctor.licenseNumber,
+      languages: doctor.languages,
+      education: doctor.education,
+      achievements: doctor.achievements,
+      yearsOfExperience: doctor.yearsOfExperience,
+    });
   } catch (err) { next(err); }
 });
 

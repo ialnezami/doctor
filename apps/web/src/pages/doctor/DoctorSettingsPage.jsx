@@ -49,6 +49,8 @@ export default function DoctorSettingsPage() {
   const [emailEnabled, setEmailEnabled] = useState(true);
 
   // Rich profile fields
+  const [bio, setBio] = useState('');
+  const [yearsOfExperience, setYearsOfExperience] = useState('');
   const [licenseNumber, setLicenseNumber] = useState('');
   const [languagesRaw, setLanguagesRaw] = useState('');   // comma-separated string
   const [education, setEducation] = useState([]);          // [{degree, institution, year}]
@@ -69,6 +71,8 @@ export default function DoctorSettingsPage() {
         setTimezone(profile.timezone || 'UTC');
         setConsultationFee(profile.consultationFee != null ? String(profile.consultationFee) : '');
         setApptTypes(profile.appointmentTypes?.length ? profile.appointmentTypes : DEFAULT_APPT_TYPES);
+        setBio(profile.bio || '');
+        setYearsOfExperience(profile.yearsOfExperience != null ? String(profile.yearsOfExperience) : '');
         setLicenseNumber(profile.licenseNumber || '');
         setLanguagesRaw((profile.languages || []).join(', '));
         setEducation(profile.education || []);
@@ -104,13 +108,16 @@ export default function DoctorSettingsPage() {
       const languages = languagesRaw.split(',').map(s => s.trim()).filter(Boolean);
       const achievements = achievementsRaw.split(',').map(s => s.trim()).filter(Boolean);
       const fee = consultationFee.trim() === '' ? 0 : Number(consultationFee);
+      const yoe = yearsOfExperience.trim() === '' ? 0 : Number(yearsOfExperience);
       await updateDoctorSettings(doctorId, {
         autoAcceptAppointments: autoAccept,
         availabilitySlots: slots,
         timezone,
         consultationFee: fee,
         appointmentTypes: apptTypes,
-        licenseNumber: licenseNumber.trim() || undefined,
+        bio: bio.trim() || '',
+        yearsOfExperience: yoe,
+        licenseNumber: licenseNumber.trim() || '',
         languages,
         education,
         achievements,
@@ -194,6 +201,35 @@ export default function DoctorSettingsPage() {
       {/* Rich Profile Info */}
       <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:20, marginBottom:20 }}>
         <div style={{ fontSize:14, fontWeight:500, marginBottom:14 }}>Profile Information</div>
+
+        {/* Bio */}
+        <div style={{ marginBottom:14 }}>
+          <label style={{ display:'block', fontSize:12, color:'var(--text2)', marginBottom:5 }}>Bio</label>
+          <textarea
+            value={bio}
+            onChange={e => setBio(e.target.value)}
+            placeholder="A short description about yourself, your expertise, and approach…"
+            rows={3}
+            style={{ ...inputStyle, resize:'vertical', minHeight:72 }}
+          />
+        </div>
+
+        {/* Years of Experience */}
+        <div style={{ marginBottom:14 }}>
+          <label style={{ display:'block', fontSize:12, color:'var(--text2)', marginBottom:5 }}>Years of Experience</label>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <input
+              type="number"
+              min="0"
+              max="60"
+              value={yearsOfExperience}
+              onChange={e => setYearsOfExperience(e.target.value.replace(/[^0-9]/g, ''))}
+              placeholder="0"
+              style={{ ...inputStyle, width:90 }}
+            />
+            <span style={{ fontSize:13, color:'var(--text2)' }}>years</span>
+          </div>
+        </div>
 
         {/* License Number */}
         <div style={{ marginBottom:14 }}>
