@@ -1,10 +1,18 @@
 import { useState } from 'react';
 import Sidebar from './Sidebar';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import useAuthStore from '../../store/authStore';
+import PatientLayout from '../../pages/patient/PatientLayout';
 
 export default function AppLayout({ children }) {
   const isMobile = useIsMobile();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const user = useAuthStore((s) => s.user);
+  const isPatient = user?.role === 'patient';
+
+  // Wrap page content in PatientLayout for patient users so the AI chat bubble
+  // is available on every patient page without restructuring the route tree.
+  const pageContent = isPatient ? <PatientLayout>{children}</PatientLayout> : children;
 
   if (isMobile) {
     return (
@@ -40,7 +48,7 @@ export default function AppLayout({ children }) {
           <Sidebar onNavigate={() => setDrawerOpen(false)} />
         </div>
 
-        <main style={{ flex: 1, overflowY: 'auto', background: 'var(--bg)' }}>{children}</main>
+        <main style={{ flex: 1, overflowY: 'auto', background: 'var(--bg)' }}>{pageContent}</main>
       </div>
     );
   }
@@ -48,7 +56,7 @@ export default function AppLayout({ children }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', height: '100vh' }}>
       <Sidebar />
-      <main style={{ overflowY: 'auto', background: 'var(--bg)' }}>{children}</main>
+      <main style={{ overflowY: 'auto', background: 'var(--bg)' }}>{pageContent}</main>
     </div>
   );
 }
