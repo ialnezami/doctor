@@ -125,7 +125,7 @@ export default function BookAppointmentPage() {
       </div>
 
       {error && <p style={{ color:'var(--rose)', fontSize:13, marginBottom:12 }}>{error}</p>}
-      <Button full disabled={loading || !locationId} onClick={submit} style={{ padding:13, fontSize:14 }}>
+      <Button full disabled={loading} onClick={submit} style={{ padding:13, fontSize:14 }}>
         {loading ? t('book.submitting') : t('book.submit')}
       </Button>
     </div>
