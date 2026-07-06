@@ -45,6 +45,7 @@ const doctorSchema = new mongoose.Schema({
   appointmentTypes:       { type: [appointmentTypeSchema], default: [] },
   autoAcceptAppointments: { type: Boolean, default: false },
   consultationFee:        { type: Number, default: 0 },
+  currency:               { type: String, default: 'SAR' },
   yearsOfExperience:      { type: Number, default: 0 },
   photoUrl:               { type: String, default: '' },
   timezone:               { type: String, default: 'UTC' },

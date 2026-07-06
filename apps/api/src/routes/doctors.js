@@ -2,6 +2,7 @@ const auth = require('../middleware/auth');
 const requireRole = require('../middleware/rbac');
 const User = require('../models/User');
 const Doctor = require('../models/Doctor');
+const { PlatformSettings, SUPPORTED_CURRENCIES } = require('../models/PlatformSettings');
 const Appointment = require('../models/Appointment');
 const Review = require('../models/Review');
 const upload = require('../middleware/upload');
@@ -24,6 +25,15 @@ function generateSlots(startTime, endTime) {
 }
 
 const router = require('express').Router();
+
+// GET /api/doctors/currencies — available currencies on this platform (for doctor picker)
+router.get('/currencies', async (req, res, next) => {
+  try {
+    const settings = await PlatformSettings.getOrCreate();
+    const available = SUPPORTED_CURRENCIES.filter(c => settings.availableCurrencies.includes(c.code));
+    res.json({ currencies: available });
+  } catch (err) { next(err); }
+});
 
 // GET /api/doctors?lat=&lng=&radius=&specialty=&name=
 router.get('/', auth, async (req, res, next) => {
@@ -274,7 +284,7 @@ router.patch('/:id/settings', auth, requireRole('doctor'), async (req, res, next
 
     const {
       autoAcceptAppointments, availabilitySlots, timezone, consultationFee, appointmentTypes,
-      bio, licenseNumber, languages, education, achievements, yearsOfExperience,
+      bio, licenseNumber, languages, education, achievements, yearsOfExperience, currency,
     } = req.body;
 
     if (timezone !== undefined) {
@@ -287,6 +297,14 @@ router.patch('/:id/settings', auth, requireRole('doctor'), async (req, res, next
       const fee = Number(consultationFee);
       if (isNaN(fee) || fee < 0) return res.status(400).json({ message: 'consultationFee must be a non-negative number.' });
       doctor.consultationFee = fee;
+    }
+
+    if (currency !== undefined) {
+      const settings = await PlatformSettings.getOrCreate();
+      if (!settings.availableCurrencies.includes(currency)) {
+        return res.status(400).json({ message: `Currency '${currency}' is not available on this platform.` });
+      }
+      doctor.currency = currency;
     }
 
     if (yearsOfExperience !== undefined) {
@@ -315,6 +333,7 @@ router.patch('/:id/settings', auth, requireRole('doctor'), async (req, res, next
       availabilitySlots: doctor.availabilitySlots,
       timezone: doctor.timezone,
       consultationFee: doctor.consultationFee,
+      currency: doctor.currency,
       appointmentTypes: doctor.appointmentTypes,
       bio: doctor.bio,
       licenseNumber: doctor.licenseNumber,

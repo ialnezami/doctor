@@ -10,6 +10,7 @@ const Review  = require('../models/Review');
 const Appointment = require('../models/Appointment');
 const { recalculateRating } = require('./reviews');
 const Report = require('../models/Report');
+const { PlatformSettings, SUPPORTED_CURRENCIES, SUPPORTED_CODES } = require('../models/PlatformSettings');
 
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -211,6 +212,32 @@ router.patch('/reports/:id/dismiss', adminAuth, async (req, res, next) => {
     );
     if (!report) return res.status(404).json({ message: 'Report not found' });
     res.json(report);
+  } catch (err) { next(err); }
+});
+
+// GET /api/admin/platform-settings
+router.get('/platform-settings', adminAuth, async (req, res, next) => {
+  try {
+    const settings = await PlatformSettings.getOrCreate();
+    res.json({ availableCurrencies: settings.availableCurrencies, supportedCurrencies: SUPPORTED_CURRENCIES });
+  } catch (err) { next(err); }
+});
+
+// PATCH /api/admin/platform-settings
+router.patch('/platform-settings', adminAuth, [
+  body('availableCurrencies').isArray({ min: 1 }).withMessage('At least one currency is required'),
+  body('availableCurrencies.*').isIn(SUPPORTED_CODES).withMessage('Unsupported currency code'),
+], validate, async (req, res, next) => {
+  try {
+    const settings = await PlatformSettings.findOne();
+    if (settings) {
+      settings.availableCurrencies = req.body.availableCurrencies;
+      await settings.save();
+      res.json({ availableCurrencies: settings.availableCurrencies });
+    } else {
+      const created = await PlatformSettings.create({ availableCurrencies: req.body.availableCurrencies });
+      res.json({ availableCurrencies: created.availableCurrencies });
+    }
   } catch (err) { next(err); }
 });
 

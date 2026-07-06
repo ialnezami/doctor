@@ -42,6 +42,8 @@ export default function DoctorSettingsPage() {
   const [slots, setSlots] = useState([]);
   const [timezone, setTimezone] = useState('UTC');
   const [consultationFee, setConsultationFee] = useState('');
+  const [currency, setCurrency] = useState('SAR');
+  const [availableCurrencies, setAvailableCurrencies] = useState([{ code: 'SAR', name: 'Saudi Riyal' }]);
   const [apptTypes, setApptTypes] = useState([]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -70,6 +72,7 @@ export default function DoctorSettingsPage() {
         setSlots(profile.availabilitySlots || []);
         setTimezone(profile.timezone || 'UTC');
         setConsultationFee(profile.consultationFee != null ? String(profile.consultationFee) : '');
+        setCurrency(profile.currency || 'SAR');
         setApptTypes(profile.appointmentTypes?.length ? profile.appointmentTypes : DEFAULT_APPT_TYPES);
         setBio(profile.bio || '');
         setYearsOfExperience(profile.yearsOfExperience != null ? String(profile.yearsOfExperience) : '');
@@ -85,6 +88,10 @@ export default function DoctorSettingsPage() {
         setPushEnabled(data.notificationPrefs.pushEnabled);
         setEmailEnabled(data.notificationPrefs.emailEnabled);
       }
+    }).catch(() => {});
+
+    client.get('/doctors/currencies').then(data => {
+      if (data?.currencies?.length) setAvailableCurrencies(data.currencies);
     }).catch(() => {});
   }, [user.id]);
 
@@ -114,6 +121,7 @@ export default function DoctorSettingsPage() {
         availabilitySlots: slots,
         timezone,
         consultationFee: fee,
+        currency,
         appointmentTypes: apptTypes,
         bio: bio.trim() || '',
         yearsOfExperience: yoe,
@@ -357,11 +365,11 @@ export default function DoctorSettingsPage() {
         ))}
       </div>
 
-      {/* Consultation Fee */}
+      {/* Consultation Fee + Currency */}
       <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:20, marginBottom:20 }}>
         <div style={{ fontSize:14, fontWeight:500, marginBottom:4 }}>Consultation Fee</div>
         <div style={{ fontSize:12, color:'var(--text2)', marginBottom:10 }}>Amount patients pay per appointment</div>
-        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
           <input
             type="number"
             min="0"
@@ -370,8 +378,17 @@ export default function DoctorSettingsPage() {
             placeholder="0"
             style={{ ...inputStyle, width:120 }}
           />
-          <span style={{ fontSize:13, color:'var(--text2)' }}>SAR</span>
+          <select
+            value={currency}
+            onChange={e => setCurrency(e.target.value)}
+            style={{ background:'var(--bg3)', border:'1px solid var(--border2)', borderRadius:6, padding:'6px 10px', color:'var(--text)', fontSize:13, cursor:'pointer' }}
+          >
+            {availableCurrencies.map(c => (
+              <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
+            ))}
+          </select>
         </div>
+        <div style={{ fontSize:11, color:'var(--text3)', marginTop:6 }}>Currency applies to all fees on your profile</div>
       </div>
 
       {/* Appointment Types */}
@@ -419,7 +436,7 @@ export default function DoctorSettingsPage() {
                   placeholder="0"
                   style={{ ...inputStyle, width:64, textAlign:'center' }}
                 />
-                <span style={{ fontSize:11, color:'var(--text3)', whiteSpace:'nowrap' }}>SAR</span>
+                <span style={{ fontSize:11, color:'var(--text3)', whiteSpace:'nowrap' }}>{currency}</span>
               </div>
               {!isPredefined && (
                 <button onClick={() => removeApptType(i)} style={{ background:'none', border:'none', color:'var(--rose)', cursor:'pointer', fontSize:18, padding:'2px', lineHeight:1 }}>×</button>

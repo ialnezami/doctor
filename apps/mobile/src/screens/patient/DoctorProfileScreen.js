@@ -96,7 +96,7 @@ export default function DoctorProfileScreen({ route, navigation }) {
           <Text style={s.specialty}>{doctor.specialty}</Text>
           {doctor.bio ? <Text style={s.bio}>{doctor.bio}</Text> : null}
           <View style={{ flexDirection: 'row', gap: 16, marginTop: 10 }}>
-            {doctor.consultationFee > 0 && <Text style={s.meta}>{doctor.consultationFee} SAR</Text>}
+            {doctor.consultationFee > 0 && <Text style={s.meta}>{doctor.consultationFee} {doctor.currency || 'SAR'}</Text>}
             {doctor.yearsOfExperience > 0 && <Text style={s.meta}>{doctor.yearsOfExperience}y exp</Text>}
           </View>
           {reviewCount > 0 && (

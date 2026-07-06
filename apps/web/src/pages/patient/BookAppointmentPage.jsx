@@ -6,8 +6,6 @@ import { createAppointment } from '../../api/appointments';
 import Button from '../../components/ui/Button';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
-const VISIT_TYPES = ['initial','follow-up','check-up','urgent'];
-
 export default function BookAppointmentPage() {
   const { doctorId } = useParams();
   const [params] = useSearchParams();
@@ -17,6 +15,7 @@ export default function BookAppointmentPage() {
   const date = params.get('date') || '';
   const slot = params.get('slot') || '';
   const [doctor, setDoctor] = useState(null);
+  const [apptTypes, setApptTypes] = useState([]);
   const [locations, setLocations] = useState([]);
   const [locationId, setLocationId] = useState(null);
   const [visitType, setVisitType] = useState('initial');
@@ -24,7 +23,16 @@ export default function BookAppointmentPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => { getDoctor(doctorId).then(setDoctor).catch(() => {}); }, [doctorId]);
+  useEffect(() => {
+    getDoctor(doctorId).then(doc => {
+      setDoctor(doc);
+      const enabled = (doc.appointmentTypes || []).filter(at => at.enabled);
+      if (enabled.length > 0) {
+        setApptTypes(enabled);
+        setVisitType(enabled[0].key);
+      }
+    }).catch(() => {});
+  }, [doctorId]);
 
   useEffect(() => {
     getDoctorLocations(doctorId)
@@ -99,10 +107,11 @@ export default function BookAppointmentPage() {
       <div style={{ marginBottom:16 }}>
         <label style={labelStyle}>{t('book.visitType')}</label>
         <div style={{ display:'flex', gap:7, flexWrap:'wrap' }}>
-          {VISIT_TYPES.map(vt => (
-            <button key={vt} onClick={() => setVisitType(vt)}
-              style={{ padding:'6px 14px', borderRadius:20, border:`1px solid ${visitType===vt ? 'var(--mint)' : 'var(--border2)'}`, background: visitType===vt ? 'var(--mint-dim)' : 'transparent', color: visitType===vt ? 'var(--mint)' : 'var(--text2)', fontSize:12, cursor:'pointer', textTransform:'capitalize' }}>
-              {vt}
+          {apptTypes.map(at => (
+            <button key={at.key} onClick={() => setVisitType(at.key)}
+              style={{ padding:'6px 14px', borderRadius:20, border:`1px solid ${visitType===at.key ? 'var(--mint)' : 'var(--border2)'}`, background: visitType===at.key ? 'var(--mint-dim)' : 'transparent', color: visitType===at.key ? 'var(--mint)' : 'var(--text2)', fontSize:12, cursor:'pointer' }}>
+              {at.label || at.key}
+              {at.fee > 0 && <span style={{ fontSize:10, marginLeft:5, opacity:0.7 }}>{at.fee} {doctor?.currency || 'SAR'}</span>}
             </button>
           ))}
         </div>

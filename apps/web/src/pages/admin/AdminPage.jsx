@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import adminClient from '../../api/admin';
 
-const TABS = ['Overview', 'Users', 'Doctors', 'Labs', 'Reviews', 'Reports'];
+const TABS = ['Overview', 'Users', 'Doctors', 'Labs', 'Reviews', 'Reports', 'Settings'];
 
 const REASON_LABELS = {
   harassment:            'Harassment',
@@ -479,6 +479,112 @@ function ReportsTab() {
   );
 }
 
+// ── Settings ──────────────────────────────────────────────────────────────────
+const ALL_CURRENCIES = [
+  { code: 'SAR', name: 'Saudi Riyal' },
+  { code: 'USD', name: 'US Dollar' },
+  { code: 'EUR', name: 'Euro' },
+  { code: 'GBP', name: 'British Pound' },
+  { code: 'AED', name: 'UAE Dirham' },
+  { code: 'KWD', name: 'Kuwaiti Dinar' },
+  { code: 'QAR', name: 'Qatari Riyal' },
+  { code: 'JOD', name: 'Jordanian Dinar' },
+  { code: 'EGP', name: 'Egyptian Pound' },
+  { code: 'SYP', name: 'Syrian Pound' },
+  { code: 'TRY', name: 'Turkish Lira' },
+];
+
+function SettingsTab() {
+  const [selected, setSelected] = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [saving, setSaving]     = useState(false);
+  const [saved, setSaved]       = useState(false);
+
+  useEffect(() => {
+    adminClient.get('/admin/platform-settings')
+      .then(d => setSelected(d.availableCurrencies || ['SAR']))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const toggle = (code) =>
+    setSelected(prev =>
+      prev.includes(code)
+        ? prev.length > 1 ? prev.filter(c => c !== code) : prev  // always keep ≥1
+        : [...prev, code]
+    );
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await adminClient.patch('/admin/platform-settings', { availableCurrencies: selected });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch {}
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div>
+      <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Platform Settings</div>
+
+      <div style={S.card}>
+        <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 4 }}>Available Currencies</div>
+        <div style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 16 }}>
+          Select which currencies doctors can choose from when setting their fees.
+        </div>
+
+        {loading ? <div style={{ fontSize: 13, color: 'var(--text2)' }}>Loading…</div> : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
+            {ALL_CURRENCIES.map(c => {
+              const active = selected.includes(c.code);
+              return (
+                <button
+                  key={c.code}
+                  onClick={() => toggle(c.code)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+                    borderRadius: 8, cursor: 'pointer', textAlign: 'left', transition: 'all .15s',
+                    background: active ? 'rgba(15,227,176,0.08)' : 'var(--bg3, #1e293b)',
+                    border: `1px solid ${active ? 'var(--mint, #0fe3b0)' : 'var(--border, #1e2d3d)'}`,
+                  }}
+                >
+                  <span style={{
+                    width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                    background: active ? 'var(--mint, #0fe3b0)' : 'transparent',
+                    border: `2px solid ${active ? 'var(--mint, #0fe3b0)' : 'var(--border2, #334155)'}`,
+                    display: 'grid', placeItems: 'center', fontSize: 10, color: '#000',
+                  }}>
+                    {active ? '✓' : ''}
+                  </span>
+                  <span style={{ flex: 1 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: active ? 'var(--mint, #0fe3b0)' : 'var(--text)' }}>{c.code}</span>
+                    <span style={{ fontSize: 11, color: 'var(--text2)', display: 'block' }}>{c.name}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button
+            onClick={save}
+            disabled={saving}
+            style={{ ...S.btn('mint'), padding: '8px 20px', fontSize: 13, opacity: saving ? 0.6 : 1 }}
+          >
+            {saving ? 'Saving…' : 'Save Settings'}
+          </button>
+          {saved && <span style={{ fontSize: 12, color: 'var(--mint)' }}>Saved</span>}
+          <span style={{ fontSize: 12, color: 'var(--text3)', marginLeft: 'auto' }}>
+            {selected.length} of {ALL_CURRENCIES.length} currencies enabled
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function AdminPage() {
   const navigate = useNavigate();
@@ -521,7 +627,8 @@ export default function AdminPage() {
         {tab === 'Doctors'  && <DoctorsTab />}
         {tab === 'Labs'     && <LabsTab />}
         {tab === 'Reviews'  && <ReviewsTab />}
-        {tab === 'Reports'  && <ReportsTab />}
+        {tab === 'Reports'   && <ReportsTab />}
+        {tab === 'Settings'  && <SettingsTab />}
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import { View, Text, Switch, TouchableOpacity, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getMyDoctorProfile, updateDoctorSettings } from '../../api/doctors';
+import { getMyDoctorProfile, updateDoctorSettings, getPlatformCurrencies } from '../../api/doctors';
 import { getMe } from '../../api/auth';
 import { getNotificationPrefs, updateNotificationPrefs } from '../../api/users';
 import useAuthStore from '../../store/authStore';
@@ -41,6 +41,8 @@ export default function SettingsScreen() {
   const [slots, setSlots] = useState([]);
   const [timezone, setTimezone] = useState('UTC');
   const [consultationFee, setConsultationFee] = useState('');
+  const [currency, setCurrency] = useState('SAR');
+  const [availableCurrencies, setAvailableCurrencies] = useState([{ code: 'SAR', name: 'Saudi Riyal' }]);
   const [apptTypes, setApptTypes] = useState([]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -58,7 +60,12 @@ export default function SettingsScreen() {
       setSlots(doc.availabilitySlots || []);
       setTimezone(doc.timezone || 'UTC');
       setConsultationFee(doc.consultationFee != null ? String(doc.consultationFee) : '');
+      setCurrency(doc.currency || 'SAR');
       setApptTypes(doc.appointmentTypes?.length ? doc.appointmentTypes : PREDEFINED_APPT_TYPES);
+    }).catch(() => {});
+
+    getPlatformCurrencies().then(data => {
+      if (data?.currencies?.length) setAvailableCurrencies(data.currencies);
     }).catch(() => {});
   }, []);
 
@@ -76,7 +83,7 @@ export default function SettingsScreen() {
     setSaving(true);
     try {
       const fee = consultationFee.trim() === '' ? 0 : Number(consultationFee);
-      await updateDoctorSettings(doctorId, { autoAcceptAppointments: autoAccept, availabilitySlots: slots, timezone, consultationFee: fee, appointmentTypes: apptTypes });
+      await updateDoctorSettings(doctorId, { autoAcceptAppointments: autoAccept, availabilitySlots: slots, timezone, consultationFee: fee, currency, appointmentTypes: apptTypes });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {} finally { setSaving(false); }
@@ -155,8 +162,20 @@ export default function SettingsScreen() {
               placeholderTextColor={C.text3}
               keyboardType="numeric"
             />
-            <Text style={{ fontSize: 14, color: C.text2 }}>SAR</Text>
+            <View style={{ backgroundColor: C.bg3, borderRadius: 8, borderWidth: 1, borderColor: C.border, minWidth: 110 }}>
+              <Picker
+                selectedValue={currency}
+                onValueChange={setCurrency}
+                style={{ color: C.text, height: 36 }}
+                dropdownIconColor={C.text2}
+              >
+                {availableCurrencies.map(c => (
+                  <Picker.Item key={c.code} label={c.code} value={c.code} color={C.text} />
+                ))}
+              </Picker>
+            </View>
           </View>
+          <Text style={{ fontSize: 11, color: C.text3, marginTop: 4 }}>Currency applies to all fees</Text>
         </View>
 
         <Text style={s.sectionLabel}>Appointment Types</Text>
@@ -215,7 +234,7 @@ export default function SettingsScreen() {
                     placeholderTextColor={C.text3}
                     maxLength={6}
                   />
-                  <Text style={{ fontSize: 10, color: C.text3 }}>SAR</Text>
+                  <Text style={{ fontSize: 10, color: C.text3 }}>{currency}</Text>
                 </View>
                 {!isPredefined && (
                   <TouchableOpacity onPress={() => setApptTypes(a => a.filter((_, idx) => idx !== i))} hitSlop={6}>

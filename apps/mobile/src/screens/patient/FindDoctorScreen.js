@@ -184,7 +184,7 @@ export default function FindDoctorScreen({ navigation }) {
                     <Text style={s.specialty} numberOfLines={1}>{d.specialty}</Text>
                     <View style={s.cardMeta}>
                       {hasSlots && <View style={s.availBadge}><View style={s.availDot} /><Text style={s.availTxt}>{t('findDoctor.available')}</Text></View>}
-                      {d.consultationFee > 0 && <Text style={s.fee}>{d.consultationFee} SAR</Text>}
+                      {d.consultationFee > 0 && <Text style={s.fee}>{d.consultationFee} {d.currency || 'SAR'}</Text>}
                     </View>
                   </View>
                   <Text style={s.chevron}>›</Text>

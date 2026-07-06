@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createAppointment } from '../../api/appointments';
-import { getDoctorLocations } from '../../api/doctors';
+import { getDoctorLocations, getDoctor } from '../../api/doctors';
 import C from '../../constants/colors';
-
-const VISIT_TYPES = ['initial','follow-up','check-up','urgent'];
 
 function addThirtyMin(time) {
   const [h, m] = time.split(':').map(Number);
@@ -16,6 +14,8 @@ function addThirtyMin(time) {
 export default function BookAppointmentScreen({ route, navigation }) {
   const { doctorId, doctorUserId, doctorName, specialty, date, slot } = route.params;
   const [visitType, setVisitType] = useState('initial');
+  const [apptTypes, setApptTypes] = useState([]);
+  const [currency, setCurrency] = useState('SAR');
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -29,6 +29,17 @@ export default function BookAppointmentScreen({ route, navigation }) {
         const bookable = (locs || []).filter(l => l.type === 'bookable');
         setLocations(bookable);
         if (bookable.length > 0) setLocationId(bookable[0]._id);
+      })
+      .catch(() => {});
+
+    getDoctor(doctorId)
+      .then(doc => {
+        const enabled = (doc.appointmentTypes || []).filter(t => t.enabled);
+        if (enabled.length > 0) {
+          setApptTypes(enabled);
+          setVisitType(enabled[0].key);
+        }
+        if (doc.currency) setCurrency(doc.currency);
       })
       .catch(() => {});
   }, [doctorId]);
@@ -97,10 +108,17 @@ export default function BookAppointmentScreen({ route, navigation }) {
 
         <Text style={s.sectionLabel}>Visit Type</Text>
         <View style={{ flexDirection:'row', flexWrap:'wrap', gap:8, marginBottom:20 }}>
-          {VISIT_TYPES.map(t => (
-            <TouchableOpacity key={t} onPress={() => setVisitType(t)}
-              style={[s.typeChip, visitType===t && s.typeChipActive]}>
-              <Text style={[s.typeChipTxt, visitType===t && s.typeChipTxtActive]}>{t}</Text>
+          {apptTypes.map(t => (
+            <TouchableOpacity key={t.key} onPress={() => setVisitType(t.key)}
+              style={[s.typeChip, visitType===t.key && s.typeChipActive]}>
+              <Text style={[s.typeChipTxt, visitType===t.key && s.typeChipTxtActive]}>
+                {t.label || t.key}
+              </Text>
+              {t.fee > 0 && (
+                <Text style={{ fontSize:10, color: visitType===t.key ? C.mint : C.text3, marginTop:2 }}>
+                  {t.fee} {currency}
+                </Text>
+              )}
             </TouchableOpacity>
           ))}
         </View>
