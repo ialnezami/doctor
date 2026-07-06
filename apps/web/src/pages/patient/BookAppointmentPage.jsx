@@ -37,9 +37,11 @@ export default function BookAppointmentPage() {
   useEffect(() => {
     getDoctorLocations(doctorId)
       .then(locs => {
-        const bookable = (locs || []).filter(l => l.type === 'bookable');
-        setLocations(bookable);
-        if (bookable.length > 0) setLocationId(bookable[0]._id);
+        const all = locs || [];
+        const bookable = all.filter(l => l.type === 'bookable');
+        const toShow = bookable.length > 0 ? bookable : all;
+        setLocations(toShow);
+        if (toShow.length > 0) setLocationId(toShow[0]._id);
       })
       .catch(() => {});
   }, [doctorId]);
