@@ -22,6 +22,7 @@ export default function BookAppointmentPage() {
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [locationsLoaded, setLocationsLoaded] = useState(false);
 
   useEffect(() => {
     getDoctor(doctorId).then(doc => {
@@ -43,7 +44,8 @@ export default function BookAppointmentPage() {
         setLocations(toShow);
         if (toShow.length > 0) setLocationId(toShow[0]._id);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLocationsLoaded(true));
   }, [doctorId]);
 
   const submit = async () => {
@@ -81,6 +83,12 @@ export default function BookAppointmentPage() {
           <div><div style={{ fontSize:11, color:'var(--text3)' }}>{t('book.time')}</div><div style={{ fontSize:13, fontWeight:500 }}>{slot}</div></div>
         </div>
       </div>
+
+      {locationsLoaded && locations.length === 0 && (
+        <div style={{ background:'var(--bg2)', border:'1px solid var(--border2)', borderRadius:'var(--r-sm)', padding:'14px 16px', marginBottom:20, fontSize:13, color:'var(--text2)' }}>
+          This doctor has not configured an online booking location yet. Please contact them directly to schedule an appointment.
+        </div>
+      )}
 
       {locations.length > 1 && (
         <div style={{ marginBottom:20 }}>
@@ -127,7 +135,7 @@ export default function BookAppointmentPage() {
       </div>
 
       {error && <p style={{ color:'var(--rose)', fontSize:13, marginBottom:12 }}>{error}</p>}
-      <Button full disabled={loading} onClick={submit} style={{ padding:13, fontSize:14 }}>
+      <Button full disabled={loading || (locationsLoaded && locations.length === 0)} onClick={submit} style={{ padding:13, fontSize:14 }}>
         {loading ? t('book.submitting') : t('book.submit')}
       </Button>
     </div>
