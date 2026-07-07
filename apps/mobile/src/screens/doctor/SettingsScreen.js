@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import { View, Text, Switch, TouchableOpacity, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getMyDoctorProfile, updateDoctorSettings, getPlatformCurrencies } from '../../api/doctors';
+import { getMyDoctorProfile, updateDoctorSettings, getPlatformCurrencies, getDoctorLocations, addDoctorLocation, updateDoctorLocation, deleteDoctorLocation } from '../../api/doctors';
 import { getMe } from '../../api/auth';
 import { getNotificationPrefs, updateNotificationPrefs } from '../../api/users';
 import useAuthStore from '../../store/authStore';
@@ -48,6 +48,13 @@ export default function SettingsScreen() {
   const [saved, setSaved] = useState(false);
   const [pushEnabled,  setPushEnabled]  = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(true);
+  const [locations, setLocations] = useState([]);
+  const [editingLocId, setEditingLocId] = useState(null);
+  const [editDraft, setEditDraft] = useState({});
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addDraft, setAddDraft] = useState({ name: '', address: '', type: 'bookable' });
+  const [locError, setLocError] = useState('');
+  const [locSaving, setLocSaving] = useState(false);
 
   useEffect(() => {
     getMe().then(setMe).catch(() => {});
@@ -62,6 +69,7 @@ export default function SettingsScreen() {
       setConsultationFee(doc.consultationFee != null ? String(doc.consultationFee) : '');
       setCurrency(doc.currency || 'SAR');
       setApptTypes(doc.appointmentTypes?.length ? doc.appointmentTypes : PREDEFINED_APPT_TYPES);
+      getDoctorLocations(doc._id).then(locs => setLocations(locs || [])).catch(() => {});
     }).catch(() => {});
 
     getPlatformCurrencies().then(data => {
@@ -77,6 +85,38 @@ export default function SettingsScreen() {
       }
     }).catch(() => {});
   }, []);
+
+  const startEditLoc = (loc) => { setEditingLocId(loc._id); setEditDraft({ name: loc.name, address: loc.address || '', type: loc.type }); setLocError(''); };
+  const cancelEditLoc = () => { setEditingLocId(null); setEditDraft({}); setLocError(''); };
+  const saveEditLoc = async () => {
+    if (!editDraft.name?.trim()) { setLocError('Name is required'); return; }
+    setLocSaving(true);
+    try {
+      const updated = await updateDoctorLocation(editingLocId, editDraft);
+      setLocations(ls => ls.map(l => l._id === editingLocId ? updated : l));
+      setEditingLocId(null); setLocError('');
+    } catch (e) { setLocError(e.message || 'Failed to update'); }
+    finally { setLocSaving(false); }
+  };
+  const deleteLoc = async (locId) => {
+    setLocSaving(true);
+    try {
+      await deleteDoctorLocation(locId);
+      setLocations(ls => ls.filter(l => l._id !== locId));
+      setLocError('');
+    } catch (e) { setLocError(e.message || 'Failed to delete'); }
+    finally { setLocSaving(false); }
+  };
+  const addLoc = async () => {
+    if (!addDraft.name?.trim()) { setLocError('Name is required'); return; }
+    setLocSaving(true);
+    try {
+      const created = await addDoctorLocation(addDraft);
+      setLocations(ls => [...ls, created]);
+      setShowAddForm(false); setAddDraft({ name: '', address: '', type: 'bookable' }); setLocError('');
+    } catch (e) { setLocError(e.message || 'Failed to add'); }
+    finally { setLocSaving(false); }
+  };
 
   const save = async () => {
     if (!doctorId) return;
@@ -252,6 +292,109 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
+        <Text style={s.sectionLabel}>Clinic Locations</Text>
+        <View style={s.card}>
+          <Text style={s.rowSub}>Bookable locations appear in the patient booking flow. Add at least one so patients can book.</Text>
+          <View style={{ height: 10 }} />
+
+          {locations.length === 0 && !showAddForm && (
+            <Text style={{ fontSize: 12, color: C.text3, marginBottom: 8 }}>No locations yet.</Text>
+          )}
+
+          {locations.map(loc => (
+            <View key={loc._id} style={{ marginBottom: 8, backgroundColor: C.bg3, borderRadius: 8, borderWidth: 1, borderColor: C.border, padding: 10 }}>
+              {editingLocId === loc._id ? (
+                <View>
+                  <TextInput
+                    style={[s.locInput, { marginBottom: 6 }]}
+                    value={editDraft.name}
+                    onChangeText={v => setEditDraft(d => ({ ...d, name: v }))}
+                    placeholder="Location name *"
+                    placeholderTextColor={C.text3}
+                  />
+                  <TextInput
+                    style={[s.locInput, { marginBottom: 6 }]}
+                    value={editDraft.address}
+                    onChangeText={v => setEditDraft(d => ({ ...d, address: v }))}
+                    placeholder="Address (optional)"
+                    placeholderTextColor={C.text3}
+                  />
+                  <View style={{ backgroundColor: C.bg3, borderRadius: 6, borderWidth: 1, borderColor: C.border, marginBottom: 8 }}>
+                    <Picker selectedValue={editDraft.type} onValueChange={v => setEditDraft(d => ({ ...d, type: v }))} style={{ color: C.text, height: 36 }} dropdownIconColor={C.text2}>
+                      <Picker.Item label="Bookable" value="bookable" color={C.text} />
+                      <Picker.Item label="Hospital" value="hospital" color={C.text} />
+                    </Picker>
+                  </View>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TouchableOpacity onPress={saveEditLoc} disabled={locSaving} style={{ backgroundColor: C.mint, borderRadius: 6, paddingHorizontal: 14, paddingVertical: 6 }}>
+                      <Text style={{ color: '#000', fontSize: 13, fontWeight: '600' }}>Save</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={cancelEditLoc} style={{ borderRadius: 6, paddingHorizontal: 14, paddingVertical: 6 }}>
+                      <Text style={{ color: C.text2, fontSize: 13 }}>Cancel</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '500', color: C.text }}>{loc.name}</Text>
+                    {!!loc.address && <Text style={{ fontSize: 11, color: C.text3, marginTop: 2 }}>{loc.address}</Text>}
+                  </View>
+                  <View style={{ backgroundColor: loc.type === 'bookable' ? 'rgba(15,227,176,0.15)' : C.bg2, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 }}>
+                    <Text style={{ fontSize: 11, color: loc.type === 'bookable' ? C.mint : C.text2, fontWeight: '500' }}>{loc.type}</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => startEditLoc(loc)} hitSlop={6}>
+                    <Text style={{ fontSize: 12, color: C.text2 }}>Edit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => deleteLoc(loc._id)} disabled={locSaving} hitSlop={6}>
+                    <Text style={{ color: C.rose, fontSize: 20, lineHeight: 22 }}>×</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          ))}
+
+          {showAddForm ? (
+            <View style={{ backgroundColor: C.bg3, borderRadius: 8, borderWidth: 1, borderColor: C.border, padding: 10, marginTop: 4 }}>
+              <Text style={{ fontSize: 12, color: C.text2, fontWeight: '500', marginBottom: 8 }}>New Location</Text>
+              <TextInput
+                style={[s.locInput, { marginBottom: 6 }]}
+                value={addDraft.name}
+                onChangeText={v => setAddDraft(d => ({ ...d, name: v }))}
+                placeholder="Location name *"
+                placeholderTextColor={C.text3}
+              />
+              <TextInput
+                style={[s.locInput, { marginBottom: 6 }]}
+                value={addDraft.address}
+                onChangeText={v => setAddDraft(d => ({ ...d, address: v }))}
+                placeholder="Address (optional)"
+                placeholderTextColor={C.text3}
+              />
+              <View style={{ backgroundColor: C.bg3, borderRadius: 6, borderWidth: 1, borderColor: C.border, marginBottom: 8 }}>
+                <Picker selectedValue={addDraft.type} onValueChange={v => setAddDraft(d => ({ ...d, type: v }))} style={{ color: C.text, height: 36 }} dropdownIconColor={C.text2}>
+                  <Picker.Item label="Bookable" value="bookable" color={C.text} />
+                  <Picker.Item label="Hospital" value="hospital" color={C.text} />
+                </Picker>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <TouchableOpacity onPress={addLoc} disabled={locSaving} style={{ backgroundColor: C.mint, borderRadius: 6, paddingHorizontal: 14, paddingVertical: 6 }}>
+                  <Text style={{ color: '#000', fontSize: 13, fontWeight: '600' }}>Add Location</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => { setShowAddForm(false); setLocError(''); }} style={{ borderRadius: 6, paddingHorizontal: 14, paddingVertical: 6 }}>
+                  <Text style={{ color: C.text2, fontSize: 13 }}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <TouchableOpacity onPress={() => { setShowAddForm(true); setLocError(''); }} style={s.addBtn}>
+              <Text style={s.addBtnTxt}>+ Add location</Text>
+            </TouchableOpacity>
+          )}
+
+          {!!locError && <Text style={{ fontSize: 12, color: C.rose, marginTop: 6 }}>{locError}</Text>}
+        </View>
+
         <Text style={s.sectionLabel}>Availability</Text>
         <View style={s.card}>
           {slots.length === 0 && (
@@ -334,4 +477,5 @@ const s = StyleSheet.create({
   addBtnTxt: { fontSize:13, color:C.mint },
   saveBtn: { backgroundColor:C.mint, borderRadius:12, padding:14, alignItems:'center', marginTop:8 },
   saveBtnTxt: { fontSize:15, fontWeight:'700', color:'#000' },
+  locInput: { fontSize: 13, color: C.text, backgroundColor: C.bg3, borderWidth: 1, borderColor: C.border, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 7 },
 });

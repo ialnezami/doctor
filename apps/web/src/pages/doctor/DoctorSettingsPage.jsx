@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { updateDoctorSettings } from '../../api/doctors';
+import { updateDoctorSettings, getDoctorLocations, addDoctorLocation, updateDoctorLocation, deleteDoctorLocation, getPlatformCurrencies } from '../../api/doctors';
 import useAuthStore from '../../store/authStore';
 import Button from '../../components/ui/Button';
 import client from '../../api/client';
@@ -58,6 +58,15 @@ export default function DoctorSettingsPage() {
   const [education, setEducation] = useState([]);          // [{degree, institution, year}]
   const [achievementsRaw, setAchievementsRaw] = useState(''); // comma-separated string
 
+  // Locations
+  const [locations, setLocations] = useState([]);
+  const [editingLocId, setEditingLocId] = useState(null);
+  const [editDraft, setEditDraft] = useState({});
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addDraft, setAddDraft] = useState({ name: '', address: '', type: 'bookable' });
+  const [locError, setLocError] = useState('');
+  const [locSaving, setLocSaving] = useState(false);
+
   // Share panel UI state
   const [copied, setCopied] = useState(false);
 
@@ -80,6 +89,7 @@ export default function DoctorSettingsPage() {
         setLanguagesRaw((profile.languages || []).join(', '));
         setEducation(profile.education || []);
         setAchievementsRaw((profile.achievements || []).join(', '));
+        getDoctorLocations(profile._id).then(locs => setLocations(locs || [])).catch(() => {});
       }
     }).catch(() => {});
 
@@ -90,7 +100,7 @@ export default function DoctorSettingsPage() {
       }
     }).catch(() => {});
 
-    client.get('/doctors/currencies').then(data => {
+    getPlatformCurrencies().then(data => {
       if (data?.currencies?.length) setAvailableCurrencies(data.currencies);
     }).catch(() => {});
   }, [user.id]);
@@ -102,6 +112,39 @@ export default function DoctorSettingsPage() {
   const addSlot = () => setSlots(s => [...s, { dayOfWeek: 1, startTime: '09:00', endTime: '17:00' }]);
   const removeSlot = (i) => setSlots(s => s.filter((_, idx) => idx !== i));
   const updateSlot = (i, key, val) => setSlots(s => s.map((sl, idx) => idx === i ? { ...sl, [key]: val } : sl));
+
+  // Location handlers
+  const startEditLoc = (loc) => { setEditingLocId(loc._id); setEditDraft({ name: loc.name, address: loc.address || '', type: loc.type }); setLocError(''); };
+  const cancelEditLoc = () => { setEditingLocId(null); setEditDraft({}); setLocError(''); };
+  const saveEditLoc = async () => {
+    if (!editDraft.name?.trim()) { setLocError('Name is required'); return; }
+    setLocSaving(true);
+    try {
+      const updated = await updateDoctorLocation(editingLocId, editDraft);
+      setLocations(ls => ls.map(l => l._id === editingLocId ? updated : l));
+      setEditingLocId(null); setLocError('');
+    } catch (e) { setLocError(e.message || 'Failed to update location'); }
+    finally { setLocSaving(false); }
+  };
+  const deleteLoc = async (locId) => {
+    setLocSaving(true);
+    try {
+      await deleteDoctorLocation(locId);
+      setLocations(ls => ls.filter(l => l._id !== locId));
+      setLocError('');
+    } catch (e) { setLocError(e.message || 'Failed to delete location'); }
+    finally { setLocSaving(false); }
+  };
+  const addLoc = async () => {
+    if (!addDraft.name?.trim()) { setLocError('Name is required'); return; }
+    setLocSaving(true);
+    try {
+      const created = await addDoctorLocation(addDraft);
+      setLocations(ls => [...ls, created]);
+      setShowAddForm(false); setAddDraft({ name: '', address: '', type: 'bookable' }); setLocError('');
+    } catch (e) { setLocError(e.message || 'Failed to add location'); }
+    finally { setLocSaving(false); }
+  };
 
   // Education helpers
   const addEduRow = () => setEducation(e => [...e, { degree: '', institution: '', year: '' }]);
@@ -317,6 +360,80 @@ export default function DoctorSettingsPage() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Clinic Locations */}
+      <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:20, marginBottom:20 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+          <div style={{ fontSize:14, fontWeight:500 }}>Clinic Locations</div>
+          <Button variant="ghost" style={{ padding:'4px 10px', fontSize:12 }}
+            onClick={() => { setShowAddForm(v => !v); setLocError(''); }}>
+            {showAddForm ? 'Cancel' : '+ Add'}
+          </Button>
+        </div>
+        <div style={{ fontSize:12, color:'var(--text2)', marginBottom:14 }}>
+          <strong>Bookable</strong> locations appear in the patient booking flow. Hospital locations are for display only.
+        </div>
+
+        {locations.length === 0 && !showAddForm && (
+          <p style={{ fontSize:12, color:'var(--text3)', margin:'0 0 4px' }}>No locations yet. Add one so patients can book appointments.</p>
+        )}
+
+        {locations.map(loc => (
+          <div key={loc._id} style={{ marginBottom:8, padding:'10px 12px', background:'var(--bg3)', borderRadius:8, border:'1px solid var(--border2)' }}>
+            {editingLocId === loc._id ? (
+              <div>
+                <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:8 }}>
+                  <input value={editDraft.name} onChange={e => setEditDraft(d => ({ ...d, name: e.target.value }))}
+                    placeholder="Location name *" style={{ ...inputStyle, flex:'2 1 140px' }} />
+                  <input value={editDraft.address} onChange={e => setEditDraft(d => ({ ...d, address: e.target.value }))}
+                    placeholder="Address (optional)" style={{ ...inputStyle, flex:'3 1 180px' }} />
+                  <select value={editDraft.type} onChange={e => setEditDraft(d => ({ ...d, type: e.target.value }))}
+                    style={{ background:'var(--bg3)', border:'1px solid var(--border2)', borderRadius:6, padding:'6px 10px', color:'var(--text)', fontSize:13 }}>
+                    <option value="bookable">Bookable</option>
+                    <option value="hospital">Hospital</option>
+                  </select>
+                </div>
+                <div style={{ display:'flex', gap:8 }}>
+                  <Button style={{ padding:'5px 14px', fontSize:12 }} onClick={saveEditLoc} disabled={locSaving}>Save</Button>
+                  <Button variant="ghost" style={{ padding:'5px 14px', fontSize:12 }} onClick={cancelEditLoc}>Cancel</Button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:13, fontWeight:500, color:'var(--text)' }}>{loc.name}</div>
+                  {loc.address && <div style={{ fontSize:11, color:'var(--text3)', marginTop:2 }}>{loc.address}</div>}
+                </div>
+                <span style={{ fontSize:11, padding:'2px 8px', borderRadius:10, background: loc.type === 'bookable' ? 'rgba(15,227,176,0.15)' : 'var(--bg2)', color: loc.type === 'bookable' ? 'var(--mint)' : 'var(--text2)', fontWeight:500 }}>
+                  {loc.type}
+                </span>
+                <button onClick={() => startEditLoc(loc)} style={{ background:'none', border:'none', color:'var(--text2)', cursor:'pointer', fontSize:12, padding:'4px 8px' }}>Edit</button>
+                <button onClick={() => deleteLoc(loc._id)} disabled={locSaving} style={{ background:'none', border:'none', color:'var(--rose)', cursor:'pointer', fontSize:18, padding:'2px', lineHeight:1 }}>×</button>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {showAddForm && (
+          <div style={{ marginTop:8, padding:12, background:'var(--bg3)', borderRadius:8, border:'1px solid var(--border2)' }}>
+            <div style={{ fontSize:12, color:'var(--text2)', marginBottom:8, fontWeight:500 }}>New Location</div>
+            <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:8 }}>
+              <input value={addDraft.name} onChange={e => setAddDraft(d => ({ ...d, name: e.target.value }))}
+                placeholder="Location name *" style={{ ...inputStyle, flex:'2 1 140px' }} />
+              <input value={addDraft.address} onChange={e => setAddDraft(d => ({ ...d, address: e.target.value }))}
+                placeholder="Address (optional)" style={{ ...inputStyle, flex:'3 1 180px' }} />
+              <select value={addDraft.type} onChange={e => setAddDraft(d => ({ ...d, type: e.target.value }))}
+                style={{ background:'var(--bg3)', border:'1px solid var(--border2)', borderRadius:6, padding:'6px 10px', color:'var(--text)', fontSize:13 }}>
+                <option value="bookable">Bookable</option>
+                <option value="hospital">Hospital</option>
+              </select>
+            </div>
+            <Button style={{ padding:'6px 16px', fontSize:12 }} onClick={addLoc} disabled={locSaving}>Add Location</Button>
+          </div>
+        )}
+
+        {locError && <p style={{ color:'var(--rose)', fontSize:12, marginTop:8, marginBottom:0 }}>{locError}</p>}
       </div>
 
       {/* Auto-accept */}
