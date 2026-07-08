@@ -23,6 +23,7 @@ import LabDashboardPage   from '../pages/lab/LabDashboardPage';
 import ShareViewerPage         from '../pages/public/ShareViewerPage';
 import RxVerifyPage            from '../pages/public/RxVerifyPage';
 import DoctorPublicProfilePage from '../pages/public/DoctorPublicProfilePage';
+import DownloadPage            from '../pages/public/DownloadPage';
 import ChatPage           from '../pages/shared/ChatPage';
 import VideoCallPage      from '../pages/shared/VideoCallPage';
 import AdminLoginPage from '../pages/admin/AdminLoginPage';
@@ -74,6 +75,7 @@ export default function AppRouter() {
         <Route path="/dr/:id"    element={<DoctorPublicProfilePage />} />
         <Route path="/s/:token"  element={<ShareViewerPage />} />
         <Route path="/rx/:token" element={<RxVerifyPage />} />
+        <Route path="/download"  element={<DownloadPage />} />
 
         {/* Admin routes */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
