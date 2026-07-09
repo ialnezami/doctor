@@ -5,6 +5,7 @@ import DoctorProfileScreen from '../screens/patient/DoctorProfileScreen';
 import BookAppointmentScreen from '../screens/patient/BookAppointmentScreen';
 import BookConfirmedScreen from '../screens/patient/BookConfirmedScreen';
 import SymptomInputScreen from '../screens/patient/SymptomInputScreen';
+import ChatbotScreen from '../screens/patient/ChatbotScreen';
 
 const Stack = createStackNavigator();
 
@@ -16,6 +17,11 @@ export default function PatientStack() {
       <Stack.Screen name="BookAppointment" component={BookAppointmentScreen} />
       <Stack.Screen name="SymptomInput" component={SymptomInputScreen} />
       <Stack.Screen name="BookConfirmed" component={BookConfirmedScreen} />
+      <Stack.Screen
+        name="Chatbot"
+        component={ChatbotScreen}
+        options={{ presentation: 'modal' }}
+      />
     </Stack.Navigator>
   );
 }
