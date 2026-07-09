@@ -19,7 +19,8 @@ import MyAppointmentsPage from '../pages/patient/MyAppointmentsPage';
 import MedicalRecordsPage from '../pages/patient/MedicalRecordsPage';
 import PatientSettingsPage from '../pages/patient/PatientSettingsPage';
 import ReviewsPage        from '../pages/doctor/ReviewsPage';
-import LabDashboardPage   from '../pages/lab/LabDashboardPage';
+import LabDashboardPage      from '../pages/lab/LabDashboardPage';
+import PharmacyDashboardPage from '../pages/pharmacy/PharmacyDashboardPage';
 import ShareViewerPage         from '../pages/public/ShareViewerPage';
 import RxVerifyPage            from '../pages/public/RxVerifyPage';
 import DoctorPublicProfilePage from '../pages/public/DoctorPublicProfilePage';
@@ -71,6 +72,9 @@ export default function AppRouter() {
         {/* Lab routes */}
         <Route path="/lab" element={<Protected role="laboratory"><LabDashboardPage /></Protected>} />
 
+        {/* Pharmacy routes */}
+        <Route path="/pharmacy" element={<Protected role="pharmacy"><PharmacyDashboardPage /></Protected>} />
+
         {/* Public */}
         <Route path="/dr/:id"    element={<DoctorPublicProfilePage />} />
         <Route path="/s/:token"  element={<ShareViewerPage />} />
@@ -86,6 +90,7 @@ export default function AppRouter() {
           !user ? <Navigate to="/login" /> :
           user.role === 'doctor' ? <Navigate to="/dashboard" /> :
           user.role === 'laboratory' ? <Navigate to="/lab" /> :
+          user.role === 'pharmacy'   ? <Navigate to="/pharmacy" /> :
           <Navigate to="/find-doctor" />
         } />
         <Route path="*" element={<Navigate to="/" />} />

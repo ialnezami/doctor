@@ -151,9 +151,20 @@ export default function LabUploadsScreen() {
           <View style={s.uploadRow}>
             <View style={{ flex: 1 }}>
               <Text style={{ color: C.text, fontSize: 13, fontWeight: '600' }}>{u.labName}</Text>
-              <Text style={{ color: C.text2, fontSize: 12 }}>{u.tests?.[0]?.name}</Text>
+              {u.tests?.map((test, i) => (
+                <View key={i} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                  <Text style={{ color: C.text2, fontSize: 12 }}>{test.name}</Text>
+                  {!!test.value && <Text style={{ color: C.text, fontSize: 12, marginLeft: 6 }}>{test.value}</Text>}
+                  {test.flag && test.flag !== 'normal' && (
+                    <Text style={{ color: C.rose, fontSize: 10, fontWeight: '700', marginLeft: 4 }}>{test.flag.toUpperCase()}</Text>
+                  )}
+                </View>
+              ))}
             </View>
-            <Text style={{ color: C.text3, fontSize: 11 }}>{u.status}</Text>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={{ color: C.text3, fontSize: 11 }}>{u.status || 'ready'}</Text>
+              {!!u.createdAt && <Text style={{ color: C.text3, fontSize: 10, marginTop: 2 }}>{new Date(u.createdAt).toLocaleDateString()}</Text>}
+            </View>
           </View>
         )}
       />
