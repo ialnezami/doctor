@@ -106,7 +106,7 @@ async function streamChatResponse(res, history, systemPrompt, { requestId, userI
       console.error(`[chatbot] requestId=${requestId} userId=${userId} error=timeout durationMs=${Date.now() - startedAt}`);
       res.write(`data: ${JSON.stringify({ type: 'error', message: 'Response timed out — please try again.' })}\n\n`);
     } else {
-      console.error(`[chatbot] requestId=${requestId} userId=${userId} error=${err.message} durationMs=${Date.now() - startedAt}`);
+      console.error(`[chatbot] requestId=${requestId} userId=${userId} error=${err.name}: ${String(err.message).slice(0, 200)} durationMs=${Date.now() - startedAt}`);
       res.write(`data: ${JSON.stringify({ type: 'error', message: 'AI service temporarily unavailable' })}\n\n`);
     }
     // Re-throw so the route handler can close the stream and log the failure

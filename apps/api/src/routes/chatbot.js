@@ -58,7 +58,7 @@ router.post('/message',
       // streamChatResponse already wrote an SSE error event and re-threw.
       // Our job: close the stream cleanly.
       // NOTE: req.body.message is intentionally NOT logged here (PHI).
-      console.error(`[chatbot] requestId=${requestId} userId=${userId} stream_error=${err.message}`);
+      console.error(`[chatbot] requestId=${requestId} userId=${userId} stream_error=${err.name}: ${String(err.message).slice(0, 200)}`);
       res.write('data: [DONE]\n\n');
       res.end();
       return;
@@ -85,7 +85,7 @@ router.post('/message',
       } catch (err) {
         // Doctor ranking failure is non-fatal — the conversational response was already streamed.
         // Log the error (non-PHI) and return empty doctors list.
-        console.error(`[chatbot] requestId=${requestId} userId=${userId} doctorRanking_error=${err.message}`);
+        console.error(`[chatbot] requestId=${requestId} userId=${userId} doctorRanking_error=${err.name}: ${String(err.message).slice(0, 200)}`);
       }
     }
 

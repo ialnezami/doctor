@@ -1,8 +1,11 @@
 # Anthropic BAA Status — Phase 9 Chatbot Compliance Gate
 
+> **WARNING: PRODUCTION LAUNCH BLOCKED until BAA is signed with Anthropic. See Actions Required below.**
+
 **Status:** UNKNOWN — MUST BE RESOLVED BEFORE PRODUCTION LAUNCH
 **Owner:** ibrahim.alnezami@gmail.com
 **Blocking:** Phase 9 production deployment (Wave 4 verification gate)
+**Last reviewed:** 2026-07-09 by ialnezami
 
 ## Why This Matters
 
