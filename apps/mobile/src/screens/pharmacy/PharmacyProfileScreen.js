@@ -2,30 +2,77 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getPharmacyProfile, updatePharmacyProfile } from '../../api/pharmacies';
+import { getCachedProfile, cacheProfile } from '../../utils/localStore';
+import { enqueue } from '../../utils/offlineQueue';
+import useNetworkStatus from '../../hooks/useNetworkStatus';
+import OfflineBanner from '../../components/OfflineBanner';
 import C from '../../constants/colors';
 
+const isNetworkError = (e) =>
+  !e?.response || e?.message?.includes('Network Error') || e?.code === 'ERR_NETWORK';
+
 export default function PharmacyProfileScreen() {
-  const [approved, setApproved] = useState(null);
-  const [form,     setForm]     = useState({ pharmacyName: '', licenseNumber: '', address: '' });
-  const [saving,   setSaving]   = useState(false);
-  const [msg,      setMsg]      = useState('');
+  const [approved,   setApproved]   = useState(null);
+  const [pharmacyId, setPharmacyId] = useState(null);
+  const [form,       setForm]       = useState({ pharmacyName: '', licenseNumber: '', address: '' });
+  const [saving,     setSaving]     = useState(false);
+  const [msg,        setMsg]        = useState('');
+
+  const { isOnline, pendingCount, refreshPendingCount } = useNetworkStatus();
 
   useEffect(() => {
-    getPharmacyProfile()
-      .then(p => {
+    async function load() {
+      try {
+        const p = await getPharmacyProfile();
         setApproved(p.isApproved);
+        setPharmacyId(p._id);
         setForm({ pharmacyName: p.pharmacyName || '', licenseNumber: p.licenseNumber || '', address: p.address || '' });
-      })
-      .catch(() => setApproved(false));
+        await cacheProfile(p._id, p);
+      } catch (e) {
+        if (isNetworkError(e)) {
+          // Try cache
+          const cached = await getCachedProfile('__pharmacy__');
+          if (cached) {
+            setApproved(cached.isApproved);
+            setPharmacyId(cached._id);
+            setForm({ pharmacyName: cached.pharmacyName || '', licenseNumber: cached.licenseNumber || '', address: cached.address || '' });
+          } else {
+            setApproved(false);
+          }
+        } else {
+          setApproved(false);
+        }
+      }
+    }
+    load();
   }, []);
 
   const save = async () => {
     setSaving(true); setMsg('');
     try {
-      await updatePharmacyProfile(form);
-      setMsg('Profile saved.');
-    } catch (e) { setMsg(e?.message || 'Save failed'); }
-    finally { setSaving(false); }
+      if (isOnline) {
+        const updated = await updatePharmacyProfile(form);
+        if (pharmacyId) await cacheProfile(pharmacyId, { ...updated, isApproved: approved });
+        setMsg('Profile saved.');
+      } else {
+        // Queue and update cache optimistically
+        if (pharmacyId) await cacheProfile(pharmacyId, { _id: pharmacyId, ...form, isApproved: approved });
+        await enqueue({ method: 'patch', path: '/pharmacies/me', body: form });
+        await refreshPendingCount();
+        setMsg('Saved offline — will sync when connected.');
+      }
+    } catch (e) {
+      if (isNetworkError(e)) {
+        if (pharmacyId) await cacheProfile(pharmacyId, { _id: pharmacyId, ...form, isApproved: approved });
+        await enqueue({ method: 'patch', path: '/pharmacies/me', body: form });
+        await refreshPendingCount();
+        setMsg('Saved offline — will sync when connected.');
+      } else {
+        setMsg(e?.message || 'Save failed');
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (approved === null) return <View style={s.center}><ActivityIndicator color={C.mint} /></View>;
@@ -44,6 +91,7 @@ export default function PharmacyProfileScreen() {
 
   return (
     <SafeAreaView style={s.safe}>
+      <OfflineBanner isOnline={isOnline} pendingCount={pendingCount} />
       <ScrollView contentContainerStyle={{ padding: 20 }}>
         <Text style={s.heading}>Profile</Text>
         <View style={s.card}>
@@ -58,7 +106,11 @@ export default function PharmacyProfileScreen() {
               />
             </View>
           ))}
-          {!!msg && <Text style={{ fontSize: 13, marginBottom: 10, color: msg.includes('saved') ? C.mint : C.rose }}>{msg}</Text>}
+          {!!msg && (
+            <Text style={{ fontSize: 13, marginBottom: 10, color: msg.includes('failed') ? C.rose : C.mint }}>
+              {msg}
+            </Text>
+          )}
           <TouchableOpacity style={[s.btn, saving && { opacity: 0.6 }]} onPress={save} disabled={saving}>
             <Text style={s.btnTxt}>{saving ? 'Saving…' : 'Save Profile'}</Text>
           </TouchableOpacity>
