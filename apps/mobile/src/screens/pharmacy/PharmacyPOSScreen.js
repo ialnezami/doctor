@@ -1,25 +1,57 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getPharmacyProfile, createSale, getSales } from '../../api/pharmacies';
+import { cacheSales, getCachedSales, addCachedSale, adjustCachedStock } from '../../utils/localStore';
+import { enqueue } from '../../utils/offlineQueue';
+import useNetworkStatus from '../../hooks/useNetworkStatus';
+import OfflineBanner from '../../components/OfflineBanner';
 import C from '../../constants/colors';
+
+const isNetworkError = (e) =>
+  !e?.response || e?.message?.includes('Network Error') || e?.code === 'ERR_NETWORK';
 
 export default function PharmacyPOSScreen() {
   const [approved,    setApproved]    = useState(null);
+  const [pharmacyId,  setPharmacyId]  = useState(null);
   const [sales,       setSales]       = useState([]);
   const [items,       setItems]       = useState([{ name: '', qty: '1', unitPrice: '0' }]);
   const [meta,        setMeta]        = useState({ patientId: '', prescriptionId: '', paymentMethod: 'cash', currency: 'SAR' });
   const [submitting,  setSubmitting]  = useState(false);
   const [error,       setError]       = useState('');
+  const [successMsg,  setSuccessMsg]  = useState('');
+
+  const { isOnline, pendingCount, refreshPendingCount } = useNetworkStatus();
+
+  const loadSales = useCallback(async (pid, online) => {
+    if (online) {
+      try {
+        const r = await getSales();
+        const list = r.sales || [];
+        setSales(list);
+        await cacheSales(pid, list);
+        return;
+      } catch (e) {
+        if (!isNetworkError(e)) return;
+      }
+    }
+    const cached = await getCachedSales(pid);
+    setSales(cached);
+  }, []);
 
   useEffect(() => {
     getPharmacyProfile()
-      .then(p => {
+      .then(async p => {
         setApproved(p.isApproved);
-        if (p.isApproved) return getSales().then(r => setSales(r.sales || []));
+        setPharmacyId(p._id);
+        if (p.isApproved) await loadSales(p._id, true);
       })
       .catch(() => setApproved(false));
-  }, []);
+  }, [loadSales]);
+
+  useEffect(() => {
+    if (isOnline && pharmacyId && approved) loadSales(pharmacyId, true);
+  }, [isOnline, pharmacyId, approved, loadSales]);
 
   const totalAmount = items.reduce((s, i) => s + (parseFloat(i.qty) || 0) * (parseFloat(i.unitPrice) || 0), 0);
 
@@ -28,25 +60,61 @@ export default function PharmacyPOSScreen() {
   const setField   = (idx, key, val) => setItems(is => is.map((it, i) => i === idx ? { ...it, [key]: val } : it));
 
   const submit = async () => {
-    setError('');
+    setError(''); setSuccessMsg('');
     const validItems = items.filter(i => i.name.trim());
     if (!validItems.length) { setError('Add at least one item with a name'); return; }
     setSubmitting(true);
-    try {
-      const sale = await createSale({
-        items: validItems.map(i => ({ name: i.name.trim(), qty: parseInt(i.qty) || 1, unitPrice: parseFloat(i.unitPrice) || 0 })),
-        paymentMethod: meta.paymentMethod,
-        totalAmount,
-        currency: meta.currency,
-        ...(meta.patientId.trim()      && { patientId:      meta.patientId.trim() }),
-        ...(meta.prescriptionId.trim() && { prescriptionId: meta.prescriptionId.trim() }),
-      });
-      setSales(s => [sale, ...s]);
-      setItems([{ name: '', qty: '1', unitPrice: '0' }]);
-      setMeta(m => ({ ...m, patientId: '', prescriptionId: '' }));
-    } catch (e) { setError(e?.message || 'Sale failed'); }
-    finally { setSubmitting(false); }
+
+    const saleBody = {
+      items: validItems.map(i => ({ name: i.name.trim(), qty: parseInt(i.qty) || 1, unitPrice: parseFloat(i.unitPrice) || 0 })),
+      paymentMethod: meta.paymentMethod,
+      totalAmount,
+      currency: meta.currency,
+      ...(meta.patientId.trim()      && { patientId:      meta.patientId.trim() }),
+      ...(meta.prescriptionId.trim() && { prescriptionId: meta.prescriptionId.trim() }),
+    };
+
+    const optimistic = {
+      _id: 'local_' + Date.now(),
+      ...saleBody,
+      receiptNumber: 'PENDING-' + Date.now(),
+      createdAt: new Date().toISOString(),
+    };
+
+    if (isOnline) {
+      try {
+        const sale = await createSale(saleBody);
+        setSales(s => [sale, ...s]);
+        await addCachedSale(pharmacyId, sale);
+        setItems([{ name: '', qty: '1', unitPrice: '0' }]);
+        setMeta(m => ({ ...m, patientId: '', prescriptionId: '' }));
+        setSuccessMsg('Sale complete!');
+      } catch (e) {
+        if (isNetworkError(e)) {
+          await queueOfflineSale(optimistic, saleBody);
+        } else {
+          setError(e?.message || 'Sale failed');
+        }
+      }
+    } else {
+      await queueOfflineSale(optimistic, saleBody);
+    }
+    setSubmitting(false);
   };
+
+  async function queueOfflineSale(optimistic, saleBody) {
+    setSales(s => [optimistic, ...s]);
+    await addCachedSale(pharmacyId, optimistic);
+    // Optimistically deduct stock for items with productId
+    for (const item of saleBody.items) {
+      if (item.productId) await adjustCachedStock(pharmacyId, item.productId, -item.qty);
+    }
+    await enqueue({ method: 'post', path: '/sales', body: saleBody });
+    await refreshPendingCount();
+    setItems([{ name: '', qty: '1', unitPrice: '0' }]);
+    setMeta(m => ({ ...m, patientId: '', prescriptionId: '' }));
+    setSuccessMsg('Saved offline — will sync when connected.');
+  }
 
   if (approved === null) return <View style={s.center}><ActivityIndicator color={C.mint} /></View>;
 
@@ -62,6 +130,7 @@ export default function PharmacyPOSScreen() {
 
   return (
     <SafeAreaView style={s.safe}>
+      <OfflineBanner isOnline={isOnline} pendingCount={pendingCount} />
       <FlatList
         data={sales}
         keyExtractor={sale => sale._id}
@@ -123,20 +192,28 @@ export default function PharmacyPOSScreen() {
                 Total: {totalAmount.toFixed(2)} {meta.currency}
               </Text>
 
-              {!!error && <Text style={{ color: C.rose, fontSize: 12, marginBottom: 8 }}>{error}</Text>}
+              {!!error      && <Text style={{ color: C.rose, fontSize: 12, marginBottom: 8 }}>{error}</Text>}
+              {!!successMsg && <Text style={{ color: C.mint, fontSize: 12, marginBottom: 8 }}>{successMsg}</Text>}
               <TouchableOpacity style={[s.btn, submitting && { opacity: 0.6 }]} onPress={submit} disabled={submitting}>
                 <Text style={s.btnTxt}>{submitting ? 'Processing…' : 'Complete Sale'}</Text>
               </TouchableOpacity>
             </View>
 
             <Text style={s.sectionLabel}>Recent Sales</Text>
-            {sales.length === 0 && <Text style={{ fontSize: 12, color: C.text3 }}>No sales yet.</Text>}
+            {sales.length === 0 && (
+              <Text style={{ fontSize: 12, color: C.text3 }}>
+                {isOnline ? 'No sales yet.' : 'No data available offline.'}
+              </Text>
+            )}
           </View>
         }
         renderItem={({ item: sale }) => (
           <View style={s.saleRow}>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: C.text, fontSize: 13, fontWeight: '600' }}>#{sale.receiptNumber}</Text>
+              <Text style={{ color: C.text, fontSize: 13, fontWeight: '600' }}>
+                #{sale.receiptNumber}
+                {sale._id?.startsWith('local_') ? ' ⏳' : ''}
+              </Text>
               <Text style={{ color: C.text2, fontSize: 11, marginTop: 2 }}>{sale.items?.length} item(s) · {sale.paymentMethod}</Text>
             </View>
             <View style={{ alignItems: 'flex-end' }}>

@@ -1,49 +1,145 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getPharmacyProfile, getProducts, createProduct, adjustStock } from '../../api/pharmacies';
+import {
+  cacheProducts, getCachedProducts,
+  upsertCachedProduct, removeCachedProduct, adjustCachedStock,
+} from '../../utils/localStore';
+import { enqueue } from '../../utils/offlineQueue';
+import useNetworkStatus from '../../hooks/useNetworkStatus';
+import OfflineBanner from '../../components/OfflineBanner';
 import C from '../../constants/colors';
 
-const UNIT_OPTIONS = ['tablet', 'capsule', 'ml', 'mg', 'box', 'sachet', 'other'];
+const isNetworkError = (e) =>
+  !e?.response || e?.message?.includes('Network Error') || e?.code === 'ERR_NETWORK';
 
 export default function PharmacyInventoryScreen() {
   const [approved,   setApproved]   = useState(null);
+  const [pharmacyId, setPharmacyId] = useState(null);
   const [products,   setProducts]   = useState([]);
   const [form,       setForm]       = useState({ name: '', barcode: '', price: '', stockQty: '0', unit: 'tablet' });
   const [adding,     setAdding]     = useState(false);
   const [error,      setError]      = useState('');
 
+  const { isOnline, pendingCount, refreshPendingCount } = useNetworkStatus();
+
+  const loadProducts = useCallback(async (pid, online) => {
+    if (online) {
+      try {
+        const r = await getProducts();
+        const list = r.products || [];
+        setProducts(list);
+        await cacheProducts(pid, list);
+        return;
+      } catch (e) {
+        if (!isNetworkError(e)) return; // real error, don't fallback silently
+      }
+    }
+    // offline or network failure — use cache
+    const cached = await getCachedProducts(pid);
+    setProducts(cached);
+  }, []);
+
   useEffect(() => {
     getPharmacyProfile()
-      .then(p => {
+      .then(async p => {
         setApproved(p.isApproved);
-        if (p.isApproved) {
-          return getProducts().then(r => setProducts(r.products || []));
-        }
+        setPharmacyId(p._id);
+        if (p.isApproved) await loadProducts(p._id, true);
       })
-      .catch(() => setApproved(false));
-  }, []);
+      .catch(async () => {
+        // Try profile from cache not needed here — just mark unapproved to show pending screen
+        setApproved(false);
+      });
+  }, [loadProducts]);
+
+  // Re-fetch when coming back online
+  useEffect(() => {
+    if (isOnline && pharmacyId && approved) loadProducts(pharmacyId, true);
+  }, [isOnline, pharmacyId, approved, loadProducts]);
 
   const addProduct = async () => {
     setError('');
     if (!form.name || !form.barcode || !form.price) { setError('Name, barcode and price are required'); return; }
     setAdding(true);
-    try {
-      const p = await createProduct({
-        name: form.name, barcode: form.barcode, unit: form.unit,
-        price: parseFloat(form.price), stockQty: parseInt(form.stockQty) || 0,
-      });
-      setProducts(ps => [p, ...ps]);
+    const body = {
+      name: form.name, barcode: form.barcode, unit: form.unit,
+      price: parseFloat(form.price), stockQty: parseInt(form.stockQty) || 0,
+    };
+    const optimistic = { _id: 'local_' + Date.now(), ...body, lowStockThreshold: 10, currency: 'SAR' };
+
+    if (isOnline) {
+      try {
+        const p = await createProduct(body);
+        setProducts(ps => [p, ...ps]);
+        await upsertCachedProduct(pharmacyId, p);
+        setForm({ name: '', barcode: '', price: '', stockQty: '0', unit: 'tablet' });
+      } catch (e) {
+        if (isNetworkError(e)) {
+          setProducts(ps => [optimistic, ...ps]);
+          await upsertCachedProduct(pharmacyId, optimistic);
+          await enqueue({ method: 'post', path: '/products', body });
+          await refreshPendingCount();
+          setForm({ name: '', barcode: '', price: '', stockQty: '0', unit: 'tablet' });
+        } else {
+          setError(e?.message || 'Failed to add product');
+        }
+      }
+    } else {
+      setProducts(ps => [optimistic, ...ps]);
+      await upsertCachedProduct(pharmacyId, optimistic);
+      await enqueue({ method: 'post', path: '/products', body });
+      await refreshPendingCount();
       setForm({ name: '', barcode: '', price: '', stockQty: '0', unit: 'tablet' });
-    } catch (e) { setError(e?.message || 'Failed to add product'); }
-    finally { setAdding(false); }
+    }
+    setAdding(false);
   };
 
   const handleStock = async (id, delta) => {
-    try {
-      const updated = await adjustStock(id, delta);
-      setProducts(ps => ps.map(p => p._id === id ? updated : p));
-    } catch (e) { Alert.alert('Error', e?.message || 'Stock adjust failed'); }
+    // Optimistic local update first
+    const updated = await adjustCachedStock(pharmacyId, id, delta);
+    if (updated) setProducts(ps => ps.map(p => p._id === id ? updated : p));
+
+    if (isOnline) {
+      try {
+        const result = await adjustStock(id, delta);
+        setProducts(ps => ps.map(p => p._id === id ? result : p));
+        await upsertCachedProduct(pharmacyId, result);
+      } catch (e) {
+        if (isNetworkError(e)) {
+          await enqueue({ method: 'patch', path: `/products/${id}/stock`, body: { delta } });
+          await refreshPendingCount();
+        } else {
+          Alert.alert('Error', e?.message || 'Stock adjust failed');
+          // Revert local change
+          await adjustCachedStock(pharmacyId, id, -delta);
+          setProducts(ps => ps.map(p => p._id === id ? { ...p, stockQty: (p.stockQty || 0) - delta } : p));
+        }
+      }
+    } else {
+      await enqueue({ method: 'patch', path: `/products/${id}/stock`, body: { delta } });
+      await refreshPendingCount();
+    }
+  };
+
+  const handleDelete = async (id) => {
+    setProducts(ps => ps.filter(p => p._id !== id));
+    await removeCachedProduct(pharmacyId, id);
+
+    if (isOnline && !id.startsWith('local_')) {
+      try {
+        await import('../../api/pharmacies').then(m => m.deleteProduct ? m.deleteProduct(id) : null);
+      } catch (e) {
+        if (isNetworkError(e)) {
+          await enqueue({ method: 'delete', path: `/products/${id}`, body: null });
+          await refreshPendingCount();
+        }
+      }
+    } else if (!id.startsWith('local_')) {
+      await enqueue({ method: 'delete', path: `/products/${id}`, body: null });
+      await refreshPendingCount();
+    }
   };
 
   if (approved === null) return <View style={s.center}><ActivityIndicator color={C.mint} /></View>;
@@ -60,6 +156,7 @@ export default function PharmacyInventoryScreen() {
 
   return (
     <SafeAreaView style={s.safe}>
+      <OfflineBanner isOnline={isOnline} pendingCount={pendingCount} />
       <FlatList
         data={products}
         keyExtractor={p => p._id}
@@ -88,24 +185,33 @@ export default function PharmacyInventoryScreen() {
                 <Text style={s.btnTxt}>{adding ? 'Adding…' : 'Add Product'}</Text>
               </TouchableOpacity>
             </View>
-            {products.length === 0 && <Text style={{ fontSize: 12, color: C.text3 }}>No products yet.</Text>}
+            {products.length === 0 && (
+              <Text style={{ fontSize: 12, color: C.text3 }}>
+                {isOnline ? 'No products yet.' : 'No data available offline.'}
+              </Text>
+            )}
           </View>
         }
         renderItem={({ item: p }) => (
           <View style={s.row}>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: C.text, fontSize: 13, fontWeight: '600' }}>{p.name}</Text>
+              <Text style={{ color: C.text, fontSize: 13, fontWeight: '600' }}>
+                {p.name}{p._id.startsWith('local_') ? ' ⏳' : ''}
+              </Text>
               <Text style={{ color: C.text2, fontSize: 11, marginTop: 2 }}>#{p.barcode} · {p.price} SAR · {p.unit}</Text>
               <Text style={{ fontSize: 12, marginTop: 2, color: p.stockQty <= p.lowStockThreshold ? C.rose : C.mint }}>
                 {p.stockQty} in stock{p.stockQty <= p.lowStockThreshold ? ' ⚠ Low' : ''}
               </Text>
             </View>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
+            <View style={{ flexDirection: 'row', gap: 6 }}>
               <TouchableOpacity style={s.adjBtn} onPress={() => handleStock(p._id, -1)}>
                 <Text style={s.adjTxt}>−</Text>
               </TouchableOpacity>
               <TouchableOpacity style={s.adjBtn} onPress={() => handleStock(p._id, 1)}>
                 <Text style={s.adjTxt}>+</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[s.adjBtn, { borderColor: C.rose }]} onPress={() => handleDelete(p._id)}>
+                <Text style={{ color: C.rose, fontSize: 14 }}>✕</Text>
               </TouchableOpacity>
             </View>
           </View>
