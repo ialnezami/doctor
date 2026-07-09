@@ -62,31 +62,43 @@ router.post('/', auth, requireRole('pharmacy'), [
       if (rx.dispensedAt) return res.status(409).json({ message: 'Prescription already dispensed' });
     }
 
-    // Atomically deduct stock for each item that has a productId
-    const stockErrors = [];
+    // Validate all productIds before touching stock
     for (const item of items) {
       if (!item.productId) continue;
       if (!mongoose.isValidObjectId(item.productId)) {
         return res.status(400).json({ message: `Invalid productId for item "${item.name}"` });
       }
+    }
+
+    // Two-phase stock deduction with compensating rollback on partial failure.
+    // Each deduction is atomic per-document ($gte guard prevents overselling).
+    // If any item fails, already-deducted items are restored before returning 409.
+    const deducted = [];
+    for (const item of items) {
+      if (!item.productId) continue;
       const updated = await Product.findOneAndUpdate(
         { _id: item.productId, pharmacyId: pharmacy._id, stockQty: { $gte: item.qty } },
         { $inc: { stockQty: -item.qty } },
         { new: true }
       );
       if (!updated) {
-        // Check if product exists at all to give a useful error
-        const exists = await Product.findOne({ _id: item.productId, pharmacyId: pharmacy._id });
-        if (!exists) {
-          stockErrors.push(`Product not found: ${item.name}`);
-        } else {
-          stockErrors.push(`Insufficient stock for ${item.name}`);
+        // Roll back all previously deducted items before aborting
+        if (deducted.length > 0) {
+          await Promise.all(deducted.map(d =>
+            Product.findOneAndUpdate(
+              { _id: d.productId, pharmacyId: pharmacy._id },
+              { $inc: { stockQty: d.qty } }
+            )
+          ));
         }
+        const exists = await Product.findOne({ _id: item.productId, pharmacyId: pharmacy._id });
+        return res.status(409).json({
+          message: exists
+            ? `Insufficient stock for "${item.name}"`
+            : `Product not found: "${item.name}"`,
+        });
       }
-    }
-
-    if (stockErrors.length > 0) {
-      return res.status(409).json({ message: stockErrors[0], errors: stockErrors });
+      deducted.push({ productId: item.productId, qty: item.qty });
     }
 
     const sale = await Sale.create({
