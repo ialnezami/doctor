@@ -14,6 +14,7 @@ const { startSymptomWorker }                            = require('./workers/sym
 const { startNoteWorker }                               = require('./workers/noteWorker');
 const { startLabWorker }                                = require('./workers/labWorker');
 const { startExportWorker }                             = require('./workers/exportWorker');
+const { startArchiveWorker }                            = require('./workers/archiveWorker');
 
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
@@ -84,6 +85,8 @@ connectDB().then(() => {
     console.log(`  ➜  Mode:    ${env}`);
     console.log(`  ➜  DB:      connected\n`);
   });
+
+  startArchiveWorker();
 
   if (process.env.REDIS_URL) {
     startReminderWorker();

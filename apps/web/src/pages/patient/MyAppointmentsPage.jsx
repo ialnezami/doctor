@@ -98,65 +98,100 @@ function ReviewModal({ appt, onClose, onDone, t }) {
   );
 }
 
+const TABS = [
+  { key: 'all',       label: 'All' },
+  { key: 'pending',   label: 'Pending' },
+  { key: 'confirmed', label: 'Confirmed' },
+  { key: 'completed', label: 'Completed' },
+  { key: 'cancelled', label: 'Cancelled' },
+  { key: 'archived',  label: 'Archived' },
+];
+
+const UPCOMING_STATUSES  = ['pending', 'confirmed'];
+const COMPLETED_STATUSES = ['completed', 'validated'];
+
+function filterByTab(appointments, tab) {
+  if (tab === 'all')       return appointments.filter(a => a.status !== 'archived');
+  if (tab === 'completed') return appointments.filter(a => COMPLETED_STATUSES.includes(a.status));
+  return appointments.filter(a => a.status === tab);
+}
+
 export default function MyAppointmentsPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [appointments, setAppointments] = useState([]);
   const [reviewModal, setReviewModal]   = useState(null);
+  const [activeTab, setActiveTab]       = useState('all');
 
   const load = () => getAppointments().then(setAppointments).catch(() => {});
   useEffect(() => { load(); }, []);
 
   const cancel = async (id) => { await updateStatus(id, 'cancelled'); load(); };
 
-  const upcoming = appointments.filter(a => ['pending','confirmed'].includes(a.status));
-  const past     = appointments.filter(a => ['completed','cancelled','validated'].includes(a.status));
+  const counts = {
+    all:       appointments.filter(a => a.status !== 'archived').length,
+    pending:   appointments.filter(a => a.status === 'pending').length,
+    confirmed: appointments.filter(a => a.status === 'confirmed').length,
+    completed: appointments.filter(a => COMPLETED_STATUSES.includes(a.status)).length,
+    cancelled: appointments.filter(a => a.status === 'cancelled').length,
+    archived:  appointments.filter(a => a.status === 'archived').length,
+  };
 
-  const ApptCard = ({ a, i, isPast }) => {
-    const eligible = isPast && isReviewEligible(a);
+  const filtered = filterByTab(appointments, activeTab);
+  const isUpcoming = (a) => UPCOMING_STATUSES.includes(a.status);
+  const isArchived = (a) => a.status === 'archived';
+
+  const ApptCard = ({ a, i }) => {
+    const past = !isUpcoming(a);
+    const archived = isArchived(a);
+    const eligible = past && !archived && isReviewEligible(a);
     const isDatePast = new Date(a.date) < new Date(new Date().setHours(0, 0, 0, 0));
+
     return (
-      <div style={{ background: 'var(--bg3)', border: `1px solid ${!isPast ? 'rgba(15,227,176,0.25)' : 'var(--border)'}`, borderRadius: 'var(--r-sm)', marginBottom: 8, overflow: 'hidden' }}>
+      <div style={{
+        background: archived ? 'var(--bg2)' : 'var(--bg3)',
+        border: `1px solid ${isUpcoming(a) ? 'rgba(15,227,176,0.25)' : 'var(--border)'}`,
+        borderRadius: 'var(--r-sm)', marginBottom: 8, overflow: 'hidden',
+        opacity: archived ? 0.7 : 1,
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
-          <div style={{ width: 38, height: 38, borderRadius: 9, background: GRADIENTS[i%GRADIENTS.length], display: 'grid', placeItems: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+          <div style={{ width: 38, height: 38, borderRadius: 9, background: archived ? 'var(--bg3)' : GRADIENTS[i%GRADIENTS.length], display: 'grid', placeItems: 'center', fontSize: 12, fontWeight: 700, color: archived ? 'var(--text3)' : '#fff', flexShrink: 0, border: archived ? '1px solid var(--border)' : 'none' }}>
             {a.doctorId?.name?.split(' ').slice(1,3).map(w=>w[0]).join('') || 'DR'}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13.5, fontWeight: 500 }}>{a.doctorId?.name}</div>
-            <div style={{ fontSize: 11.5, color: 'var(--text2)', marginTop: 2 }}>{new Date(a.date).toLocaleDateString()} · {a.timeSlot?.start}</div>
+            <div style={{ fontSize: 13.5, fontWeight: 500, color: archived ? 'var(--text2)' : 'var(--text)' }}>{a.doctorId?.name}</div>
+            <div style={{ fontSize: 11.5, color: 'var(--text3)', marginTop: 2 }}>{new Date(a.date).toLocaleDateString()} · {a.timeSlot?.start}</div>
           </div>
           <StatusChip status={a.status} />
-          {!isPast && a.status === 'confirmed' && (
+          {isUpcoming(a) && a.status === 'confirmed' && (
             <button
               onClick={() => navigate(`/my-appointments/${a._id}/video`, { state: { otherPartyName: a.doctorId?.name || t('myAppts.doctor') } })}
               style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: 6, padding: '5px 9px', color: '#a78bfa', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
-            >
-              🎥
-            </button>
+            >🎥</button>
           )}
-          {!isPast && (
+          {isUpcoming(a) && (
             <button
               onClick={() => navigate(`/my-appointments/${a._id}/chat`, { state: { otherPartyName: a.doctorId?.name || t('myAppts.doctor') } })}
               style={{ background: 'var(--mint-dim)', border: '1px solid rgba(15,227,176,0.3)', borderRadius: 6, padding: '5px 9px', color: 'var(--mint)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
-            >
-              💬
-            </button>
+            >💬</button>
           )}
-          {!isPast
-            ? <Button variant="danger" style={{ padding: '5px 9px', fontSize: 11, flexShrink: 0, opacity: isDatePast ? 0.4 : 1 }} disabled={isDatePast} onClick={() => cancel(a._id)}>{t('myAppts.cancel')}</Button>
-            : <Button variant="ghost" style={{ padding: '5px 9px', fontSize: 11, flexShrink: 0 }} onClick={() => navigate('/records')}>{t('myAppts.records')}</Button>
-          }
+          {isUpcoming(a) && (
+            <Button variant="danger" style={{ padding: '5px 9px', fontSize: 11, flexShrink: 0, opacity: isDatePast ? 0.4 : 1 }} disabled={isDatePast} onClick={() => cancel(a._id)}>{t('myAppts.cancel')}</Button>
+          )}
+          {past && !archived && (
+            <Button variant="ghost" style={{ padding: '5px 9px', fontSize: 11, flexShrink: 0 }} onClick={() => navigate('/records')}>{t('myAppts.records')}</Button>
+          )}
         </div>
         {eligible && (
           <button onClick={() => setReviewModal(a)} style={{ display: 'block', width: '100%', padding: '8px 14px', background: 'var(--mint-dim)', border: 'none', borderTop: '1px solid var(--border)', color: 'var(--mint)', fontWeight: 700, fontSize: 12, cursor: 'pointer', textAlign: 'center' }}>
             {t('myAppts.leaveReview')}
           </button>
         )}
-        {isPast && a.status === 'cancelled' && (
+        {a.status === 'cancelled' && (
           <RescheduleSuggestions suggestions={a.rescheduleSuggestions} />
         )}
-        {!isPast && a.status === 'confirmed' && (
+        {isUpcoming(a) && a.status === 'confirmed' && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px', borderTop: '1px solid var(--border)', fontSize: 12, color: 'var(--text2)' }}>
             <span>{t('myAppts.disableReminders')}</span>
             <button
@@ -173,24 +208,46 @@ export default function MyAppointmentsPage() {
 
   return (
     <div>
-      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(6,13,24,0.88)', backdropFilter: 'blur(14px)', borderBottom: '1px solid var(--border)', padding: isMobile ? '12px 14px' : '14px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 21, fontWeight: 500 }}>{t('myAppts.title')}</div>
-          <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 1 }}>{t('myAppts.subtitle')}</div>
+      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(6,13,24,0.88)', backdropFilter: 'blur(14px)', borderBottom: '1px solid var(--border)', padding: isMobile ? '12px 14px' : '14px 26px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 21, fontWeight: 500 }}>{t('myAppts.title')}</div>
+            <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 1 }}>{t('myAppts.subtitle')}</div>
+          </div>
+          <Button onClick={() => navigate('/find-doctor')}>{t('myAppts.bookNew')}</Button>
         </div>
-        <Button onClick={() => navigate('/find-doctor')}>{t('myAppts.bookNew')}</Button>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {TABS.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: 'none', transition: 'all .15s',
+                background: activeTab === tab.key ? 'var(--mint)' : 'var(--bg3)',
+                color:      activeTab === tab.key ? '#000' : 'var(--text2)',
+              }}
+            >
+              {tab.label}{counts[tab.key] > 0 ? ` · ${counts[tab.key]}` : ''}
+            </button>
+          ))}
+        </div>
       </div>
+
       <div style={{ padding: isMobile ? 14 : 26 }}>
-        <div style={{ fontSize: 11.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 10 }}>{t('myAppts.upcoming')}</div>
-        {upcoming.length === 0 && (
-          <p style={{ color: 'var(--text3)', fontSize: 13, marginBottom: 20 }}>
-            {t('myAppts.noUpcoming')}{' '}
-            <span style={{ color: 'var(--mint)', cursor: 'pointer' }} onClick={() => navigate('/find-doctor')}>{t('myAppts.bookOne')}</span>
+        {activeTab === 'archived' && (
+          <div style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 14, padding: '8px 12px', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)' }}>
+            Past appointments that were not attended or completed are automatically archived.
+          </div>
+        )}
+        {filtered.length === 0 && (
+          <p style={{ color: 'var(--text3)', fontSize: 13 }}>
+            {activeTab === 'all' || activeTab === 'pending' || activeTab === 'confirmed'
+              ? <>{t('myAppts.noUpcoming')}{' '}<span style={{ color: 'var(--mint)', cursor: 'pointer' }} onClick={() => navigate('/find-doctor')}>{t('myAppts.bookOne')}</span></>
+              : `No ${activeTab} appointments.`
+            }
           </p>
         )}
-        {upcoming.map((a, i) => <ApptCard key={a._id} a={a} i={i} isPast={false} />)}
-        <div style={{ fontSize: 11.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', margin: '20px 0 10px' }}>{t('myAppts.past')}</div>
-        {past.map((a, i) => <ApptCard key={a._id} a={a} i={i} isPast={true} />)}
+        {filtered.map((a, i) => <ApptCard key={a._id} a={a} i={i} />)}
       </div>
 
       {reviewModal && (
