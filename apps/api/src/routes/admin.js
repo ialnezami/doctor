@@ -5,7 +5,8 @@ const adminAuth  = require('../middleware/adminAuth');
 const User    = require('../models/User');
 const Doctor  = require('../models/Doctor');
 const Patient = require('../models/Patient');
-const Lab     = require('../models/Lab');
+const Lab      = require('../models/Lab');
+const Pharmacy = require('../models/Pharmacy');
 const Review  = require('../models/Review');
 const Appointment = require('../models/Appointment');
 const { recalculateRating } = require('./reviews');
@@ -30,17 +31,19 @@ router.post('/auth', async (req, res) => {
 // GET /api/admin/stats
 router.get('/stats', adminAuth, async (req, res, next) => {
   try {
-    const [totalUsers, doctors, patients, labs, appointments, flaggedReviews, pendingDoctors, pendingLabs] = await Promise.all([
+    const [totalUsers, doctors, patients, labs, pharmacies, appointments, flaggedReviews, pendingDoctors, pendingLabs, pendingPharmacies] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ role: 'doctor' }),
       User.countDocuments({ role: 'patient' }),
       User.countDocuments({ role: 'laboratory' }),
+      User.countDocuments({ role: 'pharmacy' }),
       Appointment.countDocuments(),
       Review.countDocuments({ flagged: true }),
       Doctor.countDocuments({ isVerified: false }),
       Lab.countDocuments({ isApproved: false }),
+      Pharmacy.countDocuments({ isApproved: false }),
     ]);
-    res.json({ totalUsers, doctors, patients, labs, appointments, flaggedReviews, pendingDoctors, pendingLabs });
+    res.json({ totalUsers, doctors, patients, labs, pharmacies, appointments, flaggedReviews, pendingDoctors, pendingLabs, pendingPharmacies });
   } catch (err) { next(err); }
 });
 
@@ -145,6 +148,23 @@ router.patch('/labs/:id/approve', adminAuth, async (req, res, next) => {
     const lab = await Lab.findByIdAndUpdate(req.params.id, { isApproved: true }, { new: true });
     if (!lab) return res.status(404).json({ message: 'Lab not found' });
     res.json(lab);
+  } catch (err) { next(err); }
+});
+
+// GET /api/admin/pharmacies — pending pharmacies
+router.get('/pharmacies', adminAuth, async (req, res, next) => {
+  try {
+    const pharmacies = await Pharmacy.find({ isApproved: false }).populate('userId', 'name email createdAt');
+    res.json(pharmacies);
+  } catch (err) { next(err); }
+});
+
+// PATCH /api/admin/pharmacies/:id/approve
+router.patch('/pharmacies/:id/approve', adminAuth, async (req, res, next) => {
+  try {
+    const pharmacy = await Pharmacy.findByIdAndUpdate(req.params.id, { isApproved: true }, { new: true });
+    if (!pharmacy) return res.status(404).json({ message: 'Pharmacy not found' });
+    res.json(pharmacy);
   } catch (err) { next(err); }
 });
 

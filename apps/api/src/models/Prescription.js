@@ -20,6 +20,8 @@ const prescriptionSchema = new mongoose.Schema({
   analyses:          { type: [analysisSchema], default: [] },
   instructions:      String,
   validUntil:        Date,
+  dispensedAt:       { type: Date, default: null },
+  dispensedBy:       { type: mongoose.Schema.Types.ObjectId, ref: 'Pharmacy', default: null },
   verificationToken: { type: String, unique: true, sparse: true, index: true },
 }, { timestamps: true });
 

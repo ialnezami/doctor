@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, select: false },           // optional — Google-only users have no password
   googleId: { type: String, sparse: true, unique: true }, // sparse: only index documents that have this field
-  role: { type: String, enum: ['doctor', 'patient', 'laboratory'], required: true },
+  role: { type: String, enum: ['doctor', 'patient', 'laboratory', 'pharmacy'], required: true },
   location: {
     type: { type: String, default: 'Point' },
     coordinates: { type: [Number], default: [0, 0] }, // [lng, lat]

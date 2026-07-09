@@ -3,7 +3,8 @@ const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const Doctor = require('../models/Doctor');
 const Patient = require('../models/Patient');
-const Lab = require('../models/Lab');
+const Lab      = require('../models/Lab');
+const Pharmacy = require('../models/Pharmacy');
 const { sign } = require('../utils/jwt');
 const auth = require('../middleware/auth');
 const { verifyGoogleToken } = require('../utils/googleAuth');
@@ -22,7 +23,7 @@ router.post('/register', registerLimiter, [
   body('name').notEmpty(),
   body('email').isEmail(),
   body('password').isLength({ min: 8 }),
-  body('role').isIn(['doctor', 'patient', 'laboratory']),
+  body('role').isIn(['doctor', 'patient', 'laboratory', 'pharmacy']),
   // GDPR Article 7 — explicit, unambiguous consent required.
   // Pre-ticked boxes or absent field do not constitute consent.
   body('consentAccepted')
@@ -55,6 +56,9 @@ router.post('/register', registerLimiter, [
     } else if (role === 'laboratory') {
       const { labName } = req.body;
       await Lab.create({ userId: user._id, labName: labName || name });
+    } else if (role === 'pharmacy') {
+      const { pharmacyName } = req.body;
+      await Pharmacy.create({ userId: user._id, pharmacyName: pharmacyName || name });
     } else {
       await Patient.create({ userId: user._id, dateOfBirth });
     }

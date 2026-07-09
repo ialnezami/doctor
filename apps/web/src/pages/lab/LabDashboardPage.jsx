@@ -72,12 +72,25 @@ export default function LabDashboardPage() {
       <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>{t('lab.myUploads')}</div>
       {uploads.length === 0 && <p style={{ fontSize:13, color:'var(--text3)' }}>{t('lab.noUploads')}</p>}
       {uploads.map(u => (
-        <div key={u._id} style={{ background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:'var(--r-sm)', padding:'12px 16px', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <div>
-            <div style={{ fontSize:13, fontWeight:500 }}>{u.labName}</div>
-            <div style={{ fontSize:11.5, color:'var(--text2)', marginTop:2 }}>{u.tests?.map(t => t.name).join(', ')}</div>
+        <div key={u._id} style={{ background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:'var(--r-sm)', padding:'12px 16px', marginBottom:8 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:13, fontWeight:500 }}>{u.labName}</div>
+              {u.tests?.map((test, i) => (
+                <div key={i} style={{ fontSize:12, color:'var(--text2)', marginTop:4 }}>
+                  <span style={{ fontWeight:500 }}>{test.name}</span>
+                  {test.value && <span style={{ marginLeft:8, color:'var(--text)' }}>{test.value}</span>}
+                  {test.flag && test.flag !== 'normal' && (
+                    <span style={{ marginLeft:6, color:'var(--rose)', fontWeight:600, fontSize:11 }}>{test.flag.toUpperCase()}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div style={{ textAlign:'right', flexShrink:0, marginLeft:16 }}>
+              <div style={{ fontSize:11, color:'var(--text3)' }}>{new Date(u.createdAt).toLocaleDateString()}</div>
+              {u.status && <div style={{ fontSize:10, color:'var(--text3)', marginTop:2, textTransform:'uppercase' }}>{u.status}</div>}
+            </div>
           </div>
-          <div style={{ fontSize:11, color:'var(--text3)' }}>{new Date(u.createdAt).toLocaleDateString()}</div>
         </div>
       ))}
     </div>
