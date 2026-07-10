@@ -18,7 +18,7 @@ export default function RegisterPage() {
     try {
       const { token, user } = await register(form);
       setAuth(user, token);
-      navigate(user.role === 'doctor' ? '/dashboard' : user.role === 'laboratory' ? '/lab' : '/find-doctor');
+      navigate(user.role === 'doctor' ? '/dashboard' : user.role === 'laboratory' ? '/lab' : user.role === 'pharmacy' ? '/pharmacy' : '/find-doctor');
     } catch (err) {
       setError(err.message || 'Registration failed');
     } finally {
@@ -34,11 +34,11 @@ export default function RegisterPage() {
           <h2 style={{ fontFamily:'var(--font-display)', fontSize:26, fontWeight:500 }}>Create account</h2>
         </div>
 
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:3, marginBottom:22 }}>
-          {['patient','doctor','laboratory'].map(r => (
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:3, marginBottom:22 }}>
+          {['patient','doctor','laboratory','pharmacy'].map(r => (
             <button key={r} onClick={() => setForm(p => ({ ...p, role: r }))}
               style={{ padding:10, border: form.role===r ? '1px solid var(--border2)' : 'none', borderRadius:7, background: form.role===r ? 'var(--bg2)' : 'transparent', color: form.role===r ? 'var(--mint)' : 'var(--text2)', fontWeight: form.role===r ? 600 : 500, fontSize:13, textTransform:'capitalize', transition:'all .18s' }}>
-              {r === 'doctor' ? '👨‍⚕️ Doctor' : r === 'patient' ? '🧑 Patient' : '🧪 Laboratory'}
+              {r === 'doctor' ? '👨‍⚕️ Doctor' : r === 'patient' ? '🧑 Patient' : r === 'laboratory' ? '🧪 Lab' : '💊 Pharmacy'}
             </button>
           ))}
         </div>
@@ -73,7 +73,7 @@ export default function RegisterPage() {
           </Button>
         </form>
 
-        {/* Google sign-up — always creates a patient account */}
+        {/* Google sign-up — note reflects selected role */}
         <div style={{ display:'flex', alignItems:'center', gap:12, margin:'20px 0 16px' }}>
           <div style={{ flex:1, height:1, background:'var(--border)' }} />
           <span style={{ color:'var(--text2)', fontSize:12 }}>or</span>
@@ -81,7 +81,7 @@ export default function RegisterPage() {
         </div>
         <GoogleSignInButton />
         <p style={{ color:'var(--text2)', fontSize:12, textAlign:'center', margin:'8px 0 0' }}>
-          Google sign-up creates a patient account
+          Google sign-up creates a{form.role === 'doctor' ? ' doctor' : form.role === 'laboratory' ? ' lab' : form.role === 'pharmacy' ? ' pharmacy' : ' patient'} account
         </p>
 
         <p style={{ fontSize:12.5, color:'var(--text2)', textAlign:'center', marginTop:20 }}>
