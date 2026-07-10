@@ -26,8 +26,8 @@ progress:
 ## Current Position
 
 - **Phase:** 09 of N — AI Patient Chatbot
-- **Plan:** 09.4 of 4 — Production Hardening (next to execute)
-- **Status:** In progress (09.1 ✓, 09.2 ✓, 09.3 ✓ — 09.4 remaining)
+- **Plan:** 4 of 4 — COMPLETE
+- **Status:** COMPLETE (all 4 plans done — staging-ready, production blocked on Anthropic BAA)
 
 ---
 
@@ -35,7 +35,7 @@ progress:
 
 ```
 Phase 05.2 [████████████████████] COMPLETE (8/8 plans)
-Phase 09   [███████████████░░░░░] 75% (3/4 plans)
+Phase 09   [████████████████████] COMPLETE (4/4 plans)
 ```
 
 ---
@@ -47,7 +47,7 @@ Phase 09   [███████████████░░░░░] 75% (3
 | 09.1 | 1 | Backend: SSE chatbot API, session store, rate limiting | ✓ COMPLETE |
 | 09.2 | 2 | Mobile UI: FAB + full-screen chat modal, streaming | ✓ COMPLETE |
 | 09.3 | 3 | Web UI: floating bubble + sliding sidebar, streaming | ✓ COMPLETE |
-| 09.4 | 4 | Production hardening: integration tests, HIPAA audit | NEXT |
+| 09.4 | 4 | Production hardening: integration tests, HIPAA audit | ✓ COMPLETE |
 
 ---
 
@@ -73,4 +73,4 @@ Phase 09   [███████████████░░░░░] 75% (3
 Last session: 2026-07-09T12:24:01.436Z
 Stopped at: context exhaustion at 77% — appointments auto-archive feature shipped
 Resume file: None
-Current session: 2026-07-09 — Plan 09.2 complete (mobile chatbot UI shipped + smoke tested); next: 09.4 production hardening
+Current session: 2026-07-10 — Phase 09 complete. All 4 plans shipped. Production blocked on Anthropic BAA (UNKNOWN). New work: AI provider abstraction layer (OpenAI/Anthropic/Gemini switchable)
