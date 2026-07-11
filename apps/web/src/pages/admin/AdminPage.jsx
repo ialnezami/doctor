@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import adminClient from '../../api/admin';
 
-const TABS = ['Overview', 'Users', 'Doctors', 'Labs', 'Reviews', 'Reports', 'Settings'];
+const TABS = ['Overview', 'Users', 'Doctors', 'Labs', 'Pharmacies', 'Reviews', 'Reports', 'Settings'];
 
 const REASON_LABELS = {
   harassment:            'Harassment',
@@ -61,7 +61,8 @@ function OverviewTab() {
     { label: 'Appointments',      value: stats.appointments,    color: 'var(--mint)' },
     { label: 'Flagged Reviews',   value: stats.flaggedReviews,  color: stats.flaggedReviews  > 0 ? '#f43f5e' : 'var(--mint)' },
     { label: 'Pending Doctors',   value: stats.pendingDoctors,  color: stats.pendingDoctors  > 0 ? '#f59e0b' : 'var(--mint)' },
-    { label: 'Pending Labs',      value: stats.pendingLabs,     color: stats.pendingLabs     > 0 ? '#f59e0b' : 'var(--mint)' },
+    { label: 'Pending Labs',        value: stats.pendingLabs,        color: stats.pendingLabs        > 0 ? '#f59e0b' : 'var(--mint)' },
+    { label: 'Pending Pharmacies',  value: stats.pendingPharmacies,  color: stats.pendingPharmacies  > 0 ? '#f59e0b' : 'var(--mint)' },
   ];
 
   return (
@@ -353,6 +354,64 @@ function LabsTab() {
   );
 }
 
+// ── Pharmacies ────────────────────────────────────────────────────────────────
+function PharmaciesTab() {
+  const [pharmacies, setPharmacies] = useState([]);
+  const [loading, setLoading]       = useState(true);
+
+  useEffect(() => {
+    adminClient.get('/admin/pharmacies')
+      .then(data => setPharmacies(Array.isArray(data) ? data : []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const approve = async (id) => {
+    try {
+      await adminClient.patch(`/admin/pharmacies/${id}/approve`);
+      setPharmacies(prev => prev.filter(p => p._id !== id));
+    } catch {}
+  };
+
+  if (loading) return <div style={{ fontSize: 13, color: 'var(--text2)' }}>Loading…</div>;
+
+  return (
+    <div>
+      <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 12 }}>
+        Pending Pharmacy Approvals ({pharmacies.length})
+      </div>
+      {pharmacies.length === 0 ? (
+        <div style={{ ...S.card, color: 'var(--text2)', fontSize: 13 }}>No pending pharmacy approvals</div>
+      ) : (
+        <div style={S.card}>
+          <table style={S.table}>
+            <thead><tr>
+              <th style={S.th}>Pharmacy Name</th>
+              <th style={S.th}>License</th>
+              <th style={S.th}>Email</th>
+              <th style={S.th}>Registered</th>
+              <th style={S.th}>Action</th>
+            </tr></thead>
+            <tbody>
+              {pharmacies.map(p => (
+                <tr key={p._id}>
+                  <td style={S.td}>{p.userId?.name || p.labName}</td>
+                  <td style={{ ...S.td, fontSize: 12, color: 'var(--text2)' }}>{p.licenseNumber || '—'}</td>
+                  <td style={{ ...S.td, fontSize: 12, color: 'var(--text2)' }}>{p.userId?.email}</td>
+                  <td style={{ ...S.td, fontSize: 12, color: 'var(--text2)' }}>{new Date(p.userId?.createdAt || p.createdAt).toLocaleDateString()}</td>
+                  <td style={S.td}>
+                    <button style={S.btn('mint')} onClick={() => approve(p._id)}>Approve</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Reviews ───────────────────────────────────────────────────────────────────
 function ReviewsTab() {
   const [reviews, setReviews] = useState([]);
@@ -625,8 +684,9 @@ export default function AdminPage() {
         {tab === 'Overview' && <OverviewTab />}
         {tab === 'Users'    && <UsersTab />}
         {tab === 'Doctors'  && <DoctorsTab />}
-        {tab === 'Labs'     && <LabsTab />}
-        {tab === 'Reviews'  && <ReviewsTab />}
+        {tab === 'Labs'        && <LabsTab />}
+        {tab === 'Pharmacies'  && <PharmaciesTab />}
+        {tab === 'Reviews'     && <ReviewsTab />}
         {tab === 'Reports'   && <ReportsTab />}
         {tab === 'Settings'  && <SettingsTab />}
       </div>
