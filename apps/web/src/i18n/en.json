@@ -473,5 +473,9 @@
     "notificationChannels": "Notification Channels",
     "pushNotifications": "Push notifications",
     "emailNotifications": "Email notifications"
+  },
+  "pharmacy": {
+    "pendingTitle": "Pending Admin Approval",
+    "pendingMessage": "Your pharmacy account is under review. You can use all features once approved."
   }
 }

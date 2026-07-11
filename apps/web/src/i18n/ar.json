@@ -495,5 +495,9 @@
     "notificationChannels": "قنوات الإشعارات",
     "pushNotifications": "الإشعارات الفورية",
     "emailNotifications": "إشعارات البريد الإلكتروني"
+  },
+  "pharmacy": {
+    "pendingTitle": "في انتظار موافقة الإدارة",
+    "pendingMessage": "حسابك في الصيدلية قيد المراجعة. يمكنك استخدام جميع الميزات بعد الموافقة."
   }
 }

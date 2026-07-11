@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   getPharmacyProfile, updatePharmacyProfile,
   getProducts, createProduct, deleteProduct, adjustStock,
@@ -26,6 +27,7 @@ const cardStyle = {
 };
 
 export default function PharmacyDashboardPage() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('pos');
   const [approved,  setApproved]  = useState(null);
   const [profile,   setProfile]   = useState({ pharmacyName: '', licenseNumber: '', address: '' });
@@ -69,8 +71,8 @@ export default function PharmacyDashboardPage() {
   if (!approved) return (
     <div style={{ padding: 40, textAlign: 'center' }}>
       <div style={{ fontSize: 48, marginBottom: 16 }}>⏳</div>
-      <div style={{ fontSize: 18, fontWeight: 500, marginBottom: 8 }}>Pending Admin Approval</div>
-      <div style={{ fontSize: 13, color: 'var(--text2)' }}>Your pharmacy account is under review. You can use all features once approved.</div>
+      <div style={{ fontSize: 18, fontWeight: 500, marginBottom: 8 }}>{t('pharmacy.pendingTitle')}</div>
+      <div style={{ fontSize: 13, color: 'var(--text2)' }}>{t('pharmacy.pendingMessage')}</div>
     </div>
   );
 
