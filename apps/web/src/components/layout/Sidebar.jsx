@@ -22,23 +22,53 @@ const labNavKeys = [
   { key: 'nav.myUploads', path: '/lab' },
 ];
 
+// Pharmacy nav uses full navPath (path + optional ?tab=) and a direct label
+const pharmacyNavKeys = [
+  { label: '🏠 Overview',       navPath: '/pharmacy' },
+  { label: '🛒 Point of Sale',  navPath: '/pharmacy?tab=pos' },
+  { label: '📦 Inventory',      navPath: '/pharmacy?tab=inventory' },
+  { label: '📋 Sales History',  navPath: '/pharmacy?tab=sales' },
+  { label: '⚙️ Settings',       navPath: '/pharmacy?tab=profile' },
+];
+
 export default function Sidebar({ onNavigate }) {
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const { user, logout } = useAuthStore();
   const { t } = useTranslation();
 
-  const go = (path) => { navigate(path); onNavigate?.(); };
+  const isPharmacy = user?.role === 'pharmacy';
 
   const navKeys = user?.role === 'doctor' ? doctorNavKeys
     : user?.role === 'laboratory' ? labNavKeys
+    : isPharmacy ? pharmacyNavKeys
     : patientNavKeys;
 
   const roleMenuKey = user?.role === 'doctor' ? 'nav.roleMenu.doctor'
     : user?.role === 'laboratory' ? 'nav.roleMenu.laboratory'
+    : isPharmacy ? null
     : 'nav.roleMenu.patient';
 
+  const roleMenuLabel = isPharmacy ? '💊 Pharmacy' : roleMenuKey ? t(roleMenuKey) : '';
+
   const initials = user?.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??';
+
+  const isActive = (item) => {
+    if (item.navPath) {
+      // pharmacy items: match full path+search
+      const [np, ns] = item.navPath.split('?');
+      const currentSearch = search.replace('?', '');
+      if (ns) return pathname === np && currentSearch === ns;
+      // overview: active when on /pharmacy with no tab param
+      return pathname === np && !currentSearch.includes('tab=');
+    }
+    return pathname === item.path || pathname.startsWith(item.path + '/');
+  };
+
+  const go = (item) => {
+    navigate(item.navPath ?? item.path);
+    onNavigate?.();
+  };
 
   return (
     <aside style={{ width:240, background:'var(--bg2)', borderRight:'1px solid var(--border)', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
@@ -55,18 +85,19 @@ export default function Sidebar({ onNavigate }) {
       {/* Nav */}
       <nav style={{ flex:1, padding:'8px 10px', overflowY:'auto' }}>
         <div style={{ fontSize:10, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.1em', color:'var(--text3)', padding:'0 10px 8px' }}>
-          {t(roleMenuKey)}
+          {roleMenuLabel}
         </div>
         {navKeys.map(item => {
-          const active = pathname === item.path;
+          const active = isActive(item);
+          const label = item.label ?? t(item.key);
           return (
-            <div key={item.path} onClick={() => go(item.path)}
+            <div key={item.navPath ?? item.path} onClick={() => go(item)}
               style={{ display:'flex', alignItems:'center', gap:9, padding:'9px 10px', borderRadius:'var(--r-sm)', marginBottom:2, cursor:'pointer', border:'1px solid transparent', transition:'all .13s',
                 background: active ? 'var(--mint-dim)' : 'transparent',
                 borderColor: active ? 'rgba(15,227,176,0.2)' : 'transparent',
                 color: active ? 'var(--mint)' : 'var(--text2)',
                 fontWeight: active ? 500 : 400, fontSize:13.5 }}>
-              {t(item.key)}
+              {label}
               {item.badge && <span style={{ marginLeft:'auto', background:'var(--rose)', color:'#fff', fontSize:10, fontWeight:700, borderRadius:10, padding:'1px 6px', fontFamily:'var(--font-mono)' }}>!</span>}
             </div>
           );
