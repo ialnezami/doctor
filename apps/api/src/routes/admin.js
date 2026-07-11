@@ -134,10 +134,10 @@ router.patch('/doctors/:id/unverify', adminAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// GET /api/admin/labs — pending labs
+// GET /api/admin/labs — all labs
 router.get('/labs', adminAuth, async (req, res, next) => {
   try {
-    const labs = await Lab.find({ isApproved: false }).populate('userId', 'name email createdAt');
+    const labs = await Lab.find().populate('userId', 'name email createdAt isSuspended').sort({ createdAt: -1 });
     res.json(labs);
   } catch (err) { next(err); }
 });
@@ -151,10 +151,19 @@ router.patch('/labs/:id/approve', adminAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// GET /api/admin/pharmacies — pending pharmacies
+// PATCH /api/admin/labs/:id/unapprove
+router.patch('/labs/:id/unapprove', adminAuth, async (req, res, next) => {
+  try {
+    const lab = await Lab.findByIdAndUpdate(req.params.id, { isApproved: false }, { new: true });
+    if (!lab) return res.status(404).json({ message: 'Lab not found' });
+    res.json(lab);
+  } catch (err) { next(err); }
+});
+
+// GET /api/admin/pharmacies — all pharmacies
 router.get('/pharmacies', adminAuth, async (req, res, next) => {
   try {
-    const pharmacies = await Pharmacy.find({ isApproved: false }).populate('userId', 'name email createdAt');
+    const pharmacies = await Pharmacy.find().populate('userId', 'name email createdAt isSuspended').sort({ createdAt: -1 });
     res.json(pharmacies);
   } catch (err) { next(err); }
 });
@@ -163,6 +172,15 @@ router.get('/pharmacies', adminAuth, async (req, res, next) => {
 router.patch('/pharmacies/:id/approve', adminAuth, async (req, res, next) => {
   try {
     const pharmacy = await Pharmacy.findByIdAndUpdate(req.params.id, { isApproved: true }, { new: true });
+    if (!pharmacy) return res.status(404).json({ message: 'Pharmacy not found' });
+    res.json(pharmacy);
+  } catch (err) { next(err); }
+});
+
+// PATCH /api/admin/pharmacies/:id/unapprove
+router.patch('/pharmacies/:id/unapprove', adminAuth, async (req, res, next) => {
+  try {
+    const pharmacy = await Pharmacy.findByIdAndUpdate(req.params.id, { isApproved: false }, { new: true });
     if (!pharmacy) return res.status(404).json({ message: 'Pharmacy not found' });
     res.json(pharmacy);
   } catch (err) { next(err); }

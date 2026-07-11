@@ -303,53 +303,89 @@ function LabsTab() {
   const [labs, setLabs]       = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    adminClient.get('/admin/labs')
-      .then(data => setLabs(Array.isArray(data) ? data : []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await adminClient.get('/admin/labs');
+      setLabs(Array.isArray(data) ? data : []);
+    } catch {}
+    setLoading(false);
   }, []);
 
-  const approve = async (id) => {
+  useEffect(() => { load(); }, [load]);
+
+  const toggle = async (id, approve) => {
     try {
-      await adminClient.patch(`/admin/labs/${id}/approve`);
-      setLabs(prev => prev.filter(l => l._id !== id));
+      await adminClient.patch(`/admin/labs/${id}/${approve ? 'approve' : 'unapprove'}`);
+      setLabs(prev => prev.map(l => l._id === id ? { ...l, isApproved: approve } : l));
     } catch {}
   };
 
   if (loading) return <div style={{ fontSize: 13, color: 'var(--text2)' }}>Loading…</div>;
 
+  const pending = labs.filter(l => !l.isApproved);
+
   return (
-    <div>
-      <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 12 }}>
-        Pending Lab Approvals ({labs.length})
-      </div>
-      {labs.length === 0 ? (
-        <div style={{ ...S.card, color: 'var(--text2)', fontSize: 13 }}>No pending lab approvals</div>
-      ) : (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {pending.length > 0 && (
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#f59e0b', marginBottom: 12 }}>
+            Pending Approval ({pending.length})
+          </div>
+          <div style={S.card}>
+            <table style={S.table}>
+              <thead><tr>
+                <th style={S.th}>Lab Name</th>
+                <th style={S.th}>Email</th>
+                <th style={S.th}>Registered</th>
+                <th style={S.th}>Action</th>
+              </tr></thead>
+              <tbody>
+                {pending.map(l => (
+                  <tr key={l._id}>
+                    <td style={S.td}>{l.userId?.name || l.labName}</td>
+                    <td style={{ ...S.td, fontSize: 12, color: 'var(--text2)' }}>{l.userId?.email}</td>
+                    <td style={{ ...S.td, fontSize: 12, color: 'var(--text2)' }}>{new Date(l.userId?.createdAt || l.createdAt).toLocaleDateString()}</td>
+                    <td style={S.td}><button style={S.btn('mint')} onClick={() => toggle(l._id, true)}>Approve</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      <div>
+        <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 12 }}>
+          All Labs ({labs.length})
+        </div>
         <div style={S.card}>
           <table style={S.table}>
             <thead><tr>
               <th style={S.th}>Lab Name</th>
               <th style={S.th}>Email</th>
+              <th style={S.th}>Status</th>
               <th style={S.th}>Registered</th>
               <th style={S.th}>Action</th>
             </tr></thead>
             <tbody>
               {labs.map(l => (
                 <tr key={l._id}>
-                  <td style={S.td}>{l.userId?.name || l.name}</td>
+                  <td style={S.td}>{l.userId?.name || l.labName}</td>
                   <td style={{ ...S.td, fontSize: 12, color: 'var(--text2)' }}>{l.userId?.email}</td>
+                  <td style={S.td}><span style={S.badge(l.isApproved ? 'green' : 'default')}>{l.isApproved ? 'Approved' : 'Pending'}</span></td>
                   <td style={{ ...S.td, fontSize: 12, color: 'var(--text2)' }}>{new Date(l.userId?.createdAt || l.createdAt).toLocaleDateString()}</td>
                   <td style={S.td}>
-                    <button style={S.btn('mint')} onClick={() => approve(l._id)}>Approve</button>
+                    <button style={S.btn(l.isApproved ? 'red' : 'mint')} onClick={() => toggle(l._id, !l.isApproved)}>
+                      {l.isApproved ? 'Unapprove' : 'Approve'}
+                    </button>
                   </td>
                 </tr>
               ))}
+              {!labs.length && <tr><td colSpan={5} style={{ ...S.td, textAlign: 'center', color: 'var(--text2)' }}>No labs</td></tr>}
             </tbody>
           </table>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -359,36 +395,70 @@ function PharmaciesTab() {
   const [pharmacies, setPharmacies] = useState([]);
   const [loading, setLoading]       = useState(true);
 
-  useEffect(() => {
-    adminClient.get('/admin/pharmacies')
-      .then(data => setPharmacies(Array.isArray(data) ? data : []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await adminClient.get('/admin/pharmacies');
+      setPharmacies(Array.isArray(data) ? data : []);
+    } catch {}
+    setLoading(false);
   }, []);
 
-  const approve = async (id) => {
+  useEffect(() => { load(); }, [load]);
+
+  const toggle = async (id, approve) => {
     try {
-      await adminClient.patch(`/admin/pharmacies/${id}/approve`);
-      setPharmacies(prev => prev.filter(p => p._id !== id));
+      await adminClient.patch(`/admin/pharmacies/${id}/${approve ? 'approve' : 'unapprove'}`);
+      setPharmacies(prev => prev.map(p => p._id === id ? { ...p, isApproved: approve } : p));
     } catch {}
   };
 
   if (loading) return <div style={{ fontSize: 13, color: 'var(--text2)' }}>Loading…</div>;
 
+  const pending = pharmacies.filter(p => !p.isApproved);
+
   return (
-    <div>
-      <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 12 }}>
-        Pending Pharmacy Approvals ({pharmacies.length})
-      </div>
-      {pharmacies.length === 0 ? (
-        <div style={{ ...S.card, color: 'var(--text2)', fontSize: 13 }}>No pending pharmacy approvals</div>
-      ) : (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {pending.length > 0 && (
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#f59e0b', marginBottom: 12 }}>
+            Pending Approval ({pending.length})
+          </div>
+          <div style={S.card}>
+            <table style={S.table}>
+              <thead><tr>
+                <th style={S.th}>Pharmacy Name</th>
+                <th style={S.th}>License</th>
+                <th style={S.th}>Email</th>
+                <th style={S.th}>Registered</th>
+                <th style={S.th}>Action</th>
+              </tr></thead>
+              <tbody>
+                {pending.map(p => (
+                  <tr key={p._id}>
+                    <td style={S.td}>{p.userId?.name || p.labName}</td>
+                    <td style={{ ...S.td, fontSize: 12, color: 'var(--text2)' }}>{p.licenseNumber || '—'}</td>
+                    <td style={{ ...S.td, fontSize: 12, color: 'var(--text2)' }}>{p.userId?.email}</td>
+                    <td style={{ ...S.td, fontSize: 12, color: 'var(--text2)' }}>{new Date(p.userId?.createdAt || p.createdAt).toLocaleDateString()}</td>
+                    <td style={S.td}><button style={S.btn('mint')} onClick={() => toggle(p._id, true)}>Approve</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      <div>
+        <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 12 }}>
+          All Pharmacies ({pharmacies.length})
+        </div>
         <div style={S.card}>
           <table style={S.table}>
             <thead><tr>
               <th style={S.th}>Pharmacy Name</th>
               <th style={S.th}>License</th>
               <th style={S.th}>Email</th>
+              <th style={S.th}>Status</th>
               <th style={S.th}>Registered</th>
               <th style={S.th}>Action</th>
             </tr></thead>
@@ -398,16 +468,20 @@ function PharmaciesTab() {
                   <td style={S.td}>{p.userId?.name || p.labName}</td>
                   <td style={{ ...S.td, fontSize: 12, color: 'var(--text2)' }}>{p.licenseNumber || '—'}</td>
                   <td style={{ ...S.td, fontSize: 12, color: 'var(--text2)' }}>{p.userId?.email}</td>
+                  <td style={S.td}><span style={S.badge(p.isApproved ? 'green' : 'default')}>{p.isApproved ? 'Approved' : 'Pending'}</span></td>
                   <td style={{ ...S.td, fontSize: 12, color: 'var(--text2)' }}>{new Date(p.userId?.createdAt || p.createdAt).toLocaleDateString()}</td>
                   <td style={S.td}>
-                    <button style={S.btn('mint')} onClick={() => approve(p._id)}>Approve</button>
+                    <button style={S.btn(p.isApproved ? 'red' : 'mint')} onClick={() => toggle(p._id, !p.isApproved)}>
+                      {p.isApproved ? 'Unapprove' : 'Approve'}
+                    </button>
                   </td>
                 </tr>
               ))}
+              {!pharmacies.length && <tr><td colSpan={6} style={{ ...S.td, textAlign: 'center', color: 'var(--text2)' }}>No pharmacies</td></tr>}
             </tbody>
           </table>
         </div>
-      )}
+      </div>
     </div>
   );
 }
