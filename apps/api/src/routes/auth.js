@@ -10,6 +10,7 @@ const auth = require('../middleware/auth');
 const { verifyGoogleToken } = require('../utils/googleAuth');
 const { loginLimiter, registerLimiter } = require('../middleware/rateLimiter');
 const { hmacHash } = require('../utils/blindIndex');
+const { normalizePhone } = require('../utils/phoneUtils');
 const AuditLog = require('../models/AuditLog');
 
 const validate = (req, res, next) => {
@@ -86,17 +87,33 @@ router.post('/register', registerLimiter, [
 });
 
 // POST /api/auth/login
+// Accepts { identifier, password } where identifier is email or phone.
+// Also accepts legacy { email, password } for backward compatibility.
 router.post('/login', loginLimiter, [
-  body('email').isEmail(),
+  body('identifier').optional().notEmpty(),
+  body('email').optional().isEmail(),
   body('password').notEmpty(),
 ], validate, async (req, res, next) => {
   try {
-    const { email, password } = req.body;
-    // Switch to emailHash lookup: once the migration (Plan 10) encrypts the email
-    // field, findOne({ email: plaintext }) will never match ciphertext values.
-    // hmacHash normalizes to lowercase before hashing, matching User model normalization.
-    const emailHashValue = hmacHash(email);
-    const user = await User.findOne({ emailHash: emailHashValue }).select('+password');
+    const { identifier, email: legacyEmail, password } = req.body;
+    const raw = identifier || legacyEmail;
+    if (!raw) return res.status(422).json({ message: 'identifier or email is required' });
+
+    let user;
+    if (raw.includes('@')) {
+      // Email login — look up by emailHash blind index
+      const emailHashValue = hmacHash(raw.toLowerCase().trim());
+      user = await User.findOne({ emailHash: emailHashValue }).select('+password');
+    } else {
+      // Phone login — normalize to E.164 then look up by phoneHash blind index
+      let normalizedPhone;
+      try { normalizedPhone = normalizePhone(raw); } catch {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+      const phoneHashValue = hmacHash(normalizedPhone);
+      user = await User.findOne({ phoneHash: phoneHashValue }).select('+password');
+    }
+
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -122,6 +139,75 @@ router.post('/login', loginLimiter, [
   } catch (err) {
     next(err);
   }
+});
+
+// POST /api/auth/create-patient — doctor or lab creates a patient account with phone + temp password
+router.post('/create-patient', auth, [
+  body('name').notEmpty().trim().withMessage('name is required'),
+  body('phone').notEmpty().withMessage('phone is required'),
+  body('password').isLength({ min: 8 }).withMessage('password must be at least 8 characters'),
+  body('email').optional({ nullable: true, checkFalsy: true }).isEmail().withMessage('invalid email format'),
+], validate, async (req, res, next) => {
+  try {
+    if (!['doctor', 'laboratory'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Only doctors and labs can create patient accounts' });
+    }
+
+    const { name, phone, password, email } = req.body;
+
+    // Normalize and hash phone upfront — fail fast before any DB writes
+    let normalizedPhone;
+    try { normalizedPhone = normalizePhone(phone); } catch {
+      return res.status(422).json({ message: 'Invalid phone number format' });
+    }
+    const phoneHashValue = hmacHash(normalizedPhone);
+
+    // Uniqueness checks before writes
+    if (await User.findOne({ phoneHash: phoneHashValue })) {
+      return res.status(409).json({ message: 'Phone number already registered' });
+    }
+    if (email) {
+      const emailHashValue = hmacHash(email.toLowerCase().trim());
+      if (await User.findOne({ emailHash: emailHashValue })) {
+        return res.status(409).json({ message: 'Email already registered' });
+      }
+    }
+
+    // Create User
+    const userData = { name, phone: normalizedPhone, password, role: 'patient' };
+    if (email) userData.email = email.toLowerCase().trim();
+    const user = new User(userData);
+    await user.save();
+
+    // Create Patient profile — delete User on failure to avoid orphaned user records
+    try {
+      await Patient.create({ userId: user._id });
+    } catch (patientErr) {
+      await User.findByIdAndDelete(user._id);
+      throw patientErr;
+    }
+
+    AuditLog.create({
+      actorId: req.user.id,
+      actorRole: req.user.role,
+      action: 'create_patient',
+      resourceType: 'User',
+      resourceId: user._id,
+      targetUserId: user._id,
+      ip: req.ip,
+      userAgent: req.headers['user-agent'] || null,
+      outcome: 'success',
+      meta: { createdPatientId: user._id },
+    }).catch(err => console.error('[audit] create_patient log failed:', err.message));
+
+    res.status(201).json({
+      id: user._id,
+      name: user.name,
+      phone: user.phone,
+      email: user.email || null,
+      createdAt: user.createdAt,
+    });
+  } catch (err) { next(err); }
 });
 
 // GET /api/auth/me — fetch own name + email

@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { hmacHash } = require('../utils/blindIndex');
+const { normalizePhone } = require('../utils/phoneUtils');
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
-  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  email: { type: String, required: false, sparse: true, unique: true, lowercase: true, trim: true },
   password: { type: String, select: false },           // optional — Google-only users have no password
   googleId: { type: String, sparse: true, unique: true }, // sparse: only index documents that have this field
   role: { type: String, enum: ['doctor', 'patient', 'laboratory', 'pharmacy'], required: true },
@@ -35,10 +36,15 @@ const userSchema = new mongoose.Schema({
   // HMAC-SHA256 of email.toLowerCase().trim() using BLIND_INDEX_KEY env var
   // Populated by pre-save hook below; unique sparse index for login queries
   emailHash: { type: String, default: null },
+
+  // Phone number in E.164 format — set when a doctor/lab creates a patient account
+  phone:     { type: String, default: null },
+  phoneHash: { type: String, default: null },
 }, { timestamps: true });
 
 userSchema.index({ location: '2dsphere' });
 userSchema.index({ emailHash: 1 }, { unique: true, sparse: true });
+userSchema.index({ phoneHash: 1 }, { unique: true, sparse: true });
 
 // Hash password before saving (unchanged)
 userSchema.pre('save', async function (next) {
@@ -59,6 +65,22 @@ userSchema.pre('save', function (next) {
     }
   }
   next();
+});
+
+// Normalize phone to E.164 and maintain phoneHash blind index.
+userSchema.pre('save', function (next) {
+  try {
+    if (this.isModified('phone') && this.phone) {
+      this.phone = normalizePhone(this.phone);
+      this.phoneHash = hmacHash(this.phone);
+    } else if (this.isModified('phone') && !this.phone) {
+      this.phone = null;
+      this.phoneHash = null;
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
 
 userSchema.methods.comparePassword = function (candidate) {

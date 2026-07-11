@@ -9,7 +9,7 @@ import useGoogleSignIn from '../../hooks/useGoogleSignIn';
 export default function LoginScreen({ navigation }) {
   const { t } = useTranslation();
   const setAuth = useAuthStore(s => s.login);
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,7 +18,7 @@ export default function LoginScreen({ navigation }) {
   const submit = async () => {
     setLoading(true); setError('');
     try {
-      const { token, user } = await login({ email, password });
+      const { token, user } = await login({ identifier, password });
       setAuth(user, token);
     } catch (e) {
       setError(e.message || t('auth.login.invalidCredentials'));
@@ -31,8 +31,8 @@ export default function LoginScreen({ navigation }) {
       <Text style={s.headline}>MediConnect</Text>
       <Text style={s.sub}>{t('auth.appTagline')}</Text>
 
-      <Text style={s.label}>{t('auth.email')}</Text>
-      <TextInput style={s.input} value={email} onChangeText={setEmail} placeholder={t('auth.emailPlaceholder')} placeholderTextColor={C.text3} keyboardType="email-address" autoCapitalize="none" />
+      <Text style={s.label}>{t('auth.identifier') || 'Email or Phone Number'}</Text>
+      <TextInput style={s.input} value={identifier} onChangeText={setIdentifier} placeholder={t('auth.identifierPlaceholder') || 'Email or +966…'} placeholderTextColor={C.text3} keyboardType="default" autoCapitalize="none" autoCorrect={false} />
       <Text style={s.label}>{t('auth.password')}</Text>
       <TextInput style={s.input} value={password} onChangeText={setPassword} placeholder={t('auth.passwordPlaceholder')} placeholderTextColor={C.text3} secureTextEntry />
 

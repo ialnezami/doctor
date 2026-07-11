@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import client from '../../api/client';
 import Button from '../../components/ui/Button';
+import CreatePatientModal from '../../components/CreatePatientModal';
 
 const LAB_FIELD_KEYS = ['patientId','labName','testName','result'];
 
@@ -12,6 +13,7 @@ export default function LabDashboardPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError]         = useState('');
   const [approved, setApproved]   = useState(true);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     client.get('/lab-results/my-uploads')
@@ -51,7 +53,15 @@ export default function LabDashboardPage() {
 
   return (
     <div style={{ padding:26, maxWidth:700 }}>
-      <div style={{ fontFamily:'var(--font-display)', fontSize:21, fontWeight:500, marginBottom:24 }}>{t('lab.uploadTitle')}</div>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24 }}>
+        <div style={{ fontFamily:'var(--font-display)', fontSize:21, fontWeight:500 }}>{t('lab.uploadTitle')}</div>
+        <button
+          onClick={() => setShowModal(true)}
+          style={{ padding:'8px 16px', borderRadius:8, border:'none', cursor:'pointer', background:'var(--mint,#0fe3b0)', color:'#000', fontWeight:600, fontSize:13 }}
+        >
+          + Add Patient
+        </button>
+      </div>
 
       <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:22, marginBottom:28 }}>
         {LAB_FIELD_KEYS.map(k => (
@@ -93,6 +103,13 @@ export default function LabDashboardPage() {
           </div>
         </div>
       ))}
+
+      {showModal && (
+        <CreatePatientModal
+          onClose={() => setShowModal(false)}
+          onCreated={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 }

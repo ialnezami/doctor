@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getAppointments } from '../../api/appointments';
+import CreatePatientModal from '../../components/CreatePatientModal';
 
 function calcAge(dob) {
   if (!dob) return null;
@@ -27,6 +28,7 @@ export default function PatientRecordsPage() {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState('');
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     getAppointments()
@@ -53,9 +55,19 @@ export default function PatientRecordsPage() {
   return (
     <div>
       <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(6,13,24,0.88)', backdropFilter: 'blur(14px)', borderBottom: '1px solid var(--border)', padding: isMobile ? '12px 14px' : '14px 26px' }}>
-        <div style={{ fontFamily: 'var(--font-display)', fontSize: 21, fontWeight: 500 }}>{t('patientRecords.title')}</div>
-        <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 1 }}>
-          {loading ? 'Loading…' : t('patientRecords.subtitle') || `${filtered.length} patient${filtered.length !== 1 ? 's' : ''}`}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 21, fontWeight: 500 }}>{t('patientRecords.title')}</div>
+            <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 1 }}>
+              {loading ? 'Loading…' : t('patientRecords.subtitle') || `${filtered.length} patient${filtered.length !== 1 ? 's' : ''}`}
+            </div>
+          </div>
+          <button
+            onClick={() => setShowModal(true)}
+            style={{ padding:'8px 16px', borderRadius:8, border:'none', cursor:'pointer', background:'var(--mint,#0fe3b0)', color:'#000', fontWeight:600, fontSize:13 }}
+          >
+            + Add Patient
+          </button>
         </div>
       </div>
 
@@ -114,6 +126,13 @@ export default function PatientRecordsPage() {
           );
         })}
       </div>
+
+      {showModal && (
+        <CreatePatientModal
+          onClose={() => setShowModal(false)}
+          onCreated={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 }

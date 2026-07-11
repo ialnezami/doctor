@@ -13,7 +13,7 @@ export default function LoginPage() {
   const setAuth = useAuthStore(s => s.login);
   const { t } = useTranslation();
   const isMobile = useIsMobile();
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ identifier: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -46,7 +46,7 @@ export default function LoginPage() {
           { icon:'📋', key:'prescriptions' },
           { icon:'📍', key:'location' },
         ].map(f => (
-          <div key={f.title} style={{ display:'flex', alignItems:'center', gap:13, padding:'14px 16px', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r)', marginBottom:12, width:'100%', maxWidth:340 }}>
+          <div key={f.key} style={{ display:'flex', alignItems:'center', gap:13, padding:'14px 16px', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:'var(--r)', marginBottom:12, width:'100%', maxWidth:340 }}>
             <div style={{ width:34, height:34, borderRadius:9, background:'var(--mint-dim)', display:'grid', placeItems:'center', fontSize:17, flexShrink:0 }}>{f.icon}</div>
             <div><div style={{ fontSize:13.5, fontWeight:600 }}>{t(`auth.features.${f.key}.title`)}</div><div style={{ fontSize:11.5, color:'var(--text2)', marginTop:2 }}>{t(`auth.features.${f.key}.desc`)}</div></div>
           </div>
@@ -66,7 +66,7 @@ export default function LoginPage() {
         <p style={{ fontSize:13, color:'var(--text2)', marginBottom:26 }}>{t('auth.login.subtitle')}</p>
 
         <form onSubmit={submit}>
-          {[['email', t('auth.email'), 'email'],['password', t('auth.password'), 'password']].map(([name, label, type]) => (
+          {[['identifier', t('auth.identifier') || 'Email or Phone Number', 'text'],['password', t('auth.password'), 'password']].map(([name, label, type]) => (
             <div key={name} style={{ marginBottom:16 }}>
               <label style={{ display:'block', fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text2)', marginBottom:7 }}>{label}</label>
               <input type={type} required value={form[name]} onChange={e => setForm(p => ({ ...p, [name]: e.target.value }))}
