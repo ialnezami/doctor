@@ -33,7 +33,12 @@ function createWindow() {
 
 app.whenReady().then(async () => {
   try { db = require('./db'); await db.initialize(); } catch (e) { console.error('[main] db:', e.message); }
-  try { syncEngine = require('./sync'); syncEngine.start(); } catch (e) { console.error('[main] sync:', e.message); }
+  try {
+    syncEngine = require('./sync');
+    syncEngine.start();
+    const savedToken = store?.get('token');
+    if (savedToken) syncEngine.setToken(savedToken);
+  } catch (e) { console.error('[main] sync:', e.message); }
   try { printMod = require('./print'); } catch {}
   try { require('./autoUpdate'); } catch {}
 
@@ -45,7 +50,7 @@ app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(
 // ── Auth ──────────────────────────────────────────────────────────────────
 ipcMain.handle('auth:getToken', () => store?.get('token') ?? null);
 ipcMain.handle('auth:getUser',  () => store?.get('user')  ?? null);
-ipcMain.handle('auth:setToken', (_, t) => { store?.set('token', t); });
+ipcMain.handle('auth:setToken', (_, t) => { store?.set('token', t); if (syncEngine) syncEngine.setToken(t); });
 ipcMain.handle('auth:setUser',  (_, u) => { store?.set('user',  u); });
 ipcMain.handle('auth:clearToken', () => { store?.delete('token'); store?.delete('user'); });
 
