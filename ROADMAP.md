@@ -320,6 +320,114 @@ Doctor-only marketplace for browsing and ordering medical equipment and supplies
 
 ---
 
+---
+
+## Phase 10 — Electron Desktop App (Windows-first) 🔲
+
+Offline-capable desktop client for Pharmacy, Doctor, and Lab roles. Uses local SQLite as the source of truth with a bidirectional sync engine to the existing Node.js/MongoDB backend.
+
+### 10.0 Architecture
+
+**Stack:**
+| Layer | Technology |
+|---|---|
+| Shell | Electron v31+ (main + renderer process) |
+| Local DB | SQLite via `better-sqlite3` (main process only) |
+| Sync | REST pull-on-launch + offline write queue |
+| UI | React (reuse web components) + Zustand |
+| IPC | `contextBridge` + `ipcMain`/`ipcRenderer` (no `nodeIntegration`) |
+| Packaging | `electron-builder` (NSIS installer for Windows, DMG for Mac) |
+| Auto-update | `electron-updater` via GitHub Releases |
+| PHI at rest | AES-256-GCM on all encrypted fields in SQLite (per-device derived key) |
+
+**Project layout:**
+```
+apps/desktop/
+  src/
+    main/
+      index.js        ← BrowserWindow, app lifecycle, IPC handlers
+      db.js           ← SQLite schema + typed query helpers
+      sync.js         ← Pull (fetch from API) + push queue drain
+      print.js        ← webContents.printToPDF() + native print dialog
+      autoUpdate.js   ← electron-updater setup
+    preload.js        ← contextBridge: exposes db, sync, print, auth to renderer
+    renderer/         ← React app (role-gated views per desktop role)
+      App.jsx
+      screens/
+        pharmacy/
+        doctor/
+        lab/
+      store/          ← Zustand slices (local-first, reads from SQLite via IPC)
+```
+
+**Offline write queue (`sync_queue` table):**
+Each offline mutation is stored as `{ id, table, operation, payload, created_at }`. On reconnect the sync engine drains oldest-first; server timestamp wins on conflicts (last-write-wins per record).
+
+### 10.1 Setup & Scaffold 🔲
+- [ ] `apps/desktop/` initialized with `electron`, `electron-builder`, `better-sqlite3`
+- [ ] `main/index.js` — BrowserWindow (1280×800, frame, no `nodeIntegration`)
+- [ ] `preload.js` — contextBridge exposes `window.api.{ db, sync, print, auth }`
+- [ ] Vite renderer bundler wired to build React into `dist/renderer/`
+- [ ] `electron-builder.yml` — NSIS Windows target + GitHub release provider
+- [ ] Dev script: `npm run dev:desktop` (concurrently: Vite watch + Electron)
+
+### 10.2 SQLite Data Layer 🔲
+- [ ] `main/db.js` — schema migration runner (`user_version` pragma)
+- [ ] Tables: `users`, `products`, `sales`, `sale_items`, `appointments`, `patients`, `prescriptions`, `lab_orders`, `sync_queue`
+- [ ] PHI columns (patient name, prescription content, lab values) encrypted with AES-256-GCM using a per-device key stored in OS keychain (`keytar`)
+- [ ] Typed query helpers: `db.products.list()`, `db.sales.create()`, `db.appointments.listByDate()`, etc.
+- [ ] IPC handlers in `index.js` expose each helper to renderer via preload
+
+### 10.3 Sync Engine 🔲
+- [ ] `main/sync.js` — pull: fetch `GET /api/{resource}?since={lastSyncAt}` for each table, upsert into SQLite
+- [ ] Push queue drain: iterate `sync_queue` ordered by `created_at`, POST/PATCH to API, delete on 2xx
+- [ ] On 409 conflict: log + skip (server wins), remove from queue
+- [ ] Sync triggered: on app launch (if online) + every 5 min background tick + on reconnect event
+- [ ] Sync status exposed via IPC: `{ status: 'synced'|'syncing'|'offline', lastSyncAt }`
+- [ ] Renderer shows sync indicator in header (green dot / spinner / offline badge)
+
+### 10.4 Pharmacy Module 🔲
+- [ ] POS screen: reads products from SQLite, creates sale locally + queues `POST /api/sales` sync
+- [ ] Inventory screen: product list from SQLite, stock adjustments queued for sync
+- [ ] Stock decrement is local-first (instant UX), server-authoritative on sync
+- [ ] Settings: pharmacy profile read from SQLite, changes queued for `PATCH /api/pharmacies/me`
+- [ ] Receipt printing: `print.js` → `webContents.printToPDF()` → OS print dialog or save PDF
+- [ ] Receipt template: pharmacy name, items, total, payment method, timestamp, receipt number
+
+### 10.5 Doctor Module 🔲
+- [ ] Dashboard: today's appointments from SQLite (synced at launch)
+- [ ] Patient list: pulled from `GET /api/patients` and stored locally
+- [ ] Appointment detail: consultation notes written offline → queued `POST /api/appointments/:id/notes`
+- [ ] Prescriptions: create offline → queued `POST /api/prescriptions`
+- [ ] Lab results: view-only from SQLite (no offline write needed)
+- [ ] Offline indicator on note editor: "Will sync when back online" banner
+
+### 10.6 Lab Module 🔲
+- [ ] Orders tab: pulls all `lab_results` with `prescriptionId != null` at launch
+- [ ] Status update (pending → processing → ready) written offline → queued `PATCH /api/lab-results/:id/status`
+- [ ] Result entry form: fills test values offline, syncs on reconnect; auto-notifies patient on push
+- [ ] QR scan: uses `html5-qrcode` in renderer (webcam), calls `POST /api/lab-results/from-prescription` immediately (requires online)
+
+### 10.7 PHI Encryption (Desktop) 🔲
+- [ ] Per-device AES-256-GCM key generated on first launch, stored in OS keychain via `keytar`
+- [ ] All PHI columns encrypted before write to SQLite, decrypted on read — same `encrypt/decrypt` utility pattern as API
+- [ ] If keychain unavailable (CI/headless): fall back to encrypted `electron-store` with machine ID seed
+- [ ] PHI never written to SQLite in plaintext; sync queue payloads use server-side encryption (sent as plaintext to server which re-encrypts with server key)
+
+### 10.8 Auto-Update 🔲
+- [ ] `electron-updater` checks GitHub Releases on launch
+- [ ] Silent download in background, prompt to restart on completion
+- [ ] Version shown in Settings screen; update channel: `latest` (stable)
+- [ ] `electron-builder` publishes `.exe` installer + `latest.yml` to GitHub Release assets
+
+### 10.9 Receipt PDF (Pharmacy POS) 🔲
+- [ ] After sale completion modal shows "Print Receipt" + "Download PDF" buttons
+- [ ] `print.js` renders receipt HTML template → `webContents.printToPDF({ printBackground: true })`
+- [ ] Print dialog (OS native) opens; PDF saved to `~/Downloads/receipt-{number}.pdf` on download
+- [ ] Receipt includes: pharmacy name, date/time, items table, subtotal, payment method, receipt #
+
+---
+
 ## Current Milestone Summary
 
 | Phase | Status | Completion |
@@ -328,8 +436,9 @@ Doctor-only marketplace for browsing and ordering medical equipment and supplies
 | Phase 2 — Engagement & Communication | ✅ Done | 100% |
 | Phase 3 — Payments & Monetization | 🔲 Planned | 0% |
 | Phase 4 — AI & Clinical Intelligence | ✅ Done | 100% |
-| Phase 5 — Admin & Compliance | 🔄 In Progress | 100% (5.1 ✅, 5.2 ✅, 5.3 ✅) |
+| Phase 5 — Admin & Compliance | ✅ Done | 100% |
 | Phase 6 — Scale & Reliability | 🔲 Planned | 0% |
 | Phase 7 — Ecosystem Expansion | 💡 Idea | 0% |
 | Phase 8 — Doctor Equipment Marketplace | 💡 Idea | 0% |
 | Phase 9 — AI Patient Chatbot | 🔲 Planned | 0% |
+| Phase 10 — Electron Desktop App | 🔲 Planned | 0% |
