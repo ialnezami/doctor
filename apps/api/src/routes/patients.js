@@ -3,6 +3,7 @@ const router = require('express').Router();
 const auth = require('../middleware/auth');
 const requireRole = require('../middleware/rbac');
 const Patient = require('../models/Patient');
+const Appointment = require('../models/Appointment');
 const upload = require('../middleware/upload');
 const { uploadBuffer } = require('../utils/cloudinary');
 const { body, validationResult } = require('express-validator');
@@ -14,6 +15,20 @@ const validate = (req, res, next) => {
   next();
 };
 const BLOOD_TYPES = ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
+
+// GET /api/patients — doctor lists patients they've seen (with optional ?since= delta sync)
+router.get('/', auth, requireRole('doctor'), async (req, res, next) => {
+  try {
+    const patientIds = await Appointment.find({ doctorId: req.user.id }).distinct('patientId');
+    const filter = { userId: { $in: patientIds } };
+    if (req.query.since) {
+      const ts = Number(req.query.since);
+      if (!isNaN(ts)) filter.updatedAt = { $gte: new Date(ts) };
+    }
+    const patients = await Patient.find(filter).populate('userId', 'name email phone');
+    res.json(patients);
+  } catch (err) { next(err); }
+});
 
 // GET /api/patients/me
 router.get('/me', auth, requireRole('patient'),

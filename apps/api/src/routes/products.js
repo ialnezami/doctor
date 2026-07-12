@@ -40,6 +40,10 @@ router.get('/', auth, requireRole('pharmacy'), [
       const re = new RegExp(req.query.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
       filter.name = re;
     }
+    if (req.query.since) {
+      const ts = Number(req.query.since);
+      if (!isNaN(ts)) filter.updatedAt = { $gte: new Date(ts) };
+    }
 
     const [products, total] = await Promise.all([
       Product.find(filter).sort({ name: 1 }).skip(skip).limit(limit),

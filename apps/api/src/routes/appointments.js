@@ -139,6 +139,10 @@ router.get('/', auth, async (req, res, next) => {
 
     if (req.query.status) filter.status = req.query.status;
     if (req.user.role === 'doctor' && req.query.patientId) filter.patientId = req.query.patientId;
+    if (req.query.since) {
+      const ts = Number(req.query.since);
+      if (!isNaN(ts)) filter.updatedAt = { $gte: new Date(ts) };
+    }
 
     const appointments = await Appointment.find(filter)
       .populate('doctorId', 'name')

@@ -88,6 +88,11 @@ router.get('/', auth,
         ? { patientId: req.user.id }
         : { doctorId: req.user.id };
 
+      if (req.query.since) {
+        const ts = Number(req.query.since);
+        if (!isNaN(ts)) filter.updatedAt = { $gte: new Date(ts) };
+      }
+
       const results = await LabResult.find(filter)
         .sort({ issuedAt: -1 })
         .populate('patientId', 'name email')

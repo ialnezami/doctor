@@ -40,6 +40,10 @@ router.get('/', auth,
         : { patientId: req.user.id };
 
       if (req.user.role === 'doctor' && req.query.patientId) filter.patientId = req.query.patientId;
+      if (req.query.since) {
+        const ts = Number(req.query.since);
+        if (!isNaN(ts)) filter.updatedAt = { $gte: new Date(ts) };
+      }
 
       const rxList = await Prescription.find(filter)
         .populate('doctorId', 'name')
