@@ -324,7 +324,7 @@ export default function PharmacyDashboardPage() {
   };
 
   const handleDeleteProduct = async (id) => {
-    if (!confirm('Delete this product?')) return;
+    if (!confirm(t('pharmacy.inventory.deleteConfirm'))) return;
     try {
       await deleteProduct(id);
       setProducts(ps => ps.filter(p => p._id !== id));
@@ -336,7 +336,7 @@ export default function PharmacyDashboardPage() {
     try {
       const updated = await updatePharmacyProfile(profForm);
       setProfile(updated);
-      setProfMsg('Saved.');
+      setProfMsg(t('pharmacy.settings.saved'));
     } catch (e) {
       setProfMsg(e?.message || 'Save failed');
     } finally { setProfSaving(false); }
@@ -355,10 +355,10 @@ export default function PharmacyDashboardPage() {
   const lowStock = products.filter(p => p.stockQty <= p.lowStockThreshold);
 
   const TABS = [
-    { key: 'pos',       label: '🛒 Point of Sale' },
-    { key: 'inventory', label: '📦 Inventory' },
-    { key: 'sales',     label: '📋 Sales History' },
-    { key: 'profile',   label: '⚙️ Settings' },
+    { key: 'pos',       label: t('pharmacy.tabs.pos') },
+    { key: 'inventory', label: t('pharmacy.tabs.inventory') },
+    { key: 'sales',     label: t('pharmacy.tabs.sales') },
+    { key: 'profile',   label: t('pharmacy.tabs.settings') },
   ];
 
   return (
@@ -386,22 +386,22 @@ export default function PharmacyDashboardPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
           <div style={{ fontFamily: 'var(--font-display)', fontSize: 21, fontWeight: 600 }}>
-            {profile.pharmacyName || 'Pharmacy Dashboard'}
+            {profile.pharmacyName || t('pharmacy.dashboard')}
           </div>
           {lowStock.length > 0 && (
             <div style={{ fontSize: 12, color: '#f43f5e', marginTop: 4 }}>
-              ⚠ {lowStock.length} product{lowStock.length !== 1 ? 's' : ''} low on stock
+              {t('pharmacy.lowStock', { count: lowStock.length })}
             </div>
           )}
         </div>
         {activeTab === 'pos' && (
           <button onClick={openNewSale} style={{ ...S.btn('mint'), padding: '9px 22px' }}>
-            + New Sale
+            {t('pharmacy.pos.newSale')}
           </button>
         )}
         {activeTab === 'inventory' && (
           <button onClick={() => setShowAddProduct(true)} style={{ ...S.btn('mint'), padding: '9px 22px' }}>
-            + Add Product
+            {t('pharmacy.inventory.add')}
           </button>
         )}
       </div>
@@ -425,19 +425,19 @@ export default function PharmacyDashboardPage() {
         openSales.length === 0 ? (
           <div style={{ ...S.card, textAlign: 'center', padding: '60px 20px' }}>
             <div style={{ fontSize: 44, marginBottom: 14 }}>🛒</div>
-            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>No open sales</div>
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>{t('pharmacy.pos.empty')}</div>
             <div style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 20 }}>
-              Open multiple sale windows simultaneously — each is independent and draggable
+              {t('pharmacy.pos.emptyHint')}
             </div>
-            <button onClick={openNewSale} style={{ ...S.btn('mint'), padding: '10px 28px' }}>+ New Sale</button>
+            <button onClick={openNewSale} style={{ ...S.btn('mint'), padding: '10px 28px' }}>{t('pharmacy.pos.newSale')}</button>
           </div>
         ) : (
           <div style={{ ...S.card, padding: '14px 18px' }}>
             <div style={{ fontSize: 13, color: 'var(--text2)' }}>
-              {openSales.length} sale window{openSales.length !== 1 ? 's' : ''} open
-              <span style={{ fontSize: 12, marginLeft: 8, opacity: 0.6 }}>drag the header bar to reposition</span>
+              {t('pharmacy.pos.windows', { count: openSales.length })}
+              <span style={{ fontSize: 12, marginLeft: 8, opacity: 0.6 }}>{t('pharmacy.pos.dragHint')}</span>
             </div>
-            <button onClick={openNewSale} style={{ ...S.btn('ghost'), fontSize: 12, marginTop: 10 }}>+ Another Sale</button>
+            <button onClick={openNewSale} style={{ ...S.btn('ghost'), fontSize: 12, marginTop: 10 }}>{t('pharmacy.pos.anotherSale')}</button>
           </div>
         )
       )}
@@ -446,15 +446,22 @@ export default function PharmacyDashboardPage() {
       {activeTab === 'inventory' && (
         products.length === 0 ? (
           <div style={{ ...S.card, textAlign: 'center', padding: '60px 20px' }}>
-            <div style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 16 }}>No products yet</div>
-            <button onClick={() => setShowAddProduct(true)} style={{ ...S.btn('mint'), padding: '9px 22px' }}>+ Add First Product</button>
+            <div style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 16 }}>{t('pharmacy.inventory.empty')}</div>
+            <button onClick={() => setShowAddProduct(true)} style={{ ...S.btn('mint'), padding: '9px 22px' }}>{t('pharmacy.inventory.addFirst')}</button>
           </div>
         ) : (
           <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr>
-                  {['Product', 'Barcode', 'Unit', 'Price', 'Stock', 'Actions'].map(h => (
+                  {[
+                    t('pharmacy.inventory.colProduct'),
+                    t('pharmacy.inventory.colBarcode'),
+                    t('pharmacy.inventory.colUnit'),
+                    t('pharmacy.inventory.colPrice'),
+                    t('pharmacy.inventory.colStock'),
+                    t('pharmacy.inventory.colActions'),
+                  ].map(h => (
                     <th key={h} style={S.th}>{h}</th>
                   ))}
                 </tr>
@@ -473,13 +480,13 @@ export default function PharmacyDashboardPage() {
                       <td style={{ ...S.td, fontWeight: 500 }}>{p.price} {p.currency}</td>
                       <td style={S.td}>
                         <span style={{ color: low ? '#f43f5e' : 'var(--mint,#0fe3b0)', fontWeight: 700 }}>{p.stockQty}</span>
-                        {low && <span style={{ fontSize: 10, fontWeight: 700, color: '#f43f5e', marginLeft: 6, background: 'rgba(244,63,94,0.12)', padding: '1px 5px', borderRadius: 4 }}>LOW</span>}
+                        {low && <span style={{ fontSize: 10, fontWeight: 700, color: '#f43f5e', marginLeft: 6, background: 'rgba(244,63,94,0.12)', padding: '1px 5px', borderRadius: 4 }}>{t('pharmacy.inventory.low')}</span>}
                       </td>
                       <td style={S.td}>
                         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                           <button onClick={() => handleAdjustStock(p._id, -1)} style={{ background: 'var(--bg3)', border: '1px solid var(--border2)', borderRadius: 6, padding: '3px 10px', cursor: 'pointer', fontSize: 15 }}>−</button>
                           <button onClick={() => handleAdjustStock(p._id,  1)} style={{ background: 'var(--bg3)', border: '1px solid var(--border2)', borderRadius: 6, padding: '3px 10px', cursor: 'pointer', fontSize: 15 }}>+</button>
-                          <button onClick={() => handleDeleteProduct(p._id)} style={{ background: 'none', border: 'none', color: '#f43f5e', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>Delete</button>
+                          <button onClick={() => handleDeleteProduct(p._id)} style={{ background: 'none', border: 'none', color: '#f43f5e', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>{t('pharmacy.inventory.delete')}</button>
                         </div>
                       </td>
                     </tr>
@@ -494,15 +501,15 @@ export default function PharmacyDashboardPage() {
       {/* Sales History Tab */}
       {activeTab === 'sales' && (
         sales.length === 0 ? (
-          <div style={{ ...S.card, textAlign: 'center', padding: 40, color: 'var(--text2)', fontSize: 13 }}>No sales yet</div>
+          <div style={{ ...S.card, textAlign: 'center', padding: 40, color: 'var(--text2)', fontSize: 13 }}>{t('pharmacy.sales.empty')}</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {sales.map(s => (
               <div key={s._id} style={{ ...S.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>Receipt #{s.receiptNumber}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{t('pharmacy.sales.receipt', { number: s.receiptNumber })}</div>
                   <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 3 }}>
-                    {s.items?.length} item{s.items?.length !== 1 ? 's' : ''} · {s.paymentMethod}
+                    {t('pharmacy.sales.items', { count: s.items?.length || 0 })} · {s.paymentMethod}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
@@ -518,18 +525,26 @@ export default function PharmacyDashboardPage() {
       {/* Settings Tab */}
       {activeTab === 'profile' && (
         <div style={S.card}>
-          <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 18 }}>Pharmacy Settings</div>
+          <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 18 }}>{t('pharmacy.settings.title')}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 480 }}>
-            {[['pharmacyName', 'Pharmacy Name'], ['licenseNumber', 'License Number'], ['address', 'Address']].map(([k, l]) => (
+            {[
+              ['pharmacyName', t('pharmacy.settings.name')],
+              ['licenseNumber', t('pharmacy.settings.license')],
+              ['address',       t('pharmacy.settings.address')],
+            ].map(([k, l]) => (
               <div key={k}>
                 <label style={S.label}>{l}</label>
                 <input style={S.input} value={profForm[k]} onChange={e => setProfForm(f => ({ ...f, [k]: e.target.value }))} />
               </div>
             ))}
-            {profMsg && <p style={{ fontSize: 13, color: profMsg === 'Saved.' ? 'var(--mint)' : '#f43f5e', margin: 0 }}>{profMsg}</p>}
+            {profMsg && (
+              <p style={{ fontSize: 13, color: profMsg === t('pharmacy.settings.saved') ? 'var(--mint)' : '#f43f5e', margin: 0 }}>
+                {profMsg}
+              </p>
+            )}
             <div>
               <button style={{ ...S.btn('mint'), padding: '10px 24px', opacity: profSaving ? 0.6 : 1 }} disabled={profSaving} onClick={saveProfile}>
-                {profSaving ? 'Saving…' : 'Save Settings'}
+                {profSaving ? t('pharmacy.settings.saving') : t('pharmacy.settings.save')}
               </button>
             </div>
           </div>

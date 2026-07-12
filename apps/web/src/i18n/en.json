@@ -476,6 +476,53 @@
   },
   "pharmacy": {
     "pendingTitle": "Pending Admin Approval",
-    "pendingMessage": "Your pharmacy account is under review. You can use all features once approved."
+    "pendingMessage": "Your pharmacy account is under review. You can use all features once approved.",
+    "dashboard": "Pharmacy Dashboard",
+    "lowStock_one": "⚠ {{count}} product low on stock",
+    "lowStock_other": "⚠ {{count}} products low on stock",
+    "tabs": {
+      "pos": "🛒 Point of Sale",
+      "inventory": "📦 Inventory",
+      "sales": "📋 Sales History",
+      "settings": "⚙️ Settings"
+    },
+    "pos": {
+      "empty": "No open sales",
+      "emptyHint": "Open multiple sale windows simultaneously — each is independent and draggable",
+      "newSale": "+ New Sale",
+      "windows_one": "{{count}} sale window open",
+      "windows_other": "{{count}} sale windows open",
+      "dragHint": "drag the header bar to reposition",
+      "anotherSale": "+ Another Sale"
+    },
+    "inventory": {
+      "empty": "No products yet",
+      "addFirst": "+ Add First Product",
+      "add": "+ Add Product",
+      "low": "LOW",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this product?",
+      "colProduct": "Product",
+      "colBarcode": "Barcode",
+      "colUnit": "Unit",
+      "colPrice": "Price",
+      "colStock": "Stock",
+      "colActions": "Actions"
+    },
+    "sales": {
+      "empty": "No sales yet",
+      "receipt": "Receipt #{{number}}",
+      "items_one": "{{count}} item",
+      "items_other": "{{count}} items"
+    },
+    "settings": {
+      "title": "Pharmacy Settings",
+      "name": "Pharmacy Name",
+      "license": "License Number",
+      "address": "Address",
+      "save": "Save Settings",
+      "saving": "Saving…",
+      "saved": "Saved."
+    }
   }
 }

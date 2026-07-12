@@ -16,6 +16,7 @@ const SUPPORTED_CURRENCIES = [
 ];
 
 const SUPPORTED_CODES = SUPPORTED_CURRENCIES.map(c => c.code);
+const SUPPORTED_LANGUAGES = ['ar', 'en', 'fr'];
 
 const platformSettingsSchema = new mongoose.Schema({
   availableCurrencies: {
@@ -25,6 +26,11 @@ const platformSettingsSchema = new mongoose.Schema({
       validator: (codes) => Array.isArray(codes) && codes.length > 0 && codes.every(c => SUPPORTED_CODES.includes(c)),
       message: 'One or more currency codes are not supported.',
     },
+  },
+  defaultLanguage: {
+    type: String,
+    enum: SUPPORTED_LANGUAGES,
+    default: 'ar',
   },
 }, { timestamps: true });
 
@@ -36,4 +42,4 @@ platformSettingsSchema.statics.getOrCreate = async function () {
 
 const PlatformSettings = mongoose.model('PlatformSettings', platformSettingsSchema);
 
-module.exports = { PlatformSettings, SUPPORTED_CURRENCIES, SUPPORTED_CODES };
+module.exports = { PlatformSettings, SUPPORTED_CURRENCIES, SUPPORTED_CODES, SUPPORTED_LANGUAGES };

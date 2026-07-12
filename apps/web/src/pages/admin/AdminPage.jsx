@@ -627,15 +627,25 @@ const ALL_CURRENCIES = [
   { code: 'TRY', name: 'Turkish Lira' },
 ];
 
+const ALL_LANGUAGES = [
+  { code: 'ar', name: 'Arabic', native: 'العربية', dir: 'rtl' },
+  { code: 'en', name: 'English', native: 'English', dir: 'ltr' },
+  { code: 'fr', name: 'French', native: 'Français', dir: 'ltr' },
+];
+
 function SettingsTab() {
-  const [selected, setSelected] = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [saving, setSaving]     = useState(false);
-  const [saved, setSaved]       = useState(false);
+  const [selected, setSelected]   = useState([]);
+  const [defaultLang, setDefaultLang] = useState('ar');
+  const [loading, setLoading]     = useState(true);
+  const [saving, setSaving]       = useState(false);
+  const [saved, setSaved]         = useState(false);
 
   useEffect(() => {
     adminClient.get('/admin/platform-settings')
-      .then(d => setSelected(d.availableCurrencies || ['SAR']))
+      .then(d => {
+        setSelected(d.availableCurrencies || ['SAR']);
+        setDefaultLang(d.defaultLanguage || 'ar');
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -643,14 +653,17 @@ function SettingsTab() {
   const toggle = (code) =>
     setSelected(prev =>
       prev.includes(code)
-        ? prev.length > 1 ? prev.filter(c => c !== code) : prev  // always keep ≥1
+        ? prev.length > 1 ? prev.filter(c => c !== code) : prev
         : [...prev, code]
     );
 
   const save = async () => {
     setSaving(true);
     try {
-      await adminClient.patch('/admin/platform-settings', { availableCurrencies: selected });
+      await adminClient.patch('/admin/platform-settings', {
+        availableCurrencies: selected,
+        defaultLanguage: defaultLang,
+      });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {}
@@ -658,9 +671,48 @@ function SettingsTab() {
   };
 
   return (
-    <div>
-      <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Platform Settings</div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ fontSize: 14, fontWeight: 600 }}>Platform Settings</div>
 
+      {/* Default Language */}
+      <div style={S.card}>
+        <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 4 }}>Default Language</div>
+        <div style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 16 }}>
+          Language shown to new users who haven't set a preference yet.
+        </div>
+        {loading ? <div style={{ fontSize: 13, color: 'var(--text2)' }}>Loading…</div> : (
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {ALL_LANGUAGES.map(lang => {
+              const active = defaultLang === lang.code;
+              return (
+                <button
+                  key={lang.code}
+                  onClick={() => setDefaultLang(lang.code)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10, padding: '10px 18px',
+                    borderRadius: 8, cursor: 'pointer', transition: 'all .15s',
+                    background: active ? 'rgba(15,227,176,0.08)' : 'var(--bg3, #1e293b)',
+                    border: `1px solid ${active ? 'var(--mint, #0fe3b0)' : 'var(--border, #1e2d3d)'}`,
+                  }}
+                >
+                  <span style={{ fontSize: 15 }}>{lang.dir === 'rtl' ? '🕌' : '🌐'}</span>
+                  <span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: active ? 'var(--mint, #0fe3b0)' : 'var(--text)', display: 'block' }}>
+                      {lang.native}
+                    </span>
+                    <span style={{ fontSize: 11, color: 'var(--text2)' }}>{lang.name}</span>
+                  </span>
+                  {active && (
+                    <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--mint)', fontWeight: 700 }}>✓</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Available Currencies */}
       <div style={S.card}>
         <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 4 }}>Available Currencies</div>
         <div style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 16 }}>
@@ -700,19 +752,20 @@ function SettingsTab() {
           </div>
         )}
 
-        <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button
-            onClick={save}
-            disabled={saving}
-            style={{ ...S.btn('mint'), padding: '8px 20px', fontSize: 13, opacity: saving ? 0.6 : 1 }}
-          >
-            {saving ? 'Saving…' : 'Save Settings'}
-          </button>
-          {saved && <span style={{ fontSize: 12, color: 'var(--mint)' }}>Saved</span>}
-          <span style={{ fontSize: 12, color: 'var(--text3)', marginLeft: 'auto' }}>
-            {selected.length} of {ALL_CURRENCIES.length} currencies enabled
-          </span>
+        <div style={{ marginTop: 16, fontSize: 12, color: 'var(--text3)' }}>
+          {selected.length} of {ALL_CURRENCIES.length} currencies enabled
         </div>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button
+          onClick={save}
+          disabled={saving}
+          style={{ ...S.btn('mint'), padding: '8px 20px', fontSize: 13, opacity: saving ? 0.6 : 1 }}
+        >
+          {saving ? 'Saving…' : 'Save Settings'}
+        </button>
+        {saved && <span style={{ fontSize: 12, color: 'var(--mint)' }}>Saved ✓</span>}
       </div>
     </div>
   );

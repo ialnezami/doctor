@@ -11,7 +11,7 @@ const Review  = require('../models/Review');
 const Appointment = require('../models/Appointment');
 const { recalculateRating } = require('./reviews');
 const Report = require('../models/Report');
-const { PlatformSettings, SUPPORTED_CURRENCIES, SUPPORTED_CODES } = require('../models/PlatformSettings');
+const { PlatformSettings, SUPPORTED_CURRENCIES, SUPPORTED_CODES, SUPPORTED_LANGUAGES } = require('../models/PlatformSettings');
 
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -253,28 +253,50 @@ router.patch('/reports/:id/dismiss', adminAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// GET /api/admin/platform-settings/public — no auth, returns only public-facing defaults
+router.get('/platform-settings/public', async (req, res, next) => {
+  try {
+    const settings = await PlatformSettings.getOrCreate();
+    res.json({ defaultLanguage: settings.defaultLanguage });
+  } catch (err) { next(err); }
+});
+
 // GET /api/admin/platform-settings
 router.get('/platform-settings', adminAuth, async (req, res, next) => {
   try {
     const settings = await PlatformSettings.getOrCreate();
-    res.json({ availableCurrencies: settings.availableCurrencies, supportedCurrencies: SUPPORTED_CURRENCIES });
+    res.json({
+      availableCurrencies: settings.availableCurrencies,
+      supportedCurrencies: SUPPORTED_CURRENCIES,
+      defaultLanguage: settings.defaultLanguage,
+      supportedLanguages: SUPPORTED_LANGUAGES,
+    });
   } catch (err) { next(err); }
 });
 
 // PATCH /api/admin/platform-settings
 router.patch('/platform-settings', adminAuth, [
-  body('availableCurrencies').isArray({ min: 1 }).withMessage('At least one currency is required'),
-  body('availableCurrencies.*').isIn(SUPPORTED_CODES).withMessage('Unsupported currency code'),
+  body('availableCurrencies').optional().isArray({ min: 1 }).withMessage('At least one currency is required'),
+  body('availableCurrencies.*').optional().isIn(SUPPORTED_CODES).withMessage('Unsupported currency code'),
+  body('defaultLanguage').optional().isIn(SUPPORTED_LANGUAGES).withMessage('Unsupported language code'),
 ], validate, async (req, res, next) => {
   try {
+    const { availableCurrencies, defaultLanguage } = req.body;
+    if (!availableCurrencies && !defaultLanguage) {
+      return res.status(400).json({ message: 'Nothing to update' });
+    }
     const settings = await PlatformSettings.findOne();
+    const update = {};
+    if (availableCurrencies) update.availableCurrencies = availableCurrencies;
+    if (defaultLanguage)     update.defaultLanguage     = defaultLanguage;
+
     if (settings) {
-      settings.availableCurrencies = req.body.availableCurrencies;
+      Object.assign(settings, update);
       await settings.save();
-      res.json({ availableCurrencies: settings.availableCurrencies });
+      res.json({ availableCurrencies: settings.availableCurrencies, defaultLanguage: settings.defaultLanguage });
     } else {
-      const created = await PlatformSettings.create({ availableCurrencies: req.body.availableCurrencies });
-      res.json({ availableCurrencies: created.availableCurrencies });
+      const created = await PlatformSettings.create(update);
+      res.json({ availableCurrencies: created.availableCurrencies, defaultLanguage: created.defaultLanguage });
     }
   } catch (err) { next(err); }
 });

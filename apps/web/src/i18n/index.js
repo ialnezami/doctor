@@ -5,10 +5,10 @@ import en from './en.json';
 import fr from './fr.json';
 
 const STORAGE_KEY = 'mediconnect_lang';
-const DEFAULT_LANG = 'ar';
+const FALLBACK_LANG = 'ar';
 
 export function getSavedLanguage() {
-  return localStorage.getItem(STORAGE_KEY) || DEFAULT_LANG;
+  return localStorage.getItem(STORAGE_KEY) || null;
 }
 
 export function applyDocumentDir(lang) {
@@ -23,14 +23,28 @@ export function setLanguage(lang) {
   applyDocumentDir(lang);
 }
 
-const savedLang = getSavedLanguage();
-applyDocumentDir(savedLang);
+const userPref = getSavedLanguage();
+const initLang = userPref || FALLBACK_LANG;
+applyDocumentDir(initLang);
 
 i18n.use(initReactI18next).init({
   resources: { ar: { translation: ar }, en: { translation: en }, fr: { translation: fr } },
-  lng: savedLang,
+  lng: initLang,
   fallbackLng: 'en',
   interpolation: { escapeValue: false },
 });
+
+// If no user preference yet, fetch platform default and apply it once
+if (!userPref) {
+  fetch('/api/admin/platform-settings/public')
+    .then(r => r.ok ? r.json() : null)
+    .then(d => {
+      if (d?.defaultLanguage && d.defaultLanguage !== initLang) {
+        i18n.changeLanguage(d.defaultLanguage);
+        applyDocumentDir(d.defaultLanguage);
+      }
+    })
+    .catch(() => {});
+}
 
 export default i18n;
