@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   getPharmacyProfile, updatePharmacyProfile,
@@ -280,7 +281,9 @@ function AddProductModal({ onClose, onAdded }) {
 // ── Main ─────────────────────────────────────────────────────────────────────
 export default function PharmacyDashboardPage() {
   const { t } = useTranslation();
-  const [activeTab,      setActiveTab]      = useState('pos');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'pos';
+  const setActiveTab = (tab) => setSearchParams({ tab });
   const [approved,       setApproved]       = useState(null);
   const [profile,        setProfile]        = useState({ pharmacyName: '', licenseNumber: '', address: '' });
   const [products,       setProducts]       = useState([]);
