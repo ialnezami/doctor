@@ -465,6 +465,8 @@ export default function AppointmentsPage() {
   const [appointments,       setAppointments]       = useState([]);
   const [filter,             setFilter]             = useState('all');
   const [selectedAppointment,setSelectedAppointment]= useState(null);
+  const [pageView,           setPageView]           = useState('schedule'); // 'schedule' | 'archive'
+  const [archSearch,         setArchSearch]         = useState('');
 
   const todayStr = toLocalDate(new Date());
   const [selectedDate, setSelectedDate] = useState(todayStr);
@@ -527,6 +529,23 @@ export default function AppointmentsPage() {
   const upcomingAppts = dayAppts.filter(a => !isTimePast(a));
   const pastAppts     = dayAppts.filter(a =>  isTimePast(a));
 
+  // Archive: all past-date appointments grouped by date descending
+  const archivedByDate = useMemo(() => {
+    const filtered = appointments
+      .filter(a => a.status !== 'pending' && toLocalDate(a.date) < todayStr)
+      .filter(a => filter === 'all' || a.status === filter)
+      .filter(a => !archSearch || (a.patientId?.name || '').toLowerCase().includes(archSearch.toLowerCase()))
+      .sort((a, b) => b.date.localeCompare(a.date));
+    return filtered.reduce((acc, a) => {
+      const d = toLocalDate(a.date);
+      if (!acc[d]) acc[d] = [];
+      acc[d].push(a);
+      return acc;
+    }, {});
+  }, [appointments, filter, archSearch, todayStr]);
+  const archivedDates = Object.keys(archivedByDate).sort((a, b) => b.localeCompare(a));
+  const archivedTotal = archivedDates.reduce((s, d) => s + archivedByDate[d].length, 0);
+
   const goNav = (path, name) => navigate(path, { state: { otherPartyName: name || t('appointments.details.patient') } });
 
   const filterLabel = (f) => t(`appointments.filters.${f}`);
@@ -564,17 +583,98 @@ export default function AppointmentsPage() {
 
       <div style={{ padding: isMobile ? 14 : 26 }}>
 
-        {/* Status filter pills */}
-        <div style={{ display:'flex', gap:7, marginBottom:18, flexWrap:'wrap' }}>
-          {FILTER_KEYS.map(f => (
-            <button key={f} onClick={() => setFilter(f)}
-              style={{ padding:'5px 13px', borderRadius:20, border:`1px solid ${filter===f ? 'var(--mint)' : 'var(--border2)'}`, background: filter===f ? 'var(--mint-dim)' : 'transparent', color: filter===f ? 'var(--mint)' : 'var(--text2)', fontSize:12, fontWeight:500, cursor:'pointer' }}>
-              {filterLabel(f)}
-            </button>
-          ))}
+        {/* ── View toggle + status filters ── */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:10, marginBottom:18 }}>
+          {/* Schedule / Archive tabs */}
+          <div style={{ display:'flex', background:'var(--bg3)', borderRadius:10, padding:3, gap:2 }}>
+            {[['schedule','Schedule'],['archive','Archive']].map(([v, label]) => (
+              <button key={v} onClick={() => { setPageView(v); setSelectedAppointment(null); }}
+                style={{ padding:'6px 18px', borderRadius:8, border:'none', fontSize:13, fontWeight:600, cursor:'pointer',
+                  background: pageView===v ? 'var(--bg2)' : 'transparent',
+                  color: pageView===v ? 'var(--text)' : 'var(--text3)',
+                  boxShadow: pageView===v ? '0 1px 4px rgba(0,0,0,0.3)' : 'none' }}>
+                {label}{v==='archive' && archivedTotal > 0 && <span style={{ marginLeft:6, fontSize:10, background:'var(--bg3)', borderRadius:99, padding:'1px 6px', color:'var(--text2)' }}>{archivedTotal}</span>}
+              </button>
+            ))}
+          </div>
+
+          {/* Status filter pills */}
+          <div style={{ display:'flex', gap:7, flexWrap:'wrap' }}>
+            {FILTER_KEYS.map(f => (
+              <button key={f} onClick={() => setFilter(f)}
+                style={{ padding:'5px 13px', borderRadius:20, border:`1px solid ${filter===f ? 'var(--mint)' : 'var(--border2)'}`, background: filter===f ? 'var(--mint-dim)' : 'transparent', color: filter===f ? 'var(--mint)' : 'var(--text2)', fontSize:12, fontWeight:500, cursor:'pointer' }}>
+                {filterLabel(f)}
+              </button>
+            ))}
+          </div>
         </div>
 
+        {/* ── Archive view ── */}
+        {pageView === 'archive' && (
+          <div>
+            <input
+              placeholder="Search by patient name…"
+              value={archSearch}
+              onChange={e => setArchSearch(e.target.value)}
+              style={{ width:'100%', maxWidth:340, padding:'9px 13px', background:'var(--bg3)', border:'1px solid var(--border2)', borderRadius:8, color:'var(--text)', fontSize:13, outline:'none', boxSizing:'border-box', marginBottom:20 }}
+            />
+            {archivedDates.length === 0 && (
+              <div style={{ textAlign:'center', padding:'48px 20px', color:'var(--text3)', fontSize:13 }}>
+                {archSearch ? 'No archived appointments match that name.' : 'No archived appointments yet.'}
+              </div>
+            )}
+            {archivedDates.map(dateStr => (
+              <div key={dateStr} style={{ marginBottom:20 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
+                  <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', whiteSpace:'nowrap' }}>
+                    {new Date(dateStr + 'T00:00:00').toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short', year:'numeric' })}
+                  </div>
+                  <div style={{ flex:1, height:1, background:'var(--border)' }} />
+                  <span style={{ fontSize:10, color:'var(--text3)' }}>{archivedByDate[dateStr].length} appt{archivedByDate[dateStr].length!==1?'s':''}</span>
+                </div>
+                {archivedByDate[dateStr].map(a => (
+                  <ApptRow key={a._id} a={a} selected={selectedAppointment?._id === a._id}
+                    onSelect={setSelectedAppointment} onNavigate={goNav} tFn={t} faded={true} />
+                ))}
+              </div>
+            ))}
+
+            {selectedAppointment && (
+              <div style={{ marginTop:24, padding:20, background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r)' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+                  <div style={{ fontSize:16, fontWeight:600 }}>{t('appointments.details.title')}</div>
+                  <button onClick={() => setSelectedAppointment(null)} style={{ background:'none', border:'none', color:'var(--text2)', fontSize:20, cursor:'pointer' }}>✕</button>
+                </div>
+                <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12, marginBottom:16 }}>
+                  {[
+                    [t('appointments.details.patient'), selectedAppointment.patientId?.name],
+                    [t('appointments.details.dateTime'), `${new Date(selectedAppointment.date).toLocaleDateString()} at ${selectedAppointment.timeSlot?.start}`],
+                    [t('appointments.details.visitType'), selectedAppointment.visitType],
+                    [t('appointments.details.status'), null],
+                  ].map(([label, val]) => (
+                    <div key={label}>
+                      <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', color:'var(--text2)', marginBottom:4 }}>{label}</div>
+                      <div style={{ fontSize:14, textTransform: label.includes('Visit') ? 'capitalize' : 'none' }}>
+                        {val ?? <StatusChip status={selectedAppointment.status} />}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {selectedAppointment.reason && (
+                  <div style={{ marginBottom:16 }}>
+                    <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', color:'var(--text2)', marginBottom:4 }}>{t('appointments.details.reason')}</div>
+                    <div style={{ fontSize:13, color:'var(--text)' }}>{selectedAppointment.reason}</div>
+                  </div>
+                )}
+                <SymptomCard appt={selectedAppointment} t={t} />
+                <NotesPanel apptId={selectedAppointment._id} apptStatus={selectedAppointment.status} t={t} />
+              </div>
+            )}
+          </div>
+        )}
+
         {/* ── 3-column layout on desktop, 1-column on mobile ── */}
+        {pageView === 'schedule' &&
         <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '252px 1fr 320px', gap: isMobile ? 20 : 22, alignItems:'start' }}>
 
           {/* Col 1: Mini calendar (desktop only) */}
