@@ -69,8 +69,8 @@ function initials(name) {
   return name?.split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
 }
 
-const TABS = ['overview', 'appointments', 'prescriptions', 'labs'];
-const TAB_LABELS = { overview: 'Overview', appointments: 'Appointments', prescriptions: 'Prescriptions', labs: 'Lab Results' };
+const TABS = ['overview', 'appointments', 'prescriptions', 'labs', 'summary'];
+const TAB_LABELS = { overview: 'Overview', appointments: 'Appointments', prescriptions: 'Prescriptions', labs: 'Lab Results', summary: 'AI Summary' };
 
 export default function PatientDetailPage() {
   const { userId } = useParams();
@@ -421,6 +421,74 @@ export default function PatientDetailPage() {
             })}
           </div>
         )}
+        {!loading && tab === 'summary' && (() => {
+          const latest   = profile?.latestHealthSummary;
+          const history  = (profile?.healthSummaries || []).slice().reverse();
+
+          if (!latest) return (
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text3)', fontSize: 13 }}>
+              <div style={{ fontSize: 32, marginBottom: 12 }}>🤖</div>
+              <div style={{ fontWeight: 600, marginBottom: 6 }}>No AI summary yet</div>
+              <div>A summary is generated automatically when an appointment is marked completed.</div>
+            </div>
+          );
+
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {/* Latest situation — prominent */}
+              <div style={{ background: 'linear-gradient(135deg, rgba(15,227,176,0.08), rgba(8,145,178,0.06))', border: '1px solid rgba(15,227,176,0.25)', borderRadius: 12, padding: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                  <span style={{ fontSize: 18 }}>🩺</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--mint)' }}>Current Health Situation</div>
+                    <div style={{ fontSize: 11, color: 'var(--text3)' }}>
+                      From {new Date(latest.appointmentDate).toLocaleDateString()} · Dr. {latest.doctorName}
+                    </div>
+                  </div>
+                </div>
+                <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--text)', margin: '0 0 16px' }}>{latest.summary}</p>
+                {latest.keyPoints?.length > 0 && (
+                  <ul style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {latest.keyPoints.map((kp, i) => (
+                      <li key={i} style={{ fontSize: 12.5, color: 'var(--text2)', lineHeight: 1.5 }}>{kp}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* History */}
+              {history.length > 1 && (
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text3)', marginBottom: 12 }}>
+                    Previous Summaries
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {history.slice(1).map(entry => (
+                      <div key={entry._id} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text2)' }}>
+                            {new Date(entry.appointmentDate).toLocaleDateString()} · Dr. {entry.doctorName}
+                          </span>
+                          <span style={{ fontSize: 10.5, color: 'var(--text3)' }}>
+                            {new Date(entry.generatedAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: 12.5, color: 'var(--text)', margin: '0 0 8px', lineHeight: 1.55 }}>{entry.summary}</p>
+                        {entry.keyPoints?.length > 0 && (
+                          <ul style={{ margin: 0, paddingLeft: 16 }}>
+                            {entry.keyPoints.map((kp, i) => (
+                              <li key={i} style={{ fontSize: 11.5, color: 'var(--text3)', lineHeight: 1.5 }}>{kp}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

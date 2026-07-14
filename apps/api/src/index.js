@@ -15,6 +15,7 @@ const { startNoteWorker }                               = require('./workers/not
 const { startLabWorker }                                = require('./workers/labWorker');
 const { startExportWorker }                             = require('./workers/exportWorker');
 const { startArchiveWorker }                            = require('./workers/archiveWorker');
+const { startSummaryWorker }                            = require('./workers/summaryWorker');
 
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
@@ -95,6 +96,7 @@ connectDB().then(() => {
     startNoteWorker();
     startLabWorker();
     startExportWorker();
+    startSummaryWorker();
     registerDigestOrchestrator().catch(err =>
       console.error('[digest] orchestrator registration failed:', err.message)
     );

@@ -1,5 +1,14 @@
 const mongoose = require('mongoose');
 
+const healthSummaryEntrySchema = new mongoose.Schema({
+  appointmentId:   { type: mongoose.Schema.Types.ObjectId, ref: 'Appointment' },
+  appointmentDate: Date,
+  doctorName:      { type: String, default: '' },
+  summary:         { type: String, default: '' },
+  keyPoints:       { type: [String], default: [] },
+  generatedAt:     { type: Date, default: Date.now },
+}, { _id: true });
+
 const patientSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   homeLocation: {
@@ -18,6 +27,8 @@ const patientSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
   }],
   photoUrl: { type: String, default: '' },
+  healthSummaries:     { type: [healthSummaryEntrySchema], default: [] },
+  latestHealthSummary: { type: healthSummaryEntrySchema,  default: null },
 }, { timestamps: true });
 
 patientSchema.index({ homeLocation: '2dsphere' }, { sparse: true });
@@ -80,6 +91,30 @@ patientSchema.pre('save', function (next) {
       });
     }
 
+    if (this.isModified('healthSummaries') && Array.isArray(this.healthSummaries)) {
+      this.healthSummaries = this.healthSummaries.map(entry => {
+        const e = entry.toObject ? entry.toObject() : { ...entry };
+        if (e.summary != null && !String(e.summary).includes('|')) e.summary = encrypt(e.summary);
+        if (Array.isArray(e.keyPoints)) {
+          e.keyPoints = e.keyPoints.map(kp =>
+            (kp != null && !String(kp).includes('|')) ? encrypt(String(kp)) : kp
+          );
+        }
+        return e;
+      });
+    }
+
+    if (this.isModified('latestHealthSummary') && this.latestHealthSummary != null) {
+      const lhs = this.latestHealthSummary.toObject ? this.latestHealthSummary.toObject() : { ...this.latestHealthSummary };
+      if (lhs.summary != null && !String(lhs.summary).includes('|')) lhs.summary = encrypt(lhs.summary);
+      if (Array.isArray(lhs.keyPoints)) {
+        lhs.keyPoints = lhs.keyPoints.map(kp =>
+          (kp != null && !String(kp).includes('|')) ? encrypt(String(kp)) : kp
+        );
+      }
+      this.latestHealthSummary = lhs;
+    }
+
     next();
   } catch (err) {
     next(err);
@@ -108,6 +143,25 @@ patientSchema.post('init', function (doc) {
         if (note.content) note.content = decrypt(note.content);
         return note;
       });
+    }
+
+    if (Array.isArray(doc.healthSummaries)) {
+      doc.healthSummaries = doc.healthSummaries.map(entry => {
+        if (entry.summary != null) entry.summary = decrypt(entry.summary);
+        if (Array.isArray(entry.keyPoints)) {
+          entry.keyPoints = entry.keyPoints.map(kp => kp != null ? decrypt(String(kp)) : kp);
+        }
+        return entry;
+      });
+    }
+
+    if (doc.latestHealthSummary?.summary != null) {
+      doc.latestHealthSummary.summary = decrypt(doc.latestHealthSummary.summary);
+    }
+    if (Array.isArray(doc.latestHealthSummary?.keyPoints)) {
+      doc.latestHealthSummary.keyPoints = doc.latestHealthSummary.keyPoints.map(
+        kp => kp != null ? decrypt(String(kp)) : kp
+      );
     }
   } catch (err) {
     // Decrypt failure must not crash reads — log doc ID only, never PHI content

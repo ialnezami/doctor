@@ -6,7 +6,7 @@ const Doctor       = require('../models/Doctor');
 const Notification = require('../models/Notification');
 const User         = require('../models/User');
 const { sendPush } = require('../utils/push');
-const { getReminderQueue, getSymptomQueue } = require('../queues/reminderQueue');
+const { getReminderQueue, getSymptomQueue, getSummaryQueue } = require('../queues/reminderQueue');
 const { computeReminderDelays } = require('../utils/reminderDelays');
 const { sendEmail }             = require('../utils/email');
 const { appointmentConfirmedEmail, consultationValidatedEmail } = require('../utils/emailTemplates');
@@ -191,6 +191,15 @@ router.patch('/:id/status', auth, async (req, res, next) => {
     if (notes) appt.notes = notes;
     await appt.save();
     res.json(appt);
+
+    // Enqueue post-appointment health summary generation
+    if (status === 'completed') {
+      getSummaryQueue().add(
+        'generate-summary',
+        { appointmentId: String(appt._id) },
+        { attempts: 3, backoff: { type: 'exponential', delay: 30000 } }
+      ).catch(err => console.error('[summary] enqueue failed:', err.message));
+    }
 
     // Fire-and-forget FCM to the other party
     const otherPartyId = req.user.role === 'doctor' ? appt.patientId : appt.doctorId;

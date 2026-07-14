@@ -68,4 +68,13 @@ function getExportQueue() {
   return _exportQueue;
 }
 
-module.exports = { getConnection, getReminderQueue, getDigestQueue, getSymptomQueue, getNoteQueue, getLabQueue, getExportQueue };
+let _summaryQueue;
+
+function getSummaryQueue() {
+  if (!_summaryQueue) {
+    _summaryQueue = new Queue('health-summary', { connection: getConnection() });
+  }
+  return _summaryQueue;
+}
+
+module.exports = { getConnection, getReminderQueue, getDigestQueue, getSymptomQueue, getNoteQueue, getLabQueue, getExportQueue, getSummaryQueue };
