@@ -95,4 +95,9 @@ function decrypt(str) {
   }
 }
 
-module.exports = { initKey, encrypt, decrypt };
+function getKeyHex() {
+  if (!_key) throw new Error('crypto.initKey() must be called before getKeyHex()');
+  return _key.toString('hex');
+}
+
+module.exports = { initKey, encrypt, decrypt, getKeyHex };
