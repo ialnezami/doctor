@@ -38,7 +38,7 @@ router.get('/currencies', async (req, res, next) => {
 // GET /api/doctors?lat=&lng=&radius=&specialty=&name=
 router.get('/', auth, async (req, res, next) => {
   try {
-    const { lat, lng, radius = 10000, specialty, name, page = 1, limit = 20 } = req.query;
+    const { lat, lng, radius = 10000, specialty, name, city, page = 1, limit = 20 } = req.query;
 
     let resolvedLat = lat ? parseFloat(lat) : null;
     let resolvedLng = lng ? parseFloat(lng) : null;
@@ -69,6 +69,13 @@ router.get('/', auth, async (req, res, next) => {
 
     let doctorQuery = { userId: { $in: userIds } };
     if (specialty) doctorQuery.specialty = new RegExp(specialty, 'i');
+    if (city && city.trim()) {
+      const escapedCity = city.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      doctorQuery.$or = [
+        { clinicAddress: new RegExp(escapedCity, 'i') },
+        { 'locations.address': new RegExp(escapedCity, 'i') },
+      ];
+    }
 
     const doctors = await Doctor.find(doctorQuery).populate('userId', 'name email location');
     res.json(doctors);

@@ -16,13 +16,23 @@ export default function FindDoctorPage() {
   const [spec, setSpec] = useState('All');
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [city, setCity]             = useState('');
+  const [geoCoords, setGeoCoords]   = useState(null);   // { lat, lng } | null
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError]     = useState('');
 
   const fetchDoctors = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
-      if (search) params.name = search;
+      if (search)         params.name      = search;
       if (spec !== 'All') params.specialty = spec;
+      if (city.trim())    params.city      = city.trim();
+      if (geoCoords) {
+        params.lat    = geoCoords.lat;
+        params.lng    = geoCoords.lng;
+        params.radius = 10000;
+      }
       const data = await getDoctors(params);
       setDoctors(data);
     } catch {
@@ -30,12 +40,30 @@ export default function FindDoctorPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, spec]);
+  }, [search, spec, city, geoCoords]);
 
   useEffect(() => {
     const timer = setTimeout(fetchDoctors, 350);
     return () => clearTimeout(timer);
   }, [fetchDoctors]);
+
+  const handleNearMe = () => {
+    if (!navigator.geolocation) return;
+    setGeoLoading(true);
+    setCity('');
+    setGeoError('');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeoCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setGeoLoading(false);
+      },
+      () => {
+        setGeoError('Location unavailable');
+        setGeoLoading(false);
+      },
+      { timeout: 8000 }
+    );
+  };
 
   return (
     <div>
@@ -54,6 +82,39 @@ export default function FindDoctorPage() {
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('findDoctor.searchPlaceholder')}
             style={{ flex:1, background:'transparent', border:'none', outline:'none', padding:'11px 0', color:'var(--text)', fontSize:13.5 }} />
         </div>
+
+        {/* City + Near Me */}
+        <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:12 }}>
+          <div style={{ flex:1, display:'flex', alignItems:'center', background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:'var(--r)', overflow:'hidden' }}>
+            <span style={{ padding:'0 11px', color:'var(--text3)', fontSize:14 }}>⊕</span>
+            <input
+              value={city}
+              onChange={e => { setCity(e.target.value); setGeoCoords(null); setGeoError(''); }}
+              placeholder="Filter by city…"
+              style={{ flex:1, background:'transparent', border:'none', outline:'none', padding:'10px 0', color:'var(--text)', fontSize:13.5 }}
+            />
+            {geoCoords && (
+              <button
+                onClick={() => setGeoCoords(null)}
+                style={{ display:'flex', alignItems:'center', gap:4, margin:'0 8px', padding:'3px 10px', borderRadius:12, border:'none', background:'var(--mint-dim)', color:'var(--mint)', fontSize:11.5, cursor:'pointer', fontWeight:500 }}
+              >
+                Near you ×
+              </button>
+            )}
+          </div>
+          {navigator.geolocation && (
+            <button
+              onClick={handleNearMe}
+              disabled={geoLoading}
+              style={{ padding:'8px 14px', borderRadius:'var(--r)', border:'1px solid var(--border2)', background:'transparent', color: geoLoading ? 'var(--text3)' : 'var(--text2)', fontSize:12.5, cursor: geoLoading ? 'not-allowed' : 'pointer', whiteSpace:'nowrap' }}
+            >
+              {geoLoading ? '…' : '📍 Near me'}
+            </button>
+          )}
+        </div>
+        {geoError && (
+          <div style={{ fontSize:12, color:'#f87171', marginBottom:8 }}>{geoError}</div>
+        )}
 
         <div style={{ display:'flex', gap:7, marginBottom:20, flexWrap:'wrap' }}>
           {SPECIALTIES.map(s => (

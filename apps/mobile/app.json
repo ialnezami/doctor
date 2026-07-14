@@ -24,7 +24,8 @@
     },
     "plugins": [
       "expo-web-browser",
-      "expo-font"
+      "expo-font",
+      ["expo-location", { "locationWhenInUsePermission": "MediConnect uses your location to find nearby doctors." }]
     ],
     "extra": {
       "eas": {

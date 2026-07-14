@@ -10,6 +10,7 @@ import { getDoctors } from '../../api/doctors';
 import { getNearbyMapPins } from '../../api/map';
 import ErrorState from '../../components/ErrorState';
 import C from '../../constants/colors';
+import * as Location from 'expo-location';
 
 const SPECS = ['All', 'Cardiology', 'Pediatrics', 'Neurology', 'Orthopedics', 'General'];
 const AVATAR_COLORS = ['#0fe3b0', '#f59e0b', '#8b5cf6', '#10b981', '#60a5fa', '#f43f5e'];
@@ -80,23 +81,56 @@ export default function FindDoctorScreen({ navigation }) {
   const regionDebounce = useRef(null);
   const sheetAnim      = useRef(new Animated.Value(SHEET_HEIGHT)).current;
 
+  const [city, setCity]             = useState('');
+  const [geoCoords, setGeoCoords]   = useState(null);   // { lat, lng } | null
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError]     = useState('');
+
   const fetchDrs = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
-      if (search) params.name = search;
+      if (search)         params.name      = search;
       if (spec !== 'All') params.specialty = spec;
+      if (city.trim())    params.city      = city.trim();
+      if (geoCoords) {
+        params.lat    = geoCoords.lat;
+        params.lng    = geoCoords.lng;
+        params.radius = 10000;
+      }
       const data = await getDoctors(params);
       setDoctors(data);
     } catch { setDoctors([]); }
     finally { setLoading(false); }
-  }, [search, spec]);
+  }, [search, spec, city, geoCoords]);
 
   useEffect(() => {
     if (viewMode !== 'list') return;
     const tid = setTimeout(fetchDrs, 350);
     return () => clearTimeout(tid);
   }, [fetchDrs, viewMode]);
+
+  const handleNearMe = async () => {
+    setGeoLoading(true);
+    setCity('');
+    setGeoError('');
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setGeoError('Location permission denied');
+        return;
+      }
+      const pos = await Promise.race([
+        Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000)),
+      ]);
+      setGeoCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+    } catch {
+      setGeoError('Location unavailable');
+    } finally {
+      setGeoLoading(false);
+    }
+  };
 
   const fetchMapPins = useCallback(async (bbox) => {
     try {
@@ -157,10 +191,38 @@ export default function FindDoctorScreen({ navigation }) {
       </ScrollView>
 
       {viewMode === 'list' && (
-        <View style={s.searchBox}>
-          <Text style={s.searchIcon}>⌕</Text>
-          <TextInput style={s.searchInput} value={search} onChangeText={setSearch} placeholder={t('findDoctor.searchPlaceholder')} placeholderTextColor={C.text3} returnKeyType="search" clearButtonMode="while-editing" />
-        </View>
+        <>
+          <View style={s.searchBox}>
+            <Text style={s.searchIcon}>⌕</Text>
+            <TextInput style={s.searchInput} value={search} onChangeText={setSearch} placeholder={t('findDoctor.searchPlaceholder')} placeholderTextColor={C.text3} returnKeyType="search" clearButtonMode="while-editing" />
+          </View>
+          <View style={s.cityRow}>
+            <View style={s.cityBox}>
+              <Text style={s.cityIcon}>⊕</Text>
+              <TextInput
+                style={s.cityInput}
+                value={city}
+                onChangeText={v => { setCity(v); setGeoCoords(null); setGeoError(''); }}
+                placeholder="Filter by city…"
+                placeholderTextColor={C.text3}
+                returnKeyType="search"
+                clearButtonMode="while-editing"
+              />
+              {geoCoords && (
+                <TouchableOpacity style={s.nearChip} onPress={() => setGeoCoords(null)} activeOpacity={0.7}>
+                  <Text style={s.nearChipTxt}>Near you ×</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            <TouchableOpacity style={s.nearBtn} onPress={handleNearMe} disabled={geoLoading} activeOpacity={0.7}>
+              {geoLoading
+                ? <ActivityIndicator size="small" color={C.mint} />
+                : <Text style={s.nearBtnTxt}>📍</Text>
+              }
+            </TouchableOpacity>
+          </View>
+          {!!geoError && <Text style={s.geoErr}>{geoError}</Text>}
+        </>
       )}
 
       {viewMode === 'list' ? (
@@ -250,6 +312,15 @@ const s = StyleSheet.create({
   searchBox:        { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginVertical: 10, backgroundColor: C.bg3, borderRadius: 12, borderWidth: 1, borderColor: C.border2, paddingHorizontal: 12 },
   searchIcon:       { fontSize: 18, color: C.text3, marginRight: 6 },
   searchInput:      { flex: 1, paddingVertical: 10, color: C.text, fontSize: 14 },
+  cityRow:          { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 4, gap: 8 },
+  cityBox:          { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: C.bg3, borderRadius: 12, borderWidth: 1, borderColor: C.border2, paddingHorizontal: 10 },
+  cityIcon:         { fontSize: 16, color: C.text3, marginRight: 6 },
+  cityInput:        { flex: 1, paddingVertical: 9, color: C.text, fontSize: 14 },
+  nearChip:         { backgroundColor: C.mint + '22', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, marginLeft: 4 },
+  nearChipTxt:      { fontSize: 11, color: C.mint, fontWeight: '600' },
+  nearBtn:          { width: 40, height: 40, borderRadius: 12, borderWidth: 1, borderColor: C.border2, backgroundColor: C.bg3, justifyContent: 'center', alignItems: 'center' },
+  nearBtnTxt:       { fontSize: 18 },
+  geoErr:           { fontSize: 11, color: '#f87171', marginHorizontal: 16, marginBottom: 6 },
   spinner:          { marginTop: 40 },
   list:             { padding: 16, gap: 10 },
   card:             { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: 14, borderWidth: 1, borderColor: C.border, padding: 14 },
