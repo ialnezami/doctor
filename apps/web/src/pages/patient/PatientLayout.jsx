@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import ChatFloatingBubble from '../../components/patient/ChatFloatingBubble';
 import ChatWidget from '../../components/patient/ChatWidget';
 
@@ -19,19 +19,22 @@ import ChatWidget from '../../components/patient/ChatWidget';
  */
 export default function PatientLayout({ children }) {
   const [chatOpen, setChatOpen] = useState(false);
+  const { pathname } = useLocation();
+  const hideBubble = pathname.startsWith('/chat');
 
-  // TODO: replace null with real geolocation (user profile coords or browser API)
   const patientLocation = null;
 
   return (
     <>
       {children ?? <Outlet />}
-      <ChatFloatingBubble
-        onClick={() => setChatOpen((prev) => !prev)}
-        isOpen={chatOpen}
-      />
+      {!hideBubble && (
+        <ChatFloatingBubble
+          onClick={() => setChatOpen((prev) => !prev)}
+          isOpen={chatOpen}
+        />
+      )}
       <ChatWidget
-        isOpen={chatOpen}
+        isOpen={chatOpen && !hideBubble}
         onClose={() => setChatOpen(false)}
         patientLocation={patientLocation}
       />

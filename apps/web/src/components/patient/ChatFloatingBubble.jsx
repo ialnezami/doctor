@@ -12,8 +12,7 @@ export default function ChatFloatingBubble({ onClick, isOpen }) {
   const bubbleStyle = {
     position: 'fixed',
     bottom: 24,
-    left: '50%',
-    transform: 'translateX(-50%)',
+    right: 24,
     zIndex: 9999,
     width: 56,
     height: 56,
