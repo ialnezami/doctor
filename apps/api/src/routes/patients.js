@@ -121,10 +121,22 @@ router.get('/:id', auth,
 );
 
 // GET /api/patients/:id/notes
+// CR-09: enforce ownership — patients see only their own notes; doctors only see notes of their patients
 router.get('/:id/notes', auth, async (req, res, next) => {
   try {
-    const patient = await Patient.findById(req.params.id).select('notes').populate('notes.doctorId', 'name');
+    const patient = await Patient.findById(req.params.id).select('notes userId').populate('notes.doctorId', 'name');
     if (!patient) return res.status(404).json({ message: 'Not found' });
+
+    if (req.user.role === 'patient') {
+      if (patient.userId.toString() !== req.user.id)
+        return res.status(403).json({ message: 'Forbidden' });
+    } else if (req.user.role === 'doctor') {
+      const hasRelationship = await Appointment.exists({ doctorId: req.user.id, patientId: patient.userId });
+      if (!hasRelationship) return res.status(403).json({ message: 'Forbidden' });
+    } else {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
     res.json(patient.notes);
   } catch (err) {
     next(err);

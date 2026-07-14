@@ -39,7 +39,9 @@ contextBridge.exposeInMainWorld('api', {
       updateStatus: (id, status, tests) => ipcRenderer.invoke('db:labOrders:updateStatus', id, status, tests),
     },
     syncQueue: {
-      push:   (method, url, payload) => ipcRenderer.invoke('db:syncQueue:push', method, url, payload),
+      // CR-04: entity type validated in main process; URL constructed there, never from renderer
+      enqueue: (entity, entityId, operation, payload) =>
+        ipcRenderer.invoke('db:syncQueue:enqueue', entity, entityId, operation, payload),
       list:   () => ipcRenderer.invoke('db:syncQueue:list'),
       remove: (id) => ipcRenderer.invoke('db:syncQueue:remove', id),
     },

@@ -196,6 +196,20 @@ const sales = {
       VALUES (@_id, @items, @totalAmount, @patientName, @paymentMethod, @createdAt)
     `).run({ ...s, items: JSON.stringify(s.items) });
   },
+
+  // CR-05: atomic checkout — sale insert + all stock adjustments in one transaction
+  checkout(sale, cartItems) {
+    return _db.transaction(() => {
+      _db.prepare(`
+        INSERT INTO sales (_id, items, totalAmount, patientName, paymentMethod, createdAt)
+        VALUES (@_id, @items, @totalAmount, @patientName, @paymentMethod, @createdAt)
+      `).run({ ...sale, items: JSON.stringify(sale.items) });
+      const adjustStmt = _db.prepare('UPDATE products SET stock = stock + ? WHERE _id = ?');
+      for (const item of cartItems) {
+        adjustStmt.run(-item.qty, item._id);
+      }
+    })();
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -239,11 +253,12 @@ const appointments = {
 
 const patients = {
   list(since) {
+    // CR-06: ORDER BY name sorts ciphertext, not plaintext — sort in JS after decryption
     const sql = since
-      ? 'SELECT * FROM patients WHERE updatedAt > ? ORDER BY name'
-      : 'SELECT * FROM patients ORDER BY name';
+      ? 'SELECT * FROM patients WHERE updatedAt > ?'
+      : 'SELECT * FROM patients';
     const rows = since ? _db.prepare(sql).all(since) : _db.prepare(sql).all();
-    return rows.map(rowToPatient);
+    return rows.map(rowToPatient).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   },
 
   get(_id) {

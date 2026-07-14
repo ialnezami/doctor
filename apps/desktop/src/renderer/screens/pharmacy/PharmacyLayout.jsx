@@ -27,9 +27,19 @@ function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
+// CR-08: escape all user-supplied strings before HTML interpolation
+function escapeHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function buildReceiptHtml(sale, items) {
   const lines = items.map((item) =>
-    `<tr><td>${item.name}</td><td style="text-align:center">${item.qty}</td><td style="text-align:right">${(item.price * item.qty).toFixed(2)}</td></tr>`
+    `<tr><td>${escapeHtml(item.name)}</td><td style="text-align:center">${escapeHtml(item.qty)}</td><td style="text-align:right">${(item.price * item.qty).toFixed(2)}</td></tr>`
   ).join('');
   return `<!DOCTYPE html><html><head><meta charset="utf-8">
   <style>
@@ -43,14 +53,14 @@ function buildReceiptHtml(sale, items) {
     .footer { text-align: center; margin-top: 16px; font-size: 11px; color: #555; }
   </style></head><body>
   <h2>MediConnect Pharmacy</h2>
-  <p>${new Date(sale.createdAt).toLocaleString()}</p>
-  ${sale.patientName ? `<p>Patient: ${sale.patientName}</p>` : ''}
+  <p>${escapeHtml(new Date(sale.createdAt).toLocaleString())}</p>
+  ${sale.patientName ? `<p>Patient: ${escapeHtml(sale.patientName)}</p>` : ''}
   <table>
     <thead><tr><th>Item</th><th>Qty</th><th>Total</th></tr></thead>
     <tbody>${lines}</tbody>
     <tfoot><tr><td colspan="2">Total</td><td style="text-align:right">${sale.totalAmount.toFixed(2)}</td></tr></tfoot>
   </table>
-  <p style="margin-top:8px">Payment: ${sale.paymentMethod || 'Cash'}</p>
+  <p style="margin-top:8px">Payment: ${escapeHtml(sale.paymentMethod || 'Cash')}</p>
   <p class="footer">Thank you!</p>
   </body></html>`;
 }
@@ -108,10 +118,8 @@ function POSTab() {
         paymentMethod: payment,
         createdAt:     now,
       };
-      await window.api.db.sales.create(sale);
-      for (const item of cart) {
-        await window.api.db.products.adjustStock(item._id, -item.qty);
-      }
+      // CR-05: single atomic IPC call — sale + stock adjustments in one SQLite transaction
+      await window.api.db.sales.checkout(sale, cart);
       setReceipt({ sale, items: cart });
       setCart([]); setPatient('');
       // Refresh product stock
