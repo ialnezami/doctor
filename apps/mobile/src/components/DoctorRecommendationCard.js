@@ -39,10 +39,11 @@ function getInitials(name) {
  *     distMeters, user: { name }, locations: [...] }
  *
  * Tapping the card calls onPress(doctor._id) so the parent navigates to DoctorProfile.
+ * Optional onBook(doctor) renders a "Book" button for inline booking flows.
  *
- * @param {{ doctor: object, onPress: (doctorId: string) => void }} props
+ * @param {{ doctor: object, onPress: (doctorId: string) => void, onBook?: (doctor: object) => void }} props
  */
-export default function DoctorRecommendationCard({ doctor, onPress }) {
+export default function DoctorRecommendationCard({ doctor, onPress, onBook }) {
   const name = doctor?.user?.name || 'Doctor';
   const initials = getInitials(name);
   const distance = formatDistance(doctor?.distMeters);
@@ -90,7 +91,18 @@ export default function DoctorRecommendationCard({ doctor, onPress }) {
         </View>
       </View>
 
-      <Text style={styles.chevron}>›</Text>
+      {onBook ? (
+        <TouchableOpacity
+          style={styles.bookBtn}
+          onPress={() => onBook(doctor)}
+          accessibilityLabel={`Book appointment with ${name}`}
+          accessibilityRole="button"
+        >
+          <Text style={styles.bookBtnText}>Book</Text>
+        </TouchableOpacity>
+      ) : (
+        <Text style={styles.chevron}>›</Text>
+      )}
     </TouchableOpacity>
   );
 }
@@ -160,5 +172,17 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: '#9ca3af',
     marginLeft: 8,
+  },
+  bookBtn: {
+    marginLeft: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    backgroundColor: '#2563eb',
+    borderRadius: 8,
+  },
+  bookBtnText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

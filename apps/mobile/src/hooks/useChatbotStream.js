@@ -124,6 +124,13 @@ export function useChatbotStream({ lat, lng } = {}) {
     [lat, lng, streaming]
   );
 
+  const appendLocal = useCallback((content) => {
+    setMessages((prev) => [
+      ...prev,
+      { id: `local-${Date.now()}`, role: 'assistant', content },
+    ]);
+  }, []);
+
   /**
    * Reset the conversation:
    *   1. Abort any in-flight stream
@@ -148,5 +155,5 @@ export function useChatbotStream({ lat, lng } = {}) {
     }
   }, []);
 
-  return { messages, streaming, urgency, emergency, doctors, error, send, reset };
+  return { messages, streaming, urgency, emergency, doctors, error, send, reset, appendLocal };
 }

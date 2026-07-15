@@ -17,6 +17,7 @@ import { useChatbotStream } from '../../hooks/useChatbotStream';
 import ChatMessage from '../../components/ChatMessage';
 import UrgencyBadge from '../../components/UrgencyBadge';
 import DoctorRecommendationCard from '../../components/DoctorRecommendationCard';
+import ChatMobileBookingSheet from '../../components/ChatMobileBookingSheet';
 
 /**
  * ChatbotScreen — full-screen AI health assistant modal.
@@ -38,10 +39,11 @@ export default function ChatbotScreen({ navigation, route }) {
   const lat = route?.params?.lat;
   const lng = route?.params?.lng;
 
-  const { messages, streaming, urgency, emergency, doctors, error, send, reset } =
+  const { messages, streaming, urgency, emergency, doctors, error, send, reset, appendLocal } =
     useChatbotStream({ lat, lng });
 
   const [input, setInput] = useState('');
+  const [bookingDoctor, setBookingDoctor] = useState(null);
   const listRef = useRef(null);
 
   // Auto-scroll to latest message as stream progresses
@@ -104,6 +106,7 @@ export default function ChatbotScreen({ navigation, route }) {
             key={d._id}
             doctor={d}
             onPress={onDoctorPress}
+            onBook={setBookingDoctor}
           />
         ))}
       </View>
@@ -178,6 +181,16 @@ export default function ChatbotScreen({ navigation, route }) {
           <Text style={styles.errorText}>{error}</Text>
         </View>
       ) : null}
+
+      <ChatMobileBookingSheet
+        doctor={bookingDoctor}
+        visible={!!bookingDoctor}
+        onDone={(msg) => {
+          setBookingDoctor(null);
+          appendLocal(msg);
+        }}
+        onCancel={() => setBookingDoctor(null)}
+      />
 
       {/* Input area */}
       <KeyboardAvoidingView
