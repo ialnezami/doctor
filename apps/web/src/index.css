@@ -18,11 +18,33 @@
   --text:  #e8f4ff;
   --text2: #7ba8c4;
   --text3: #3d6480;
+  --bg-blur: rgba(6,13,24,0.88);
   --r:    10px;
   --r-sm: 6px;
   --font-display: 'Cormorant Garamond', serif;
   --font-body: 'Outfit', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+}
+
+[data-theme="light"] {
+  --bg:    #f8fafc;
+  --bg2:   #f1f5f9;
+  --bg3:   #e8eef4;
+  --card:  #ffffff;
+  --border:  #d0dce8;
+  --border2: #a8bed0;
+  --mint:      #0ca87e;
+  --mint-dim:  rgba(12,168,126,0.12);
+  --amber:     #d97706;
+  --amber-dim: rgba(217,119,6,0.12);
+  --rose:      #e11d48;
+  --rose-dim:  rgba(225,29,72,0.10);
+  --blue:      #2563eb;
+  --blue-dim:  rgba(37,99,235,0.10);
+  --text:  #0f1923;
+  --text2: #4a6b82;
+  --text3: #8aa5b8;
+  --bg-blur: rgba(248,250,252,0.88);
 }
 
 html, body, #root { height: 100%; }

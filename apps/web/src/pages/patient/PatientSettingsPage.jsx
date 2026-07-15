@@ -5,6 +5,7 @@ import { getPatientMe, updatePatientProfile } from '../../api/patients';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { useTheme } from '../../context/ThemeContext';
 
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -62,6 +63,7 @@ function TagInput({ tags, onChange, placeholder }) {
 export default function PatientSettingsPage() {
   const { t }    = useTranslation();
   const isMobile = useIsMobile();
+  const { theme, setTheme } = useTheme();
 
   const [pushEnabled, setPushEnabled]   = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(true);
@@ -122,7 +124,7 @@ export default function PatientSettingsPage() {
 
   return (
     <div>
-      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(6,13,24,0.88)', backdropFilter: 'blur(14px)', borderBottom: '1px solid var(--border)', padding: isMobile ? '12px 14px' : '14px 26px' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg-blur)', backdropFilter: 'blur(14px)', borderBottom: '1px solid var(--border)', padding: isMobile ? '12px 14px' : '14px 26px' }}>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 21, fontWeight: 500 }}>{t('patientSettings.title')}</div>
         <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 1 }}>{t('patientSettings.subtitle', 'Manage your profile and preferences')}</div>
       </div>
@@ -203,7 +205,7 @@ export default function PatientSettingsPage() {
         <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 10 }}>
           {t('patientSettings.notificationChannels')}
         </div>
-        <Card>
+        <Card style={{ marginBottom: 22 }}>
           <Toggle
             label={t('patientSettings.pushNotifications')}
             value={pushEnabled}
@@ -222,6 +224,37 @@ export default function PatientSettingsPage() {
               await updateNotificationPrefs({ emailEnabled: next }).catch(() => setEmailEnabled(!next));
             }}
           />
+        </Card>
+
+        {/* Appearance */}
+        <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text2)', marginBottom: 10 }}>
+          {t('patientSettings.appearance', 'Appearance')}
+        </div>
+        <Card>
+          <div style={{ fontSize: 14, color: 'var(--text)', marginBottom: 12 }}>
+            {t('patientSettings.theme', 'Theme')}
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            {[
+              { value: 'dark',  label: '🌙 Night' },
+              { value: 'light', label: '☀️ Light' },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setTheme(opt.value)}
+                style={{
+                  flex: 1, padding: '10px 0', borderRadius: 'var(--r-sm)',
+                  border: theme === opt.value ? '1.5px solid var(--mint)' : '1px solid var(--border)',
+                  background: theme === opt.value ? 'var(--mint-dim)' : 'var(--bg3)',
+                  color: theme === opt.value ? 'var(--mint)' : 'var(--text2)',
+                  fontWeight: theme === opt.value ? 600 : 400,
+                  fontSize: 13, cursor: 'pointer', transition: 'all .15s',
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </Card>
       </div>
     </div>

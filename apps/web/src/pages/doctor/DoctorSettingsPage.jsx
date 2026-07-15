@@ -6,6 +6,7 @@ import Button from '../../components/ui/Button';
 import client from '../../api/client';
 import { getNotificationPrefs, updateNotificationPrefs } from '../../api/users';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { useTheme } from '../../context/ThemeContext';
 
 const TIMEZONES = [
   { label: 'UTC',                 value: 'UTC' },
@@ -37,6 +38,7 @@ export default function DoctorSettingsPage() {
   const { user } = useAuthStore();
   const { t } = useTranslation();
   const isMobile = useIsMobile();
+  const { theme, setTheme } = useTheme();
   const [doctorId, setDoctorId] = useState(null);
   const [autoAccept, setAutoAccept] = useState(false);
   const [slots, setSlots] = useState([]);
@@ -587,6 +589,35 @@ export default function DoctorSettingsPage() {
       </div>
 
       <Button onClick={save} disabled={saving} style={{ padding:'11px 28px' }}>{saveLabel}</Button>
+
+      {/* Appearance */}
+      <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text2)', marginBottom:10, marginTop:28 }}>
+        {t('settings.appearance', 'Appearance')}
+      </div>
+      <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:20, marginBottom:20 }}>
+        <div style={{ fontSize:14, fontWeight:500, marginBottom:12 }}>{t('settings.theme', 'Theme')}</div>
+        <div style={{ display:'flex', gap:10 }}>
+          {[
+            { value: 'dark',  label: '🌙 Night' },
+            { value: 'light', label: '☀️ Light' },
+          ].map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setTheme(opt.value)}
+              style={{
+                flex:1, padding:'10px 0', borderRadius:'var(--r-sm)',
+                border: theme === opt.value ? '1.5px solid var(--mint)' : '1px solid var(--border)',
+                background: theme === opt.value ? 'var(--mint-dim)' : 'var(--bg3)',
+                color: theme === opt.value ? 'var(--mint)' : 'var(--text2)',
+                fontWeight: theme === opt.value ? 600 : 400,
+                fontSize:13, cursor:'pointer', transition:'all .15s',
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
