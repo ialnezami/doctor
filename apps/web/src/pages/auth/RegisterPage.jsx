@@ -5,6 +5,34 @@ import useAuthStore from '../../store/authStore';
 import Button from '../../components/ui/Button';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
 
+const SPECIALTIES = [
+  { key: 'general',            en: 'General Medicine' },
+  { key: 'dentistry',          en: 'Dentistry' },
+  { key: 'ophthalmology',      en: 'Ophthalmology' },
+  { key: 'pediatrics',         en: 'Pediatrics' },
+  { key: 'obstetrics',         en: 'OB/GYN' },
+  { key: 'internal_medicine',  en: 'Internal Medicine' },
+  { key: 'ent',                en: 'ENT' },
+  { key: 'cardiology',         en: 'Cardiology' },
+  { key: 'orthopedics',        en: 'Orthopedics' },
+  { key: 'general_surgery',    en: 'General Surgery' },
+  { key: 'psychiatry',         en: 'Psychiatry' },
+  { key: 'dermatology',        en: 'Dermatology' },
+  { key: 'aesthetics',         en: 'Aesthetics' },
+  { key: 'neurology',          en: 'Neurology' },
+  { key: 'vascular',           en: 'Vascular' },
+  { key: 'oncology',           en: 'Oncology' },
+  { key: 'nutrition',          en: 'Nutrition' },
+  { key: 'endocrinology',      en: 'Endocrinology & Diabetes' },
+  { key: 'urology',            en: 'Urology' },
+  { key: 'gastroenterology',   en: 'Gastroenterology' },
+  { key: 'physical_therapy',   en: 'Physical Therapy' },
+  { key: 'thoracic_surgery',   en: 'Thoracic Surgery' },
+  { key: 'neurosurgery',       en: 'Neurosurgery' },
+  { key: 'orthopedic_surgery', en: 'Orthopedic Surgery' },
+  { key: 'vascular_surgery',   en: 'Vascular Surgery' },
+];
+
 export default function RegisterPage() {
   const navigate = useNavigate();
   const setAuth = useAuthStore(s => s.login);
@@ -54,9 +82,11 @@ export default function RegisterPage() {
           {form.role === 'doctor' && (
             <div style={{ marginBottom:14 }}>
               <label style={{ display:'block', fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text2)', marginBottom:6 }}>Specialty</label>
-              <input value={form.specialty} onChange={e => setForm(p => ({ ...p, specialty: e.target.value }))}
-                placeholder="e.g. Cardiology"
-                style={{ width:'100%', background:'var(--bg3)', border:'1px solid var(--border2)', borderRadius:'var(--r-sm)', padding:'10px 13px', color:'var(--text)', fontSize:13, outline:'none' }} />
+              <select value={form.specialty} onChange={e => setForm(p => ({ ...p, specialty: e.target.value }))}
+                style={{ width:'100%', background:'var(--bg3)', border:'1px solid var(--border2)', borderRadius:'var(--r-sm)', padding:'10px 13px', color: form.specialty ? 'var(--text)' : 'var(--text3)', fontSize:13, outline:'none', cursor:'pointer' }}>
+                <option value="" disabled>Select specialty</option>
+                {SPECIALTIES.map(s => <option key={s.key} value={s.en}>{s.en}</option>)}
+              </select>
             </div>
           )}
           {form.role === 'laboratory' && (

@@ -5,7 +5,34 @@ import { getDoctors } from '../../api/doctors';
 import Button from '../../components/ui/Button';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
-const SPECIALTIES = ['All','Cardiology','Dermatology','Pediatrics','Orthopedics','Neurology','General'];
+const SPECIALTIES = [
+  { key: 'All',                en: 'All' },
+  { key: 'general',            en: 'General Medicine' },
+  { key: 'dentistry',          en: 'Dentistry' },
+  { key: 'ophthalmology',      en: 'Ophthalmology' },
+  { key: 'pediatrics',         en: 'Pediatrics' },
+  { key: 'obstetrics',         en: 'OB/GYN' },
+  { key: 'internal_medicine',  en: 'Internal Medicine' },
+  { key: 'ent',                en: 'ENT' },
+  { key: 'cardiology',         en: 'Cardiology' },
+  { key: 'orthopedics',        en: 'Orthopedics' },
+  { key: 'general_surgery',    en: 'General Surgery' },
+  { key: 'psychiatry',         en: 'Psychiatry' },
+  { key: 'dermatology',        en: 'Dermatology' },
+  { key: 'aesthetics',         en: 'Aesthetics' },
+  { key: 'neurology',          en: 'Neurology' },
+  { key: 'vascular',           en: 'Vascular' },
+  { key: 'oncology',           en: 'Oncology' },
+  { key: 'nutrition',          en: 'Nutrition' },
+  { key: 'endocrinology',      en: 'Endocrinology & Diabetes' },
+  { key: 'urology',            en: 'Urology' },
+  { key: 'gastroenterology',   en: 'Gastroenterology' },
+  { key: 'physical_therapy',   en: 'Physical Therapy' },
+  { key: 'thoracic_surgery',   en: 'Thoracic Surgery' },
+  { key: 'neurosurgery',       en: 'Neurosurgery' },
+  { key: 'orthopedic_surgery', en: 'Orthopedic Surgery' },
+  { key: 'vascular_surgery',   en: 'Vascular Surgery' },
+];
 const GRADIENTS = ['linear-gradient(135deg,#0fe3b0,#0891b2)','linear-gradient(135deg,#f59e0b,#ef4444)','linear-gradient(135deg,#8b5cf6,#3b82f6)','linear-gradient(135deg,#10b981,#0591d1)'];
 
 export default function FindDoctorPage() {
@@ -26,7 +53,7 @@ export default function FindDoctorPage() {
     try {
       const params = {};
       if (search)         params.name      = search;
-      if (spec !== 'All') params.specialty = spec;
+      if (spec !== 'All') params.specialty = SPECIALTIES.find(s => s.key === spec)?.en || spec;
       if (city.trim())    params.city      = city.trim();
       if (geoCoords) {
         params.lat    = geoCoords.lat;
@@ -118,9 +145,9 @@ export default function FindDoctorPage() {
 
         <div style={{ display:'flex', gap:7, marginBottom:20, flexWrap:'wrap' }}>
           {SPECIALTIES.map(s => (
-            <button key={s} onClick={() => setSpec(s)}
-              style={{ padding:'5px 13px', borderRadius:20, border:`1px solid ${spec===s ? 'var(--mint)' : 'var(--border2)'}`, background: spec===s ? 'var(--mint-dim)' : 'transparent', color: spec===s ? 'var(--mint)' : 'var(--text2)', fontSize:12, fontWeight:500, cursor:'pointer' }}>
-              {s}
+            <button key={s.key} onClick={() => setSpec(s.key)}
+              style={{ padding:'5px 13px', borderRadius:20, border:`1px solid ${spec===s.key ? 'var(--mint)' : 'var(--border2)'}`, background: spec===s.key ? 'var(--mint-dim)' : 'transparent', color: spec===s.key ? 'var(--mint)' : 'var(--text2)', fontSize:12, fontWeight:500, cursor:'pointer' }}>
+              {t(`findDoctor.specialties.${s.key}`, s.en)}
             </button>
           ))}
         </div>

@@ -12,7 +12,34 @@ import ErrorState from '../../components/ErrorState';
 import C from '../../constants/colors';
 import * as Location from 'expo-location';
 
-const SPECS = ['All', 'Cardiology', 'Pediatrics', 'Neurology', 'Orthopedics', 'General'];
+const SPECIALTIES = [
+  { key: 'All',                en: 'All' },
+  { key: 'general',            en: 'General Medicine' },
+  { key: 'dentistry',          en: 'Dentistry' },
+  { key: 'ophthalmology',      en: 'Ophthalmology' },
+  { key: 'pediatrics',         en: 'Pediatrics' },
+  { key: 'obstetrics',         en: 'OB/GYN' },
+  { key: 'internal_medicine',  en: 'Internal Medicine' },
+  { key: 'ent',                en: 'ENT' },
+  { key: 'cardiology',         en: 'Cardiology' },
+  { key: 'orthopedics',        en: 'Orthopedics' },
+  { key: 'general_surgery',    en: 'General Surgery' },
+  { key: 'psychiatry',         en: 'Psychiatry' },
+  { key: 'dermatology',        en: 'Dermatology' },
+  { key: 'aesthetics',         en: 'Aesthetics' },
+  { key: 'neurology',          en: 'Neurology' },
+  { key: 'vascular',           en: 'Vascular' },
+  { key: 'oncology',           en: 'Oncology' },
+  { key: 'nutrition',          en: 'Nutrition' },
+  { key: 'endocrinology',      en: 'Endocrinology & Diabetes' },
+  { key: 'urology',            en: 'Urology' },
+  { key: 'gastroenterology',   en: 'Gastroenterology' },
+  { key: 'physical_therapy',   en: 'Physical Therapy' },
+  { key: 'thoracic_surgery',   en: 'Thoracic Surgery' },
+  { key: 'neurosurgery',       en: 'Neurosurgery' },
+  { key: 'orthopedic_surgery', en: 'Orthopedic Surgery' },
+  { key: 'vascular_surgery',   en: 'Vascular Surgery' },
+];
 const AVATAR_COLORS = ['#0fe3b0', '#f59e0b', '#8b5cf6', '#10b981', '#60a5fa', '#f43f5e'];
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SHEET_HEIGHT = 220;
@@ -91,7 +118,7 @@ export default function FindDoctorScreen({ navigation }) {
     try {
       const params = {};
       if (search)         params.name      = search;
-      if (spec !== 'All') params.specialty = spec;
+      if (spec !== 'All') params.specialty = SPECIALTIES.find(s => s.key === spec)?.en || spec;
       if (city.trim())    params.city      = city.trim();
       if (geoCoords) {
         params.lat    = geoCoords.lat;
@@ -134,7 +161,7 @@ export default function FindDoctorScreen({ navigation }) {
 
   const fetchMapPins = useCallback(async (bbox) => {
     try {
-      const result = await getNearbyMapPins({ ...bbox, specialty: spec });
+      const result = await getNearbyMapPins({ ...bbox, specialty: spec !== 'All' ? SPECIALTIES.find(s => s.key === spec)?.en || spec : '' });
       if (webViewRef.current) {
         webViewRef.current.injectJavaScript(`updateMarkers(${JSON.stringify(result)}); true;`);
       }
@@ -183,9 +210,9 @@ export default function FindDoctorScreen({ navigation }) {
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.chipRow} contentContainerStyle={s.chipContent}>
-        {SPECS.map(sp => (
-          <TouchableOpacity key={sp} style={[s.chip, spec === sp && s.chipActive]} onPress={() => setSpec(sp)} activeOpacity={0.7}>
-            <Text style={[s.chipTxt, spec === sp && s.chipTxtActive]}>{t(`findDoctor.specialties.${sp}`, sp)}</Text>
+        {SPECIALTIES.map(sp => (
+          <TouchableOpacity key={sp.key} style={[s.chip, spec === sp.key && s.chipActive]} onPress={() => setSpec(sp.key)} activeOpacity={0.7}>
+            <Text style={[s.chipTxt, spec === sp.key && s.chipTxtActive]}>{t(`findDoctor.specialties.${sp.key}`, sp.en)}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>

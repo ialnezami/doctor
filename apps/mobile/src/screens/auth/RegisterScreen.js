@@ -1,6 +1,35 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import C from '../../constants/colors';
+
+const SPECIALTIES = [
+  { key: 'general',            en: 'General Medicine' },
+  { key: 'dentistry',          en: 'Dentistry' },
+  { key: 'ophthalmology',      en: 'Ophthalmology' },
+  { key: 'pediatrics',         en: 'Pediatrics' },
+  { key: 'obstetrics',         en: 'OB/GYN' },
+  { key: 'internal_medicine',  en: 'Internal Medicine' },
+  { key: 'ent',                en: 'ENT' },
+  { key: 'cardiology',         en: 'Cardiology' },
+  { key: 'orthopedics',        en: 'Orthopedics' },
+  { key: 'general_surgery',    en: 'General Surgery' },
+  { key: 'psychiatry',         en: 'Psychiatry' },
+  { key: 'dermatology',        en: 'Dermatology' },
+  { key: 'aesthetics',         en: 'Aesthetics' },
+  { key: 'neurology',          en: 'Neurology' },
+  { key: 'vascular',           en: 'Vascular' },
+  { key: 'oncology',           en: 'Oncology' },
+  { key: 'nutrition',          en: 'Nutrition' },
+  { key: 'endocrinology',      en: 'Endocrinology & Diabetes' },
+  { key: 'urology',            en: 'Urology' },
+  { key: 'gastroenterology',   en: 'Gastroenterology' },
+  { key: 'physical_therapy',   en: 'Physical Therapy' },
+  { key: 'thoracic_surgery',   en: 'Thoracic Surgery' },
+  { key: 'neurosurgery',       en: 'Neurosurgery' },
+  { key: 'orthopedic_surgery', en: 'Orthopedic Surgery' },
+  { key: 'vascular_surgery',   en: 'Vascular Surgery' },
+];
 import { register } from '../../api/auth';
 import useAuthStore from '../../store/authStore';
 import useGoogleSignIn from '../../hooks/useGoogleSignIn';
@@ -39,7 +68,13 @@ export default function RegisterScreen({ navigation }) {
       {form.role === 'doctor' && (
         <View style={{ width:'100%', marginBottom:14 }}>
           <Text style={s.label}>Specialty</Text>
-          <TextInput style={s.input} value={form.specialty} onChangeText={v => set('specialty',v)} placeholder="e.g. Cardiology" placeholderTextColor={C.text3} />
+          <View style={[s.input, { padding:0 }]}>
+            <Picker selectedValue={form.specialty} onValueChange={v => set('specialty', v)}
+              style={{ color: C.text }} dropdownIconColor={C.text3}>
+              <Picker.Item label="Select specialty" value="" color={C.text3} />
+              {SPECIALTIES.map(sp => <Picker.Item key={sp.key} label={sp.en} value={sp.en} color={C.text} />)}
+            </Picker>
+          </View>
         </View>
       )}
       {form.role === 'laboratory' && (
