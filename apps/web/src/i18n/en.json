@@ -305,7 +305,56 @@
         "30": "30 min",
         "custom": "Custom"
       }
-    }
+    },
+    "shareProfile": {
+      "title": "Share Your Profile",
+      "desc": "Send this link to patients — no login required to view.",
+      "copy": "Copy Link",
+      "copied": "✓ Copied!"
+    },
+    "profileInfo": {
+      "title": "Profile Information",
+      "bio": "Bio",
+      "bioPlaceholder": "A short description about yourself, your expertise, and approach…",
+      "yearsExp": "Years of Experience",
+      "years": "years",
+      "license": "License Number",
+      "licensePlaceholder": "e.g. MD-123456",
+      "languages": "Languages Spoken",
+      "languagesPlaceholder": "e.g. English, Arabic, French",
+      "commaSeparated": "Comma-separated list",
+      "achievements": "Achievements",
+      "achievementsPlaceholder": "e.g. Board Certified, Fellow of ACS, Top Doctor 2024",
+      "education": "Education",
+      "addEntry": "+ Add",
+      "noEducation": "No education entries yet.",
+      "degreePlaceholder": "Degree (e.g. MD)",
+      "institutionPlaceholder": "Institution",
+      "yearPlaceholder": "Year"
+    },
+    "locations": {
+      "title": "Clinic Locations",
+      "add": "+ Add",
+      "cancel": "Cancel",
+      "descBookable": "Bookable",
+      "descSuffix": "locations appear in the patient booking flow. Hospital locations are for display only.",
+      "empty": "No locations yet. Add one so patients can book appointments.",
+      "namePlaceholder": "Location name *",
+      "addressPlaceholder": "Address (optional)",
+      "typeBookable": "Bookable",
+      "typeHospital": "Hospital",
+      "save": "Save",
+      "edit": "Edit",
+      "newLocation": "New Location",
+      "addLocation": "Add Location"
+    },
+    "fee": {
+      "title": "Consultation Fee",
+      "desc": "Amount patients pay per appointment",
+      "currencyNote": "Currency applies to all fees on your profile"
+    },
+    "appearance": "Appearance",
+    "theme": "Theme"
   },
   "reviews": {
     "title": "My Reviews",

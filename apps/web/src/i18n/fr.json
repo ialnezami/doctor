@@ -327,7 +327,56 @@
         "30": "30 min",
         "custom": "Personnalisé"
       }
-    }
+    },
+    "shareProfile": {
+      "title": "Partager votre profil",
+      "desc": "Envoyez ce lien aux patients — aucune connexion requise.",
+      "copy": "Copier le lien",
+      "copied": "✓ Copié !"
+    },
+    "profileInfo": {
+      "title": "Informations du profil",
+      "bio": "Bio",
+      "bioPlaceholder": "Courte description de vous-même, votre expertise et votre approche…",
+      "yearsExp": "Années d'expérience",
+      "years": "ans",
+      "license": "Numéro de licence",
+      "licensePlaceholder": "ex. MD-123456",
+      "languages": "Langues parlées",
+      "languagesPlaceholder": "ex. Anglais, Arabe, Français",
+      "commaSeparated": "Liste séparée par des virgules",
+      "achievements": "Réalisations",
+      "achievementsPlaceholder": "ex. Certifié, Fellow ACS, Top Médecin 2024",
+      "education": "Formation",
+      "addEntry": "+ Ajouter",
+      "noEducation": "Aucune entrée de formation pour l'instant.",
+      "degreePlaceholder": "Diplôme (ex. MD)",
+      "institutionPlaceholder": "Établissement",
+      "yearPlaceholder": "Année"
+    },
+    "locations": {
+      "title": "Emplacements de la clinique",
+      "add": "+ Ajouter",
+      "cancel": "Annuler",
+      "descBookable": "Réservables",
+      "descSuffix": "Les emplacements apparaissent dans le flux de réservation. Les emplacements hospitaliers sont pour affichage uniquement.",
+      "empty": "Aucun emplacement. Ajoutez-en un pour que les patients puissent réserver.",
+      "namePlaceholder": "Nom de l'emplacement *",
+      "addressPlaceholder": "Adresse (optionnelle)",
+      "typeBookable": "Réservable",
+      "typeHospital": "Hôpital",
+      "save": "Enregistrer",
+      "edit": "Modifier",
+      "newLocation": "Nouvel emplacement",
+      "addLocation": "Ajouter l'emplacement"
+    },
+    "fee": {
+      "title": "Frais de consultation",
+      "desc": "Montant payé par les patients par rendez-vous",
+      "currencyNote": "La devise s'applique à tous les frais de votre profil"
+    },
+    "appearance": "Apparence",
+    "theme": "Thème"
   },
   "reviews": {
     "title": "Mes avis",

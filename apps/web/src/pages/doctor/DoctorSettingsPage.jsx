@@ -220,9 +220,9 @@ export default function DoctorSettingsPage() {
       {/* Share Profile */}
       {doctorId && (
         <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:20, marginBottom:20 }}>
-          <div style={{ fontSize:14, fontWeight:500, marginBottom:4 }}>Share Your Profile</div>
+          <div style={{ fontSize:14, fontWeight:500, marginBottom:4 }}>{t('settings.shareProfile.title')}</div>
           <div style={{ fontSize:12, color:'var(--text2)', marginBottom:12 }}>
-            Send this link to patients — no login required to view.
+            {t('settings.shareProfile.desc')}
           </div>
           <div style={{ display:'flex', gap:8, alignItems:'center' }}>
             <input
@@ -245,7 +245,7 @@ export default function DoctorSettingsPage() {
                 transition: 'background .2s, color .2s',
               }}
             >
-              {copied ? '✓ Copied!' : 'Copy Link'}
+              {copied ? t('settings.shareProfile.copied') : t('settings.shareProfile.copy')}
             </button>
           </div>
         </div>
@@ -253,15 +253,15 @@ export default function DoctorSettingsPage() {
 
       {/* Rich Profile Info */}
       <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:20, marginBottom:20 }}>
-        <div style={{ fontSize:14, fontWeight:500, marginBottom:14 }}>Profile Information</div>
+        <div style={{ fontSize:14, fontWeight:500, marginBottom:14 }}>{t('settings.profileInfo.title')}</div>
 
         {/* Bio */}
         <div style={{ marginBottom:14 }}>
-          <label style={{ display:'block', fontSize:12, color:'var(--text2)', marginBottom:5 }}>Bio</label>
+          <label style={{ display:'block', fontSize:12, color:'var(--text2)', marginBottom:5 }}>{t('settings.profileInfo.bio')}</label>
           <textarea
             value={bio}
             onChange={e => setBio(e.target.value)}
-            placeholder="A short description about yourself, your expertise, and approach…"
+            placeholder={t('settings.profileInfo.bioPlaceholder')}
             rows={3}
             style={{ ...inputStyle, resize:'vertical', minHeight:72 }}
           />
@@ -269,7 +269,7 @@ export default function DoctorSettingsPage() {
 
         {/* Years of Experience */}
         <div style={{ marginBottom:14 }}>
-          <label style={{ display:'block', fontSize:12, color:'var(--text2)', marginBottom:5 }}>Years of Experience</label>
+          <label style={{ display:'block', fontSize:12, color:'var(--text2)', marginBottom:5 }}>{t('settings.profileInfo.yearsExp')}</label>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
             <input
               type="number"
@@ -280,56 +280,56 @@ export default function DoctorSettingsPage() {
               placeholder="0"
               style={{ ...inputStyle, width:90 }}
             />
-            <span style={{ fontSize:13, color:'var(--text2)' }}>years</span>
+            <span style={{ fontSize:13, color:'var(--text2)' }}>{t('settings.profileInfo.years')}</span>
           </div>
         </div>
 
         {/* License Number */}
         <div style={{ marginBottom:14 }}>
-          <label style={{ display:'block', fontSize:12, color:'var(--text2)', marginBottom:5 }}>License Number</label>
+          <label style={{ display:'block', fontSize:12, color:'var(--text2)', marginBottom:5 }}>{t('settings.profileInfo.license')}</label>
           <input
             type="text"
             value={licenseNumber}
             onChange={e => setLicenseNumber(e.target.value)}
-            placeholder="e.g. MD-123456"
+            placeholder={t('settings.profileInfo.licensePlaceholder')}
             style={inputStyle}
           />
         </div>
 
         {/* Languages */}
         <div style={{ marginBottom:14 }}>
-          <label style={{ display:'block', fontSize:12, color:'var(--text2)', marginBottom:5 }}>Languages Spoken</label>
+          <label style={{ display:'block', fontSize:12, color:'var(--text2)', marginBottom:5 }}>{t('settings.profileInfo.languages')}</label>
           <input
             type="text"
             value={languagesRaw}
             onChange={e => setLanguagesRaw(e.target.value)}
-            placeholder="e.g. English, Arabic, French"
+            placeholder={t('settings.profileInfo.languagesPlaceholder')}
             style={inputStyle}
           />
-          <div style={{ fontSize:11, color:'var(--text3,#64748b)', marginTop:4 }}>Comma-separated list</div>
+          <div style={{ fontSize:11, color:'var(--text3,#64748b)', marginTop:4 }}>{t('settings.profileInfo.commaSeparated')}</div>
         </div>
 
         {/* Achievements */}
         <div style={{ marginBottom:14 }}>
-          <label style={{ display:'block', fontSize:12, color:'var(--text2)', marginBottom:5 }}>Achievements</label>
+          <label style={{ display:'block', fontSize:12, color:'var(--text2)', marginBottom:5 }}>{t('settings.profileInfo.achievements')}</label>
           <input
             type="text"
             value={achievementsRaw}
             onChange={e => setAchievementsRaw(e.target.value)}
-            placeholder="e.g. Board Certified, Fellow of ACS, Top Doctor 2024"
+            placeholder={t('settings.profileInfo.achievementsPlaceholder')}
             style={inputStyle}
           />
-          <div style={{ fontSize:11, color:'var(--text3,#64748b)', marginTop:4 }}>Comma-separated list</div>
+          <div style={{ fontSize:11, color:'var(--text3,#64748b)', marginTop:4 }}>{t('settings.profileInfo.commaSeparated')}</div>
         </div>
 
         {/* Education */}
         <div>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-            <label style={{ fontSize:12, color:'var(--text2)' }}>Education</label>
-            <Button variant="ghost" style={{ padding:'3px 10px', fontSize:11 }} onClick={addEduRow}>+ Add</Button>
+            <label style={{ fontSize:12, color:'var(--text2)' }}>{t('settings.profileInfo.education')}</label>
+            <Button variant="ghost" style={{ padding:'3px 10px', fontSize:11 }} onClick={addEduRow}>{t('settings.profileInfo.addEntry')}</Button>
           </div>
           {education.length === 0 && (
-            <p style={{ fontSize:12, color:'var(--text3,#64748b)', margin:0 }}>No education entries yet.</p>
+            <p style={{ fontSize:12, color:'var(--text3,#64748b)', margin:0 }}>{t('settings.profileInfo.noEducation')}</p>
           )}
           {education.map((row, i) => (
             <div key={i} style={{ display:'flex', gap:8, alignItems:'flex-start', marginBottom:8, flexWrap:'wrap' }}>
@@ -337,21 +337,21 @@ export default function DoctorSettingsPage() {
                 type="text"
                 value={row.degree}
                 onChange={e => updateEdu(i, 'degree', e.target.value)}
-                placeholder="Degree (e.g. MD)"
+                placeholder={t('settings.profileInfo.degreePlaceholder')}
                 style={{ ...inputStyle, flex:'2 1 120px' }}
               />
               <input
                 type="text"
                 value={row.institution}
                 onChange={e => updateEdu(i, 'institution', e.target.value)}
-                placeholder="Institution"
+                placeholder={t('settings.profileInfo.institutionPlaceholder')}
                 style={{ ...inputStyle, flex:'3 1 160px' }}
               />
               <input
                 type="text"
                 value={row.year}
                 onChange={e => updateEdu(i, 'year', e.target.value)}
-                placeholder="Year"
+                placeholder={t('settings.profileInfo.yearPlaceholder')}
                 style={{ ...inputStyle, flex:'1 1 70px' }}
                 maxLength={4}
               />
@@ -367,18 +367,18 @@ export default function DoctorSettingsPage() {
       {/* Clinic Locations */}
       <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:20, marginBottom:20 }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
-          <div style={{ fontSize:14, fontWeight:500 }}>Clinic Locations</div>
+          <div style={{ fontSize:14, fontWeight:500 }}>{t('settings.locations.title')}</div>
           <Button variant="ghost" style={{ padding:'4px 10px', fontSize:12 }}
             onClick={() => { setShowAddForm(v => !v); setLocError(''); }}>
-            {showAddForm ? 'Cancel' : '+ Add'}
+            {showAddForm ? t('settings.locations.cancel') : t('settings.locations.add')}
           </Button>
         </div>
         <div style={{ fontSize:12, color:'var(--text2)', marginBottom:14 }}>
-          <strong>Bookable</strong> locations appear in the patient booking flow. Hospital locations are for display only.
+          <strong>{t('settings.locations.descBookable')}</strong> {t('settings.locations.descSuffix')}
         </div>
 
         {locations.length === 0 && !showAddForm && (
-          <p style={{ fontSize:12, color:'var(--text3)', margin:'0 0 4px' }}>No locations yet. Add one so patients can book appointments.</p>
+          <p style={{ fontSize:12, color:'var(--text3)', margin:'0 0 4px' }}>{t('settings.locations.empty')}</p>
         )}
 
         {locations.map(loc => (
@@ -387,18 +387,18 @@ export default function DoctorSettingsPage() {
               <div>
                 <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:8 }}>
                   <input value={editDraft.name} onChange={e => setEditDraft(d => ({ ...d, name: e.target.value }))}
-                    placeholder="Location name *" style={{ ...inputStyle, flex:'2 1 140px' }} />
+                    placeholder={t('settings.locations.namePlaceholder')} style={{ ...inputStyle, flex:'2 1 140px' }} />
                   <input value={editDraft.address} onChange={e => setEditDraft(d => ({ ...d, address: e.target.value }))}
-                    placeholder="Address (optional)" style={{ ...inputStyle, flex:'3 1 180px' }} />
+                    placeholder={t('settings.locations.addressPlaceholder')} style={{ ...inputStyle, flex:'3 1 180px' }} />
                   <select value={editDraft.type} onChange={e => setEditDraft(d => ({ ...d, type: e.target.value }))}
                     style={{ background:'var(--bg3)', border:'1px solid var(--border2)', borderRadius:6, padding:'6px 10px', color:'var(--text)', fontSize:13 }}>
-                    <option value="bookable">Bookable</option>
-                    <option value="hospital">Hospital</option>
+                    <option value="bookable">{t('settings.locations.typeBookable')}</option>
+                    <option value="hospital">{t('settings.locations.typeHospital')}</option>
                   </select>
                 </div>
                 <div style={{ display:'flex', gap:8 }}>
-                  <Button style={{ padding:'5px 14px', fontSize:12 }} onClick={saveEditLoc} disabled={locSaving}>Save</Button>
-                  <Button variant="ghost" style={{ padding:'5px 14px', fontSize:12 }} onClick={cancelEditLoc}>Cancel</Button>
+                  <Button style={{ padding:'5px 14px', fontSize:12 }} onClick={saveEditLoc} disabled={locSaving}>{t('settings.locations.save')}</Button>
+                  <Button variant="ghost" style={{ padding:'5px 14px', fontSize:12 }} onClick={cancelEditLoc}>{t('settings.locations.cancel')}</Button>
                 </div>
               </div>
             ) : (
@@ -408,9 +408,9 @@ export default function DoctorSettingsPage() {
                   {loc.address && <div style={{ fontSize:11, color:'var(--text3)', marginTop:2 }}>{loc.address}</div>}
                 </div>
                 <span style={{ fontSize:11, padding:'2px 8px', borderRadius:10, background: loc.type === 'bookable' ? 'rgba(15,227,176,0.15)' : 'var(--bg2)', color: loc.type === 'bookable' ? 'var(--mint)' : 'var(--text2)', fontWeight:500 }}>
-                  {loc.type}
+                  {loc.type === 'bookable' ? t('settings.locations.typeBookable') : t('settings.locations.typeHospital')}
                 </span>
-                <button onClick={() => startEditLoc(loc)} style={{ background:'none', border:'none', color:'var(--text2)', cursor:'pointer', fontSize:12, padding:'4px 8px' }}>Edit</button>
+                <button onClick={() => startEditLoc(loc)} style={{ background:'none', border:'none', color:'var(--text2)', cursor:'pointer', fontSize:12, padding:'4px 8px' }}>{t('settings.locations.edit')}</button>
                 <button onClick={() => deleteLoc(loc._id)} disabled={locSaving} style={{ background:'none', border:'none', color:'var(--rose)', cursor:'pointer', fontSize:18, padding:'2px', lineHeight:1 }}>×</button>
               </div>
             )}
@@ -419,19 +419,19 @@ export default function DoctorSettingsPage() {
 
         {showAddForm && (
           <div style={{ marginTop:8, padding:12, background:'var(--bg3)', borderRadius:8, border:'1px solid var(--border2)' }}>
-            <div style={{ fontSize:12, color:'var(--text2)', marginBottom:8, fontWeight:500 }}>New Location</div>
+            <div style={{ fontSize:12, color:'var(--text2)', marginBottom:8, fontWeight:500 }}>{t('settings.locations.newLocation')}</div>
             <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:8 }}>
               <input value={addDraft.name} onChange={e => setAddDraft(d => ({ ...d, name: e.target.value }))}
-                placeholder="Location name *" style={{ ...inputStyle, flex:'2 1 140px' }} />
+                placeholder={t('settings.locations.namePlaceholder')} style={{ ...inputStyle, flex:'2 1 140px' }} />
               <input value={addDraft.address} onChange={e => setAddDraft(d => ({ ...d, address: e.target.value }))}
-                placeholder="Address (optional)" style={{ ...inputStyle, flex:'3 1 180px' }} />
+                placeholder={t('settings.locations.addressPlaceholder')} style={{ ...inputStyle, flex:'3 1 180px' }} />
               <select value={addDraft.type} onChange={e => setAddDraft(d => ({ ...d, type: e.target.value }))}
                 style={{ background:'var(--bg3)', border:'1px solid var(--border2)', borderRadius:6, padding:'6px 10px', color:'var(--text)', fontSize:13 }}>
-                <option value="bookable">Bookable</option>
-                <option value="hospital">Hospital</option>
+                <option value="bookable">{t('settings.locations.typeBookable')}</option>
+                <option value="hospital">{t('settings.locations.typeHospital')}</option>
               </select>
             </div>
-            <Button style={{ padding:'6px 16px', fontSize:12 }} onClick={addLoc} disabled={locSaving}>Add Location</Button>
+            <Button style={{ padding:'6px 16px', fontSize:12 }} onClick={addLoc} disabled={locSaving}>{t('settings.locations.addLocation')}</Button>
           </div>
         )}
 
@@ -486,8 +486,8 @@ export default function DoctorSettingsPage() {
 
       {/* Consultation Fee + Currency */}
       <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:20, marginBottom:20 }}>
-        <div style={{ fontSize:14, fontWeight:500, marginBottom:4 }}>Consultation Fee</div>
-        <div style={{ fontSize:12, color:'var(--text2)', marginBottom:10 }}>Amount patients pay per appointment</div>
+        <div style={{ fontSize:14, fontWeight:500, marginBottom:4 }}>{t('settings.fee.title')}</div>
+        <div style={{ fontSize:12, color:'var(--text2)', marginBottom:10 }}>{t('settings.fee.desc')}</div>
         <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
           <input
             type="number"
@@ -507,7 +507,7 @@ export default function DoctorSettingsPage() {
             ))}
           </select>
         </div>
-        <div style={{ fontSize:11, color:'var(--text3)', marginTop:6 }}>Currency applies to all fees on your profile</div>
+        <div style={{ fontSize:11, color:'var(--text3)', marginTop:6 }}>{t('settings.fee.currencyNote')}</div>
       </div>
 
       {/* Appointment Types */}

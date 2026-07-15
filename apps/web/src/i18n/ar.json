@@ -327,7 +327,56 @@
         "30": "٣٠ دقيقة",
         "custom": "مخصص"
       }
-    }
+    },
+    "shareProfile": {
+      "title": "مشاركة ملفك الشخصي",
+      "desc": "أرسل هذا الرابط للمرضى — لا يتطلب تسجيل الدخول.",
+      "copy": "نسخ الرابط",
+      "copied": "✓ تم النسخ!"
+    },
+    "profileInfo": {
+      "title": "معلومات الملف الشخصي",
+      "bio": "نبذة شخصية",
+      "bioPlaceholder": "وصف مختصر عن نفسك وخبرتك وأسلوبك…",
+      "yearsExp": "سنوات الخبرة",
+      "years": "سنوات",
+      "license": "رقم الترخيص",
+      "licensePlaceholder": "مثال: MD-123456",
+      "languages": "اللغات المتحدث بها",
+      "languagesPlaceholder": "مثال: الإنجليزية، العربية، الفرنسية",
+      "commaSeparated": "قائمة مفصولة بفواصل",
+      "achievements": "الإنجازات",
+      "achievementsPlaceholder": "مثال: حاصل على بورد، زميل ACS، أفضل طبيب 2024",
+      "education": "التعليم",
+      "addEntry": "+ إضافة",
+      "noEducation": "لا توجد إدخالات تعليمية بعد.",
+      "degreePlaceholder": "الدرجة العلمية (مثال: دكتوراه)",
+      "institutionPlaceholder": "المؤسسة التعليمية",
+      "yearPlaceholder": "السنة"
+    },
+    "locations": {
+      "title": "مواقع العيادة",
+      "add": "+ إضافة",
+      "cancel": "إلغاء",
+      "descBookable": "القابلة للحجز",
+      "descSuffix": "المواقع تظهر في تدفق حجز المريض. مواقع المستشفيات للعرض فقط.",
+      "empty": "لا توجد مواقع بعد. أضف موقعاً حتى يتمكن المرضى من الحجز.",
+      "namePlaceholder": "اسم الموقع *",
+      "addressPlaceholder": "العنوان (اختياري)",
+      "typeBookable": "قابل للحجز",
+      "typeHospital": "مستشفى",
+      "save": "حفظ",
+      "edit": "تعديل",
+      "newLocation": "موقع جديد",
+      "addLocation": "إضافة موقع"
+    },
+    "fee": {
+      "title": "رسوم الاستشارة",
+      "desc": "المبلغ الذي يدفعه المرضى لكل موعد",
+      "currencyNote": "تنطبق العملة على جميع الرسوم في ملفك الشخصي"
+    },
+    "appearance": "المظهر",
+    "theme": "السمة"
   },
   "reviews": {
     "title": "تقييماتي",
