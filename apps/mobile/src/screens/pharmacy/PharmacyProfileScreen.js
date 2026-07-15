@@ -1,17 +1,24 @@
+'use strict';
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getPharmacyProfile, updatePharmacyProfile } from '../../api/pharmacies';
 import { getCachedProfile, cacheProfile } from '../../utils/localStore';
 import { enqueue } from '../../utils/offlineQueue';
 import useNetworkStatus from '../../hooks/useNetworkStatus';
 import OfflineBanner from '../../components/OfflineBanner';
-import C from '../../constants/colors';
+import { useColors } from '../../constants/colors';
+import useThemeStore from '../../store/themeStore';
 
 const isNetworkError = (e) =>
   !e?.response || e?.message?.includes('Network Error') || e?.code === 'ERR_NETWORK';
 
 export default function PharmacyProfileScreen() {
+  // Hooks must run before early returns
+  const C = useColors();
+  const { theme, setTheme } = useThemeStore();
+  const s = makeStyles(C);
+
   const [approved,   setApproved]   = useState(null);
   const [pharmacyId, setPharmacyId] = useState(null);
   const [form,       setForm]       = useState({ pharmacyName: '', licenseNumber: '', address: '' });
@@ -30,7 +37,6 @@ export default function PharmacyProfileScreen() {
         await cacheProfile(p._id, p);
       } catch (e) {
         if (isNetworkError(e)) {
-          // Try cache
           const cached = await getCachedProfile('__pharmacy__');
           if (cached) {
             setApproved(cached.isApproved);
@@ -55,7 +61,6 @@ export default function PharmacyProfileScreen() {
         if (pharmacyId) await cacheProfile(pharmacyId, { ...updated, isApproved: approved });
         setMsg('Profile saved.');
       } else {
-        // Queue and update cache optimistically
         if (pharmacyId) await cacheProfile(pharmacyId, { _id: pharmacyId, ...form, isApproved: approved });
         await enqueue({ method: 'patch', path: '/pharmacies/me', body: form });
         await refreshPendingCount();
@@ -94,6 +99,7 @@ export default function PharmacyProfileScreen() {
       <OfflineBanner isOnline={isOnline} pendingCount={pendingCount} />
       <ScrollView contentContainerStyle={{ padding: 20 }}>
         <Text style={s.heading}>Profile</Text>
+
         <View style={s.card}>
           {fields.map(([k, l]) => (
             <View key={k} style={{ marginBottom: 14 }}>
@@ -115,19 +121,55 @@ export default function PharmacyProfileScreen() {
             <Text style={s.btnTxt}>{saving ? 'Saving…' : 'Save Profile'}</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Appearance */}
+        <Text style={s.sectionLabel}>Appearance</Text>
+        <View style={s.card}>
+          <Text style={s.label}>Theme</Text>
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 6 }}>
+            {[
+              { value: 'dark',  label: '🌙 Night' },
+              { value: 'light', label: '☀️ Light' },
+            ].map(opt => (
+              <TouchableOpacity
+                key={opt.value}
+                onPress={() => setTheme(opt.value)}
+                style={{
+                  flex: 1, paddingVertical: 10, borderRadius: 8, alignItems: 'center',
+                  borderWidth: theme === opt.value ? 1.5 : 1,
+                  borderColor: theme === opt.value ? C.mint : C.border,
+                  backgroundColor: theme === opt.value ? C.mintDim : C.bg3,
+                }}
+                accessibilityLabel={`${opt.label} theme`}
+                accessibilityRole="button"
+              >
+                <Text style={{
+                  fontSize: 13,
+                  fontWeight: theme === opt.value ? '600' : '400',
+                  color: theme === opt.value ? C.mint : C.text2,
+                }}>
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const s = StyleSheet.create({
-  safe:    { flex: 1, backgroundColor: C.bg },
-  center:  { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
-  heading: { fontSize: 22, fontWeight: '700', color: C.text, marginBottom: 16 },
-  body:    { fontSize: 14, color: C.text2, textAlign: 'center', lineHeight: 22 },
-  card:    { backgroundColor: C.card, borderRadius: 12, borderWidth: 1, borderColor: C.border, padding: 16, marginBottom: 20 },
-  label:   { fontSize: 11, color: C.text3, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.4 },
-  input:   { backgroundColor: C.bg3, borderRadius: 8, borderWidth: 1, borderColor: C.border2, padding: 10, color: C.text, fontSize: 13 },
-  btn:     { backgroundColor: C.mint, borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 4 },
-  btnTxt:  { fontSize: 14, fontWeight: '700', color: '#000' },
-});
+function makeStyles(C) {
+  return {
+    safe:        { flex: 1, backgroundColor: C.bg },
+    center:      { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
+    heading:     { fontSize: 22, fontWeight: '700', color: C.text, marginBottom: 16 },
+    body:        { fontSize: 14, color: C.text2, textAlign: 'center', lineHeight: 22 },
+    sectionLabel:{ fontSize: 11, fontWeight: '700', color: C.text3, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6, marginTop: 16 },
+    card:        { backgroundColor: C.card, borderRadius: 12, borderWidth: 1, borderColor: C.border, padding: 16, marginBottom: 12 },
+    label:       { fontSize: 11, color: C.text3, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.4 },
+    input:       { backgroundColor: C.bg3, borderRadius: 8, borderWidth: 1, borderColor: C.border2, padding: 10, color: C.text, fontSize: 13 },
+    btn:         { backgroundColor: C.mint, borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 4 },
+    btnTxt:      { fontSize: 14, fontWeight: '700', color: '#000' },
+  };
+}

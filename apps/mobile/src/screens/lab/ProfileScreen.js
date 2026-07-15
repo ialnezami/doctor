@@ -1,6 +1,7 @@
+'use strict';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet,
+  View, Text, TextInput, TouchableOpacity, ScrollView,
   ActivityIndicator, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,9 +9,14 @@ import { getMe } from '../../api/auth';
 import { getLabProfile, updateLabProfile } from '../../api/labs';
 import useAuthStore from '../../store/authStore';
 import AccountSection from '../../components/AccountSection';
-import C from '../../constants/colors';
+import { useColors } from '../../constants/colors';
+import useThemeStore from '../../store/themeStore';
 
 export default function LabProfileScreen() {
+  const C = useColors();
+  const { theme, setTheme } = useThemeStore();
+  const s = makeStyles(C);
+
   const { user: storeUser } = useAuthStore();
   const [me, setMe] = useState(null);
   const [labName, setLabName] = useState('');
@@ -89,19 +95,54 @@ export default function LabProfileScreen() {
               : <Text style={s.saveBtnTxt}>Save Lab Profile</Text>}
           </TouchableOpacity>
         </View>
+
+        {/* Appearance */}
+        <Text style={s.sectionLabel}>Appearance</Text>
+        <View style={s.card}>
+          <Text style={s.fieldLabel}>Theme</Text>
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 6 }}>
+            {[
+              { value: 'dark',  label: '🌙 Night' },
+              { value: 'light', label: '☀️ Light' },
+            ].map(opt => (
+              <TouchableOpacity
+                key={opt.value}
+                onPress={() => setTheme(opt.value)}
+                style={{
+                  flex: 1, paddingVertical: 10, borderRadius: 8, alignItems: 'center',
+                  borderWidth: theme === opt.value ? 1.5 : 1,
+                  borderColor: theme === opt.value ? C.mint : C.border,
+                  backgroundColor: theme === opt.value ? C.mintDim : C.bg,
+                }}
+                accessibilityLabel={`${opt.label} theme`}
+                accessibilityRole="button"
+              >
+                <Text style={{
+                  fontSize: 13,
+                  fontWeight: theme === opt.value ? '600' : '400',
+                  color: theme === opt.value ? C.mint : C.text2,
+                }}>
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const s = StyleSheet.create({
-  safe:         { flex: 1, backgroundColor: C.bg },
-  content:      { padding: 20, paddingBottom: 40 },
-  heading:      { fontSize: 22, fontWeight: '700', color: C.text, marginBottom: 20 },
-  sectionLabel: { fontSize: 11, fontWeight: '700', color: C.text3, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8, marginTop: 8 },
-  card:         { backgroundColor: C.bg2, borderRadius: 12, padding: 16, marginBottom: 12 },
-  fieldLabel:   { fontSize: 12, color: C.text3, marginBottom: 6 },
-  input:        { backgroundColor: C.bg, borderRadius: 8, borderWidth: 1, borderColor: C.border, color: C.text, fontSize: 14, paddingHorizontal: 12, paddingVertical: 10 },
-  saveBtn:      { backgroundColor: C.mint, borderRadius: 10, padding: 14, alignItems: 'center' },
-  saveBtnTxt:   { fontSize: 14, fontWeight: '700', color: '#000' },
-});
+function makeStyles(C) {
+  return {
+    safe:         { flex: 1, backgroundColor: C.bg },
+    content:      { padding: 20, paddingBottom: 40 },
+    heading:      { fontSize: 22, fontWeight: '700', color: C.text, marginBottom: 20 },
+    sectionLabel: { fontSize: 11, fontWeight: '700', color: C.text3, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8, marginTop: 8 },
+    card:         { backgroundColor: C.bg2, borderRadius: 12, padding: 16, marginBottom: 12 },
+    fieldLabel:   { fontSize: 12, color: C.text3, marginBottom: 6 },
+    input:        { backgroundColor: C.bg, borderRadius: 8, borderWidth: 1, borderColor: C.border, color: C.text, fontSize: 14, paddingHorizontal: 12, paddingVertical: 10 },
+    saveBtn:      { backgroundColor: C.mint, borderRadius: 10, padding: 14, alignItems: 'center' },
+    saveBtnTxt:   { fontSize: 14, fontWeight: '700', color: '#000' },
+  };
+}
