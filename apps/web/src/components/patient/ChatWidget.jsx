@@ -28,7 +28,7 @@ export default function ChatWidget({ isOpen, onClose, patientLocation }) {
   const lat = patientLocation?.lat ?? undefined;
   const lng = patientLocation?.lng ?? undefined;
 
-  const { messages, streaming, urgency, emergency, doctors, error, send, reset } =
+  const { messages, streaming, urgency, emergency, doctors, triageSummary, error, send, reset } =
     useChatbotStream({ lat, lng });
 
   const [input, setInput] = useState('');
@@ -225,6 +225,7 @@ export default function ChatWidget({ isOpen, onClose, patientLocation }) {
             {bookingDoctor && (
               <ChatBookingFlow
                 doctor={bookingDoctor}
+                patientSummary={triageSummary}
                 onDone={(msg) => { setBookingDoctor(null); send(msg); }}
                 onCancel={() => setBookingDoctor(null)}
               />

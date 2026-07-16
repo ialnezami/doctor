@@ -79,7 +79,7 @@ async function cancelReminders(appt) {
 // POST /api/appointments — patient books
 router.post('/', auth, requireRole('patient'), async (req, res, next) => {
   try {
-    const { doctorId, date, timeSlot, visitType, reason, locationId } = req.body;
+    const { doctorId, date, timeSlot, visitType, reason, locationId, chiefComplaint } = req.body;
 
     if (!locationId) return res.status(400).json({ message: 'locationId is required' });
 
@@ -112,6 +112,7 @@ router.post('/', auth, requireRole('patient'), async (req, res, next) => {
       timeSlot,
       visitType:       visitType || 'initial',
       reason:          reason || '',
+      chiefComplaint:  typeof chiefComplaint === 'string' ? chiefComplaint.slice(0, 800) : null,
       locationId:      loc._id,
       locationName:    loc.name,
       locationAddress: loc.address,

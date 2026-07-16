@@ -34,6 +34,7 @@ export function useChatbotStream({ lat, lng } = {}) {
   const [urgency, setUrgency] = useState(null);
   const [emergency, setEmergency] = useState(false);
   const [doctors, setDoctors] = useState([]);
+  const [triageSummary, setTriageSummary] = useState(null);
   const [error, setError] = useState(null);
 
   // Ref holds the AbortController for the current in-flight stream.
@@ -91,6 +92,7 @@ export function useChatbotStream({ lat, lng } = {}) {
               setUrgency(event.urgency ?? null);
               setEmergency(event.emergency === true);
               setDoctors(Array.isArray(event.doctors) ? event.doctors : []);
+              setTriageSummary(event.chiefComplaint || null);
               break;
 
             case 'error':
@@ -146,6 +148,7 @@ export function useChatbotStream({ lat, lng } = {}) {
     setUrgency(null);
     setEmergency(false);
     setDoctors([]);
+    setTriageSummary(null);
     setError(null);
 
     try {
@@ -155,5 +158,5 @@ export function useChatbotStream({ lat, lng } = {}) {
     }
   }, []);
 
-  return { messages, streaming, urgency, emergency, doctors, error, send, reset, appendLocal };
+  return { messages, streaming, urgency, emergency, doctors, triageSummary, error, send, reset, appendLocal };
 }

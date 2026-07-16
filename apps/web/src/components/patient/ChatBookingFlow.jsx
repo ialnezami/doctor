@@ -24,7 +24,7 @@ function dayLabel(d) {
  *   onDone   — (message: string) => void — called with success/cancel text to append to chat
  *   onCancel — () => void
  */
-export default function ChatBookingFlow({ doctor, onDone, onCancel }) {
+export default function ChatBookingFlow({ doctor, patientSummary, onDone, onCancel }) {
   const days = Array.from({ length: NEXT_DAYS }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() + i + 1);
@@ -63,6 +63,7 @@ export default function ChatBookingFlow({ doctor, onDone, onCancel }) {
         date: formatDate(selectedDay),
         timeSlot: selectedSlot,
         reason: 'Booked via AI assistant',
+        chiefComplaint: patientSummary || undefined,
       });
       onDone(`✓ Appointment booked with Dr. ${doctor.user?.name} on ${dayLabel(selectedDay)} at ${selectedSlot}.`);
     } catch (e) {

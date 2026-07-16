@@ -40,6 +40,7 @@ function parseTriage(text) {
     urgency: parsed.urgency,
     specialties,
     summary: typeof parsed.summary === 'string' ? parsed.summary.slice(0, 500) : '',
+    chief_complaint: typeof parsed.chief_complaint === 'string' ? parsed.chief_complaint.slice(0, 800) : null,
     ready_for_referral: parsed.ready_for_referral === true,
   };
 }

@@ -39,7 +39,7 @@ export default function ChatbotScreen({ navigation, route }) {
   const lat = route?.params?.lat;
   const lng = route?.params?.lng;
 
-  const { messages, streaming, urgency, emergency, doctors, error, send, reset, appendLocal } =
+  const { messages, streaming, urgency, emergency, doctors, triageSummary, error, send, reset, appendLocal } =
     useChatbotStream({ lat, lng });
 
   const [input, setInput] = useState('');
@@ -185,6 +185,7 @@ export default function ChatbotScreen({ navigation, route }) {
       <ChatMobileBookingSheet
         doctor={bookingDoctor}
         visible={!!bookingDoctor}
+        patientSummary={triageSummary}
         onDone={(msg) => {
           setBookingDoctor(null);
           appendLocal(msg);

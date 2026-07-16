@@ -32,7 +32,7 @@ function formatDateLabel(date) {
  *   onDone  — (successMessage: string) => void  called after successful booking
  *   onCancel — () => void  called when user dismisses without booking
  */
-export default function ChatMobileBookingSheet({ doctor, visible, onDone, onCancel }) {
+export default function ChatMobileBookingSheet({ doctor, visible, onDone, onCancel, patientSummary }) {
   const sheetAnim = useRef(new Animated.Value(SHEET_HEIGHT)).current;
   const [isShowing, setIsShowing] = useState(false);
 
@@ -108,10 +108,15 @@ export default function ChatMobileBookingSheet({ doctor, visible, onDone, onCanc
     setBooking(true);
     setError(null);
     try {
+      const bookableLocation = (doctor.locations || []).find(l => l.type === 'bookable');
       await createAppointment({
-        doctorId: doctor._id,
+        doctorId: doctor.userId || doctor._id,
         date: toISODate(selectedDate),
-        time: selectedSlot.time,
+        timeSlot: { start: selectedSlot.time, end: selectedSlot.endTime || selectedSlot.time },
+        locationId: bookableLocation?._id,
+        visitType: 'initial',
+        reason: 'Booked via AI assistant',
+        ...(patientSummary && { chiefComplaint: patientSummary }),
       });
       const doctorName = doctor?.user?.name || 'the doctor';
       onDone(

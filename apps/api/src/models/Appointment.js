@@ -24,6 +24,7 @@ const appointmentSchema = new mongoose.Schema({
     default: 'initial',
   },
   reason: String,
+  chiefComplaint: { type: String, default: null },
   notes: String,
   videoRoomName: { type: String, default: '' },
   remindersDisabled: { type: Boolean, default: false },

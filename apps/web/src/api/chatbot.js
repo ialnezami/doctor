@@ -104,7 +104,7 @@ export async function fetchDoctorSlots(doctorId, date) {
   return res.data;
 }
 
-export async function bookFromChat({ doctorUserId, locationId, date, timeSlot, reason }) {
+export async function bookFromChat({ doctorUserId, locationId, date, timeSlot, reason, chiefComplaint }) {
   const res = await client.post('/appointments', {
     doctorId: doctorUserId,
     locationId,
@@ -112,6 +112,7 @@ export async function bookFromChat({ doctorUserId, locationId, date, timeSlot, r
     timeSlot: { start: timeSlot },
     visitType: 'initial',
     reason: reason || 'Booked via AI assistant',
+    ...(chiefComplaint && { chiefComplaint }),
   });
   return res.data;
 }
