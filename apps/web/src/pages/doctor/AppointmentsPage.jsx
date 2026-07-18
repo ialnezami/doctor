@@ -666,6 +666,14 @@ export default function AppointmentsPage() {
                     <div style={{ fontSize:13, color:'var(--text)' }}>{selectedAppointment.reason}</div>
                   </div>
                 )}
+                {selectedAppointment.chiefComplaint && (
+                  <div style={{ marginBottom:16, background:'var(--mint-dim)', border:'1px solid var(--mint)', borderRadius:8, padding:'10px 14px' }}>
+                    <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--mint)', marginBottom:6 }}>
+                      Patient Situation (AI Summary)
+                    </div>
+                    <div style={{ fontSize:13, color:'var(--text)', lineHeight:1.6 }}>{selectedAppointment.chiefComplaint}</div>
+                  </div>
+                )}
                 <SymptomCard appt={selectedAppointment} t={t} />
                 <NotesPanel apptId={selectedAppointment._id} apptStatus={selectedAppointment.status} t={t} />
               </div>

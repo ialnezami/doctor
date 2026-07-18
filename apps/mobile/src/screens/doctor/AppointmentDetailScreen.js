@@ -86,6 +86,16 @@ export default function AppointmentDetailScreen({ route, navigation }) {
           </>}
         </View>
 
+        {/* AI-generated patient situation summary */}
+        {appt?.chiefComplaint && (
+          <View style={{ backgroundColor: C.mintDim, borderWidth: 1, borderColor: C.mint, borderRadius: 8, padding: 14, marginBottom: 16 }}>
+            <Text style={{ fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, color: C.mint, marginBottom: 6 }}>
+              Patient Situation (AI Summary)
+            </Text>
+            <Text style={{ fontSize: 13, color: C.text, lineHeight: 20 }}>{appt.chiefComplaint}</Text>
+          </View>
+        )}
+
         {/* Patient Symptoms card */}
         {appt?.symptomText ? (
           <View style={{
