@@ -47,6 +47,13 @@
   --bg-blur: rgba(248,250,252,0.88);
 }
 
+[data-doctor-theme] {
+  --primary:       #0d9488;
+  --primary-dim:   rgba(13, 148, 136, 0.12);
+  --primary-hover: #0f766e;
+  --primary-text:  #ffffff;
+}
+
 html, body, #root { height: 100%; }
 body { font-family: var(--font-body); background: var(--bg); color: var(--text); }
 a { color: inherit; text-decoration: none; }
