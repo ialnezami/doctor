@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import AppLayout from '../components/layout/AppLayout';
+import DoctorLayout from '../components/layout/DoctorLayout';
 
 import LoginPage          from '../pages/auth/LoginPage';
 import RegisterPage       from '../pages/auth/RegisterPage';
+import TodayPage          from '../pages/doctor/TodayPage';
 import DashboardPage      from '../pages/doctor/DashboardPage';
 import AppointmentsPage   from '../pages/doctor/AppointmentsPage';
 import PatientRecordsPage  from '../pages/doctor/PatientRecordsPage';
@@ -11,6 +13,7 @@ import PatientDetailPage   from '../pages/doctor/PatientDetailPage';
 import PrescriptionsPage  from '../pages/doctor/PrescriptionsPage';
 import LabResultsPage     from '../pages/doctor/LabResultsPage';
 import DoctorSettingsPage from '../pages/doctor/DoctorSettingsPage';
+import ComingSoonPage     from '../pages/doctor/ComingSoonPage';
 import FindDoctorPage     from '../pages/patient/FindDoctorPage';
 import DoctorProfilePage  from '../pages/patient/DoctorProfilePage';
 import BookAppointmentPage from '../pages/patient/BookAppointmentPage';
@@ -37,6 +40,13 @@ function Protected({ children, role }) {
   return <AppLayout>{children}</AppLayout>;
 }
 
+function DoctorProtected({ children }) {
+  const { user } = useAuthStore();
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== 'doctor') return <Navigate to="/" replace />;
+  return <DoctorLayout>{children}</DoctorLayout>;
+}
+
 export default function AppRouter() {
   const { user } = useAuthStore();
 
@@ -46,17 +56,29 @@ export default function AppRouter() {
         <Route path="/login"    element={user ? <Navigate to="/" /> : <LoginPage />} />
         <Route path="/register" element={user ? <Navigate to="/" /> : <RegisterPage />} />
 
-        {/* Doctor routes */}
-        <Route path="/dashboard"     element={<Protected role="doctor"><DashboardPage /></Protected>} />
-        <Route path="/appointments"  element={<Protected role="doctor"><AppointmentsPage /></Protected>} />
-        <Route path="/patients"            element={<Protected role="doctor"><PatientRecordsPage /></Protected>} />
-        <Route path="/patients/:userId"    element={<Protected role="doctor"><PatientDetailPage /></Protected>} />
-        <Route path="/prescriptions" element={<Protected role="doctor"><PrescriptionsPage /></Protected>} />
-        <Route path="/lab-results"   element={<Protected role="doctor"><LabResultsPage /></Protected>} />
-        <Route path="/settings"      element={<Protected role="doctor"><DoctorSettingsPage /></Protected>} />
-        <Route path="/reviews"       element={<Protected role="doctor"><ReviewsPage /></Protected>} />
-        <Route path="/appointments/:id/video" element={<Protected role="doctor"><VideoCallPage /></Protected>} />
-        <Route path="/appointments/:id/chat" element={<Protected role="doctor"><ChatPage /></Protected>} />
+        {/* Doctor routes — DoctorLayout (RTL, teal shell) */}
+        <Route path="/today"         element={<DoctorProtected><TodayPage /></DoctorProtected>} />
+        <Route path="/dashboard"     element={<Navigate to="/today" replace />} />
+        <Route path="/appointments"  element={<DoctorProtected><AppointmentsPage /></DoctorProtected>} />
+        <Route path="/appointments/:id" element={<DoctorProtected><AppointmentsPage /></DoctorProtected>} />
+        <Route path="/appointments/:id/video" element={<DoctorProtected><VideoCallPage /></DoctorProtected>} />
+        <Route path="/appointments/:id/chat"  element={<DoctorProtected><ChatPage /></DoctorProtected>} />
+        <Route path="/patients"         element={<DoctorProtected><PatientRecordsPage /></DoctorProtected>} />
+        <Route path="/patients/:userId" element={<DoctorProtected><PatientDetailPage /></DoctorProtected>} />
+        <Route path="/prescriptions"    element={<DoctorProtected><PrescriptionsPage /></DoctorProtected>} />
+        <Route path="/lab-results"      element={<DoctorProtected><LabResultsPage /></DoctorProtected>} />
+        <Route path="/settings"         element={<DoctorProtected><DoctorSettingsPage /></DoctorProtected>} />
+        <Route path="/reviews"          element={<DoctorProtected><ReviewsPage /></DoctorProtected>} />
+        <Route path="/lab-board"        element={<DoctorProtected><ComingSoonPage /></DoctorProtected>} />
+        <Route path="/waiting-room"     element={<DoctorProtected><ComingSoonPage /></DoctorProtected>} />
+        <Route path="/services"         element={<DoctorProtected><ComingSoonPage /></DoctorProtected>} />
+        <Route path="/invoices"         element={<DoctorProtected><ComingSoonPage /></DoctorProtected>} />
+        <Route path="/reports"          element={<DoctorProtected><ComingSoonPage /></DoctorProtected>} />
+        <Route path="/staff"            element={<DoctorProtected><ComingSoonPage /></DoctorProtected>} />
+        <Route path="/clinic"           element={<DoctorProtected><ComingSoonPage /></DoctorProtected>} />
+        <Route path="/schedule"         element={<DoctorProtected><ComingSoonPage /></DoctorProtected>} />
+        <Route path="/feedback"         element={<DoctorProtected><ComingSoonPage /></DoctorProtected>} />
+        <Route path="/help"             element={<DoctorProtected><ComingSoonPage /></DoctorProtected>} />
 
         {/* Patient routes */}
         <Route path="/find-doctor"     element={<Protected role="patient"><FindDoctorPage /></Protected>} />
@@ -88,7 +110,7 @@ export default function AppRouter() {
         {/* Root redirect */}
         <Route path="/" element={
           !user ? <Navigate to="/login" /> :
-          user.role === 'doctor' ? <Navigate to="/dashboard" /> :
+          user.role === 'doctor' ? <Navigate to="/today" /> :
           user.role === 'laboratory' ? <Navigate to="/lab" /> :
           user.role === 'pharmacy'   ? <Navigate to="/pharmacy" /> :
           <Navigate to="/find-doctor" />
