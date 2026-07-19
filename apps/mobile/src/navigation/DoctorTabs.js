@@ -2,35 +2,36 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Text } from 'react-native';
-import C from '../constants/colors';
 
-import DashboardScreen         from '../screens/doctor/DashboardScreen';
+import TodayScreen             from '../screens/doctor/TodayScreen';
 import AppointmentsScreen      from '../screens/doctor/AppointmentsScreen';
 import AppointmentDetailScreen from '../screens/doctor/AppointmentDetailScreen';
 import NoteEditorScreen        from '../screens/doctor/NoteEditorScreen';
 import ReviewsScreen           from '../screens/doctor/ReviewsScreen';
-import DoctorLabResultsScreen  from '../screens/doctor/LabResultsScreen';
 import SettingsScreen          from '../screens/doctor/SettingsScreen';
-import NotificationsScreen     from '../screens/shared/NotificationsScreen';
 import ChatScreen              from '../screens/shared/ChatScreen';
 import VideoCallScreen         from '../screens/shared/VideoCallScreen';
 
+const TEAL = '#0d9488';
 const Tab   = createBottomTabNavigator();
 const Stack = createStackNavigator();
+
+function TabIcon({ emoji, focused }) {
+  return <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.45 }}>{emoji}</Text>;
+}
 
 function DoctorBottomTabs() {
   return (
     <Tab.Navigator screenOptions={{
       headerShown: false,
-      tabBarStyle: { backgroundColor: C.bg2, borderTopColor: C.border },
-      tabBarActiveTintColor: C.mint,
-      tabBarInactiveTintColor: C.text3,
+      tabBarActiveTintColor: TEAL,
+      tabBarInactiveTintColor: '#8aa5b8',
+      tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+      tabBarStyle: { borderTopColor: '#d0dce8' },
     }}>
-      <Tab.Screen name="Dashboard"     component={DashboardScreen}        options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>🏠</Text> }} />
-      <Tab.Screen name="Appointments"  component={AppointmentsScreen}     options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>📅</Text> }} />
-      <Tab.Screen name="Lab Results"   component={DoctorLabResultsScreen} options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>🔬</Text> }} />
-      <Tab.Screen name="Notifications" component={NotificationsScreen}    options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>🔔</Text> }} />
-      <Tab.Screen name="Settings"      component={SettingsScreen}         options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>⚙️</Text> }} />
+      <Tab.Screen name="Today"        component={TodayScreen}        options={{ tabBarLabel: 'اليوم',     tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" focused={focused} /> }} />
+      <Tab.Screen name="Appointments" component={AppointmentsScreen} options={{ tabBarLabel: 'المواعيد', tabBarIcon: ({ focused }) => <TabIcon emoji="📅" focused={focused} /> }} />
+      <Tab.Screen name="Settings"     component={SettingsScreen}     options={{ tabBarLabel: 'الإعدادات', tabBarIcon: ({ focused }) => <TabIcon emoji="⚙️" focused={focused} /> }} />
     </Tab.Navigator>
   );
 }

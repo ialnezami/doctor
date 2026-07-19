@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { I18nManager } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,6 +21,12 @@ export default function AppNavigator() {
   useEffect(() => {
     AsyncStorage.getItem('onboarded').then(v => setOnboarded(!!v));
   }, []);
+
+  useEffect(() => {
+    if (user?.role === 'doctor' && !I18nManager.isRTL) {
+      I18nManager.forceRTL(true);
+    }
+  }, [user?.role]);
 
   if (onboarded === null) return null;
   if (!onboarded) return <Onboarding onDone={() => setOnboarded(true)} />;
