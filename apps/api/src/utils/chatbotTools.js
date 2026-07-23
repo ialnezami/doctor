@@ -193,6 +193,13 @@ async function bookAppointment(input, context) {
   if (!pending) {
     return { error: 'No pending booking to confirm. Please confirm the details first.' };
   }
+  if (
+    pending.doctorId && pending.doctorId !== String(doctorId) ||
+    pending.date     && pending.date     !== date             ||
+    pending.timeSlot && pending.timeSlot !== timeSlot
+  ) {
+    return { error: 'Booking details do not match the confirmed proposal. Please start a new booking.' };
+  }
 
   // Slot conflict check
   const slotDateStart = new Date(date + 'T00:00:00.000Z');
@@ -259,7 +266,7 @@ async function executeTool(name, input, context) {
     console.log(`[chatbot:tool] requestId=${context.requestId} userId=${context.userId} tool=${name} durationMs=${Date.now() - startedAt} status=success`);
     return result;
   } catch (err) {
-    console.error(`[chatbot:tool] requestId=${context.requestId} userId=${context.userId} tool=${name} durationMs=${Date.now() - startedAt} status=error err=${err.name}: ${String(err.message).slice(0, 200)}`);
+    console.error(`[chatbot:tool] requestId=${context.requestId} userId=${context.userId} tool=${name} durationMs=${Date.now() - startedAt} status=error err=${err.name}`);
     return { error: err.message };
   }
 }
