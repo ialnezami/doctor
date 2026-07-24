@@ -1,7 +1,7 @@
 'use strict';
 
 const { getRankedDoctors } = require('./doctorRanking');
-const { getPendingBooking, clearPendingBooking } = require('./sessionStore');
+const { setPendingBooking, getPendingBooking, clearPendingBooking } = require('./sessionStore');
 const Doctor = require('../models/Doctor');
 const Appointment = require('../models/Appointment');
 const User = require('../models/User');
@@ -60,6 +60,22 @@ const TOOL_DEFINITIONS = [
       required: ['doctorId', 'locationId', 'date', 'timeSlot', 'visitType'],
     },
   },
+  {
+    name: 'propose_booking',
+    description: 'Store a booking proposal and ask the patient to confirm before booking. ALWAYS call this before book_appointment. After calling this, present the details to the patient and ask for explicit confirmation.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        doctorId:   { type: 'string', description: 'MongoDB ObjectId of the doctor' },
+        locationId: { type: 'string', description: 'MongoDB ObjectId of the clinic location' },
+        date:       { type: 'string', description: 'Proposed appointment date in YYYY-MM-DD format' },
+        timeSlot:   { type: 'string', description: 'Proposed start time in HH:MM format (24-hour)' },
+        visitType:  { type: 'string', enum: VISIT_TYPES, description: 'Type of visit' },
+        reason:     { type: 'string', description: 'Optional reason for the appointment' },
+      },
+      required: ['doctorId', 'locationId', 'date', 'timeSlot', 'visitType'],
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -90,6 +106,15 @@ function validateToolInput(name, input) {
     if (!input.date || !DATE_RE.test(input.date))   throw new Error('date must be in YYYY-MM-DD format');
     if (!input.timeSlot || !TIME_RE.test(input.timeSlot)) throw new Error('timeSlot must be in HH:MM format');
     if (!VISIT_TYPES.includes(input.visitType)) throw new Error(`visitType must be one of: ${VISIT_TYPES.join(', ')}`);
+    return;
+  }
+
+  if (name === 'propose_booking') {
+    if (!input.doctorId   || !OBJECT_ID_RE.test(input.doctorId))   throw new Error('doctorId must be a valid MongoDB ObjectId');
+    if (!input.locationId || !OBJECT_ID_RE.test(input.locationId)) throw new Error('locationId must be a valid MongoDB ObjectId');
+    if (!input.date       || !DATE_RE.test(input.date))             throw new Error('date must be in YYYY-MM-DD format');
+    if (!input.timeSlot   || !TIME_RE.test(input.timeSlot))         throw new Error('timeSlot must be in HH:MM format');
+    if (!VISIT_TYPES.includes(input.visitType))                     throw new Error(`visitType must be one of: ${VISIT_TYPES.join(', ')}`);
     return;
   }
 
@@ -184,6 +209,30 @@ function addMinutes(timeStr, minutes) {
   return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
 }
 
+async function proposeBooking(input, context) {
+  const { doctorId, locationId, date, timeSlot, visitType, reason } = input;
+  const { userId } = context;
+
+  // Store the proposal — patient must confirm before book_appointment executes
+  setPendingBooking(userId, {
+    doctorId:   String(doctorId),
+    locationId: String(locationId),
+    date,
+    timeSlot,
+    visitType,
+    reason: reason || '',
+  });
+
+  return {
+    proposed: true,
+    doctorId: String(doctorId),
+    date,
+    timeSlot,
+    visitType,
+    message: 'Booking proposal stored. Present these details to the patient and ask for explicit confirmation before proceeding.',
+  };
+}
+
 async function bookAppointment(input, context) {
   const { doctorId, locationId, date, timeSlot, visitType, reason } = input;
   const { userId } = context;
@@ -193,10 +242,13 @@ async function bookAppointment(input, context) {
   if (!pending) {
     return { error: 'No pending booking to confirm. Please confirm the details first.' };
   }
+  if (!pending.doctorId || !pending.date || !pending.timeSlot) {
+    return { error: 'Pending booking is incomplete. Please use propose_booking first.' };
+  }
   if (
-    pending.doctorId && pending.doctorId !== String(doctorId) ||
-    pending.date     && pending.date     !== date             ||
-    pending.timeSlot && pending.timeSlot !== timeSlot
+    pending.doctorId !== String(doctorId) ||
+    pending.date     !== date             ||
+    pending.timeSlot !== timeSlot
   ) {
     return { error: 'Booking details do not match the confirmed proposal. Please start a new booking.' };
   }
@@ -204,6 +256,10 @@ async function bookAppointment(input, context) {
   // Slot conflict check
   const slotDateStart = new Date(date + 'T00:00:00.000Z');
   const slotDateEnd   = new Date(date + 'T23:59:59.999Z');
+  // NOTE: exists() + create() is non-atomic. A compound unique index on
+  // { doctorId, date, 'timeSlot.start' } with a partial filter excluding
+  // cancelled/archived statuses must be added to the Appointment model
+  // before this goes to production to prevent double-booking under concurrent load.
   const conflict = await Appointment.exists({
     doctorId,
     date: { $gte: slotDateStart, $lte: slotDateEnd },
@@ -217,6 +273,9 @@ async function bookAppointment(input, context) {
   // Look up location and appointment type for duration
   const doctor = await Doctor.findById(doctorId).select('locations appointmentTypes');
   const location   = doctor?.locations.find(l => l._id.equals(locationId));
+  if (locationId && !location) {
+    return { error: 'Location not found for this doctor. Please search for available locations.' };
+  }
   const apptType   = doctor?.appointmentTypes.find(t => t.key === visitType);
   const duration   = apptType?.duration ?? 30;
   const timeSlotEnd = addMinutes(timeSlot, duration);
@@ -261,6 +320,7 @@ async function executeTool(name, input, context) {
     if (name === 'search_doctors')        result = await searchDoctors(input, context);
     else if (name === 'get_availability') result = await getAvailability(input, context);
     else if (name === 'book_appointment') result = await bookAppointment(input, context);
+    else if (name === 'propose_booking')  result = await proposeBooking(input, context);
     else result = { error: `Unknown tool: ${name}` };
 
     console.log(`[chatbot:tool] requestId=${context.requestId} userId=${context.userId} tool=${name} durationMs=${Date.now() - startedAt} status=success`);

@@ -2,6 +2,14 @@
 
 const { getProvider } = require('./aiProviders');
 const Anthropic = require('@anthropic-ai/sdk');
+
+let _anthropicClient = null;
+function getAnthropicClient() {
+  if (!_anthropicClient) {
+    _anthropicClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  }
+  return _anthropicClient;
+}
 const { TOOL_DEFINITIONS, executeTool } = require('../utils/chatbotTools');
 const { parseTriage } = require('../utils/triageParser');
 
@@ -156,7 +164,7 @@ async function streamChatWithTools(res, history, systemPrompt, toolContext, { re
 
   const controller = new AbortController();
   const timeoutId  = setTimeout(() => controller.abort(), TOOL_TIMEOUT_MS);
-  const client     = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const client     = getAnthropicClient();
 
   let messages        = [...history];
   let accumulatedText = '';
@@ -247,7 +255,7 @@ async function streamChatWithTools(res, history, systemPrompt, toolContext, { re
       // Execute tools and emit SSE events
       const toolResults = [];
       for (const tool of pendingTools) {
-        res.write(`data: ${JSON.stringify({ type: 'tool_call', name: tool.name, input: tool.input })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: 'tool_call', name: tool.name })}\n\n`);
 
         const result = await executeTool(tool.name, tool.input, toolContext);
 
