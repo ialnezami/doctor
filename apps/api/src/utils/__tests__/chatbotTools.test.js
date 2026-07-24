@@ -113,7 +113,7 @@ describe('chatbotTools — validateToolInput', () => {
 });
 
 describe('chatbotTools — executeTool', () => {
-  let executeTool, getRankedDoctors, getPendingBooking, clearPendingBooking;
+  let executeTool, getRankedDoctors, getPendingBooking, clearPendingBooking, setPendingBooking;
   let Doctor, Appointment, User;
 
   beforeEach(() => {
@@ -122,12 +122,13 @@ describe('chatbotTools — executeTool', () => {
     getRankedDoctors = jest.fn();
     getPendingBooking = jest.fn();
     clearPendingBooking = jest.fn();
+    setPendingBooking = jest.fn();
     Doctor = { find: jest.fn(), findById: jest.fn() };
     Appointment = { exists: jest.fn(), create: jest.fn() };
     User = { find: jest.fn() };
 
     jest.mock('../doctorRanking', () => ({ getRankedDoctors }));
-    jest.mock('../sessionStore', () => ({ getPendingBooking, clearPendingBooking }));
+    jest.mock('../sessionStore', () => ({ getPendingBooking, clearPendingBooking, setPendingBooking }));
     jest.mock('../../models/Doctor', () => Doctor);
     jest.mock('../../models/Appointment', () => Appointment);
     jest.mock('../../models/User', () => User);
@@ -184,7 +185,12 @@ describe('chatbotTools — executeTool', () => {
   });
 
   it('book_appointment returns conflict error when slot taken', async () => {
-    getPendingBooking.mockReturnValue({ doctorId: '507f1f77bcf86cd799439011' });
+    getPendingBooking.mockReturnValue({
+      doctorId:   '507f1f77bcf86cd799439011',
+      locationId: '507f1f77bcf86cd799439011',
+      date:       '2026-08-01',
+      timeSlot:   '10:00',
+    });
     Appointment.exists.mockResolvedValue(true);
     Doctor.findById.mockReturnValue({
       select: jest.fn().mockResolvedValue({ locations: [], appointmentTypes: [] }),
@@ -199,7 +205,12 @@ describe('chatbotTools — executeTool', () => {
   });
 
   it('book_appointment creates appointment and clears pendingBooking on success', async () => {
-    getPendingBooking.mockReturnValue({ doctorId: '507f1f77bcf86cd799439011' });
+    getPendingBooking.mockReturnValue({
+      doctorId:   '507f1f77bcf86cd799439011',
+      locationId: '507f1f77bcf86cd799439011',
+      date:       '2026-08-01',
+      timeSlot:   '10:00',
+    });
     Appointment.exists.mockResolvedValue(false);
     Doctor.findById.mockReturnValue({
       select: jest.fn().mockResolvedValue({
@@ -228,16 +239,67 @@ describe('chatbotTools — executeTool', () => {
     const result = await executeTool('unknown_tool', {}, ctx);
     expect(result).toEqual({ error: expect.stringContaining('Unknown tool') });
   });
+
+  it('propose_booking stores pending booking and returns proposed:true', async () => {
+    const setPendingBookingLocal = jest.fn();
+    jest.resetModules();
+    jest.mock('../doctorRanking', () => ({ getRankedDoctors }));
+    jest.mock('../sessionStore', () => ({
+      getPendingBooking,
+      clearPendingBooking,
+      setPendingBooking: setPendingBookingLocal,
+    }));
+    jest.mock('../../models/Doctor', () => Doctor);
+    jest.mock('../../models/Appointment', () => Appointment);
+    jest.mock('../../models/User', () => User);
+
+    const mod = require('../chatbotTools');
+    const result = await mod.executeTool('propose_booking', {
+      doctorId:   '507f1f77bcf86cd799439011',
+      locationId: '507f1f77bcf86cd799439011',
+      date:       '2026-08-01',
+      timeSlot:   '10:00',
+      visitType:  'initial',
+    }, ctx);
+
+    expect(setPendingBookingLocal).toHaveBeenCalledWith(ctx.userId, expect.objectContaining({
+      doctorId:   '507f1f77bcf86cd799439011',
+      locationId: '507f1f77bcf86cd799439011',
+      date:       '2026-08-01',
+      timeSlot:   '10:00',
+      visitType:  'initial',
+    }));
+    expect(result.proposed).toBe(true);
+  });
+
+  it('book_appointment returns mismatch error when locationId does not match pending', async () => {
+    getPendingBooking.mockReturnValue({
+      doctorId:   '507f1f77bcf86cd799439011',
+      locationId: 'aaaaaaaaaaaaaaaaaaaaaaaa',
+      date:       '2026-08-01',
+      timeSlot:   '10:00',
+    });
+    const result = await executeTool('book_appointment', {
+      doctorId:   '507f1f77bcf86cd799439011',
+      locationId: '507f1f77bcf86cd799439011',
+      date:       '2026-08-01',
+      timeSlot:   '10:00',
+      visitType:  'initial',
+    }, ctx);
+    expect(result.error).toMatch(/do not match/);
+    expect(Appointment.create).not.toHaveBeenCalled();
+  });
 });
 
 describe('chatbotTools — TOOL_DEFINITIONS', () => {
-  it('exports an array of 3 tool definitions with correct names', () => {
+  it('exports an array of 4 tool definitions with correct names', () => {
     const { TOOL_DEFINITIONS } = require('../chatbotTools');
     expect(Array.isArray(TOOL_DEFINITIONS)).toBe(true);
-    expect(TOOL_DEFINITIONS).toHaveLength(3);
+    expect(TOOL_DEFINITIONS).toHaveLength(4);
     const names = TOOL_DEFINITIONS.map(t => t.name);
     expect(names).toContain('search_doctors');
     expect(names).toContain('get_availability');
     expect(names).toContain('book_appointment');
+    expect(names).toContain('propose_booking');
   });
 });

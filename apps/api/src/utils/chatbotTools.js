@@ -246,9 +246,10 @@ async function bookAppointment(input, context) {
     return { error: 'Pending booking is incomplete. Please use propose_booking first.' };
   }
   if (
-    pending.doctorId !== String(doctorId) ||
-    pending.date     !== date             ||
-    pending.timeSlot !== timeSlot
+    pending.doctorId   !== String(doctorId)   ||
+    pending.locationId !== String(locationId) ||
+    pending.date       !== date               ||
+    pending.timeSlot   !== timeSlot
   ) {
     return { error: 'Booking details do not match the confirmed proposal. Please start a new booking.' };
   }
