@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { login } from '../../api/auth';
 import useAuthStore from '../../store/authStore';
 import Button from '../../components/ui/Button';
-import GoogleSignInButton from '../../components/GoogleSignInButton';
+// import GoogleSignInButton from '../../components/GoogleSignInButton';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -80,12 +80,14 @@ export default function LoginPage() {
         </form>
 
         {/* Google sign-in */}
+        {/* Google sign-in — disabled until VITE_GOOGLE_CLIENT_ID is configured
         <div style={{ display:'flex', alignItems:'center', gap:12, margin:'20px 0 16px' }}>
           <div style={{ flex:1, height:1, background:'var(--border)' }} />
           <span style={{ color:'var(--text2)', fontSize:12 }}>{t('common.or')}</span>
           <div style={{ flex:1, height:1, background:'var(--border)' }} />
         </div>
         <GoogleSignInButton />
+        */}
 
         <p style={{ fontSize:12.5, color:'var(--text2)', textAlign:'center', marginTop:22 }}>
           {t('auth.login.noAccount')} <Link to="/register" style={{ color:'var(--mint)' }}>{t('auth.login.createOne')}</Link>

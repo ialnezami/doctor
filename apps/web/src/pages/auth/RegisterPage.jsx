@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { register } from '../../api/auth';
 import useAuthStore from '../../store/authStore';
 import Button from '../../components/ui/Button';
-import GoogleSignInButton from '../../components/GoogleSignInButton';
+// import GoogleSignInButton from '../../components/GoogleSignInButton';
 
 const SPECIALTIES = [
   { key: 'general',            en: 'General Medicine' },
@@ -104,6 +104,7 @@ export default function RegisterPage() {
         </form>
 
         {/* Google sign-up — note reflects selected role */}
+        {/* Google sign-in — disabled until VITE_GOOGLE_CLIENT_ID is configured
         <div style={{ display:'flex', alignItems:'center', gap:12, margin:'20px 0 16px' }}>
           <div style={{ flex:1, height:1, background:'var(--border)' }} />
           <span style={{ color:'var(--text2)', fontSize:12 }}>or</span>
@@ -113,6 +114,7 @@ export default function RegisterPage() {
         <p style={{ color:'var(--text2)', fontSize:12, textAlign:'center', margin:'8px 0 0' }}>
           Google sign-up creates a{form.role === 'doctor' ? ' doctor' : form.role === 'laboratory' ? ' lab' : form.role === 'pharmacy' ? ' pharmacy' : ' patient'} account
         </p>
+        */}
 
         <p style={{ fontSize:12.5, color:'var(--text2)', textAlign:'center', marginTop:20 }}>
           Already have an account? <Link to="/login" style={{ color:'var(--mint)' }}>Sign in</Link>
