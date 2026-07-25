@@ -1,0 +1,71 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:    #060d18;
+  --bg2:   #0b1624;
+  --bg3:   #101f34;
+  --card:  #0e1a2d;
+  --border:  #1a3050;
+  --border2: #223d5e;
+  --mint:      #0fe3b0;
+  --mint-dim:  rgba(15,227,176,0.13);
+  --amber:     #f59e0b;
+  --amber-dim: rgba(245,158,11,0.13);
+  --rose:      #f43f5e;
+  --rose-dim:  rgba(244,63,94,0.13);
+  --blue:      #60a5fa;
+  --blue-dim:  rgba(96,165,250,0.11);
+  --text:  #e8f4ff;
+  --text2: #7ba8c4;
+  --text3: #3d6480;
+  --bg-blur: rgba(6,13,24,0.88);
+  --r:    10px;
+  --r-sm: 6px;
+  --font-display: 'Cormorant Garamond', serif;
+  --font-body: 'Outfit', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+[data-theme="light"] {
+  --bg:    #f8fafc;
+  --bg2:   #f1f5f9;
+  --bg3:   #e8eef4;
+  --card:  #ffffff;
+  --border:  #d0dce8;
+  --border2: #a8bed0;
+  --mint:      #0ca87e;
+  --mint-dim:  rgba(12,168,126,0.12);
+  --amber:     #d97706;
+  --amber-dim: rgba(217,119,6,0.12);
+  --rose:      #e11d48;
+  --rose-dim:  rgba(225,29,72,0.10);
+  --blue:      #2563eb;
+  --blue-dim:  rgba(37,99,235,0.10);
+  --text:  #0f1923;
+  --text2: #4a6b82;
+  --text3: #8aa5b8;
+  --bg-blur: rgba(248,250,252,0.88);
+}
+
+[data-doctor-theme] {
+  --primary:       #0d9488;
+  --primary-dim:   rgba(13, 148, 136, 0.12);
+  --primary-hover: #0f766e;
+  --primary-text:  #ffffff;
+}
+
+html, body, #root { height: 100%; }
+body { font-family: var(--font-body); background: var(--bg); color: var(--text); }
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: var(--font-body); }
+input, textarea, select { font-family: var(--font-body); font-size: 16px; }
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+button, [role="button"] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+html { scroll-behavior: smooth; }
+
+@media (max-width: 768px) {
+  ::-webkit-scrollbar { width: 0; }
+}

@@ -1,0 +1,628 @@
+{
+  "common": {
+    "or": "أو",
+    "years": "سنة",
+    "recorded": "مسجّلة",
+    "noData": "لا توجد بيانات",
+    "saving": "جارٍ الحفظ…",
+    "saved": "تم الحفظ ✓",
+    "cancel": "إلغاء",
+    "to": "إلى",
+    "error": "خطأ",
+    "errorLoading": "فشل تحميل البيانات.",
+    "retry": "إعادة المحاولة",
+    "days": {
+      "sun": "أحد",
+      "mon": "إثن",
+      "tue": "ثلث",
+      "wed": "أرب",
+      "thu": "خمس",
+      "fri": "جمع",
+      "sat": "سبت"
+    }
+  },
+  "auth": {
+    "appName": "MediConnect",
+    "appTagline": "الرعاية الصحية بصورة مختلفة",
+    "appDesc": "ربط الأطباء والمرضى بسلاسة.",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "login": {
+      "title": "مرحباً بعودتك",
+      "subtitle": "تسجيل الدخول إلى حسابك",
+      "submit": "تسجيل الدخول ←",
+      "submitting": "جارٍ الدخول…",
+      "noAccount": "ليس لديك حساب؟",
+      "createOne": "أنشئ حساباً مجاناً",
+      "invalidCredentials": "بيانات غير صحيحة"
+    },
+    "register": {
+      "title": "إنشاء حساب",
+      "subtitle": "انضم إلى MediConnect اليوم",
+      "name": "الاسم الكامل",
+      "role": "أنا",
+      "rolePatient": "مريض",
+      "roleDoctor": "طبيب",
+      "submit": "إنشاء الحساب",
+      "submitting": "جارٍ الإنشاء…",
+      "haveAccount": "لديك حساب بالفعل؟",
+      "signIn": "تسجيل الدخول"
+    },
+    "features": {
+      "scheduling": {
+        "title": "جدولة ذكية",
+        "desc": "إدارة المواعيد دون تعارضات"
+      },
+      "prescriptions": {
+        "title": "وصفات طبية رقمية",
+        "desc": "إنشاء وتصدير PDF فوراً"
+      },
+      "location": {
+        "title": "بحث جغرافي",
+        "desc": "ابحث عن أطباء قريبين حسب التخصص"
+      }
+    }
+  },
+  "nav": {
+    "findDoctor": "البحث عن طبيب",
+    "appointments": "المواعيد",
+    "records": "السجلات الطبية",
+    "labResults": "نتائج المختبر",
+    "dashboard": "لوحة التحكم",
+    "logout": "تسجيل الخروج",
+    "patientRecords": "سجلات المرضى",
+    "prescriptions": "الوصفات الطبية",
+    "settings": "الإعدادات",
+    "reviews": "تقييماتي ⭐",
+    "findADoctor": "البحث عن طبيب",
+    "myAppointments": "مواعيدي",
+    "myUploads": "رفوعاتي",
+    "roleMenu": {
+      "doctor": "قائمة الطبيب",
+      "patient": "قائمة المريض",
+      "laboratory": "قائمة المختبر"
+    }
+  },
+  "records": {
+    "title": "السجلات الطبية",
+    "subtitle": "سجلّك الصحي الكامل",
+    "tabs": {
+      "prescriptions": "الوصفات الطبية",
+      "labs": "نتائج المختبر",
+      "profile": "الملف الصحي"
+    },
+    "healthProfile": "الملف الصحي",
+    "age": "العمر",
+    "bloodType": "فصيلة الدم",
+    "allergies": "الحساسية",
+    "conditionsAllergies": "الأمراض والحساسيات",
+    "noProfileData": "لا توجد بيانات صحية بعد. حدّث ملفك الشخصي.",
+    "allergy": "حساسية",
+    "noPrescriptions": "لا توجد وصفات طبية بعد.",
+    "noLabResults": "لا توجد نتائج مختبر بعد.",
+    "prescriptions": "الوصفات الطبية",
+    "tests": "فحص",
+    "tests_plural": "فحوصات",
+    "years": "سنة",
+    "recorded": "مسجل",
+    "downloadPdf": "↓ PDF",
+    "more": "+{{count}} أخرى",
+    "modal": {
+      "prescription": "الوصفة الطبية",
+      "doctor": "الطبيب",
+      "patient": "المريض",
+      "issued": "تاريخ الإصدار",
+      "validUntil": "صالحة حتى",
+      "medications": "الأدوية",
+      "dosage": "الجرعة",
+      "frequency": "التكرار",
+      "duration": "المدة",
+      "instructions": "التعليمات"
+    }
+  },
+  "language": {
+    "label": "اللغة",
+    "ar": "العربية",
+    "en": "English",
+    "fr": "Français"
+  },
+  "dashboard": {
+    "greeting": "صباح الخير، {{name}}",
+    "appointmentsToday": "{{count}} موعد اليوم",
+    "newPrescription": "+ وصفة طبية جديدة",
+    "stats": {
+      "todayAppointments": "مواعيد اليوم",
+      "pendingRequests": "الطلبات المعلقة",
+      "totalPatients": "إجمالي المرضى",
+      "prescriptionsToday": "الوصفات الطبية اليوم"
+    },
+    "schedule": {
+      "title": "جدول اليوم",
+      "viewAll": "عرض الكل",
+      "noAppointments": "لا توجد مواعيد اليوم."
+    },
+    "weeklyVolume": "الحجم الأسبوعي"
+  },
+  "appointments": {
+    "title": "المواعيد",
+    "subtitle": "إدارة جدولك",
+    "filters": {
+      "all": "الكل",
+      "pending": "معلق",
+      "confirmed": "مؤكد",
+      "completed": "مكتمل",
+      "cancelled": "ملغى"
+    },
+    "allAppointments": "جميع المواعيد",
+    "total": "{{count}} إجمالي",
+    "pendingApproval": "في انتظار الموافقة",
+    "requests": "{{count}} طلبات",
+    "video": "فيديو",
+    "chat": "محادثة",
+    "details": {
+      "title": "تفاصيل الموعد",
+      "patient": "المريض",
+      "dateTime": "التاريخ والوقت",
+      "visitType": "نوع الزيارة",
+      "status": "الحالة",
+      "reason": "السبب"
+    },
+    "symptoms": {
+      "title": "أعراض المريض",
+      "unavailable": "التحليل غير متاح",
+      "pending": "جارٍ التحليل…",
+      "aiDisclaimer": "تم إنشاؤه بالذكاء الاصطناعي — لا يُغني عن الحكم السريري."
+    }
+  },
+  "prescriptions": {
+    "title": "الوصفات الطبية",
+    "subtitle": "وصفات طبية رقمية",
+    "exportPdf": "↓ تصدير PDF",
+    "saveSign": "حفظ وتوقيع",
+    "saving": "جارٍ الحفظ…",
+    "patientId": "معرّف المريض",
+    "medications": "الأدوية",
+    "drugName": "اسم الدواء",
+    "dose": "الجرعة",
+    "freq": "التكرار",
+    "duration": "المدة",
+    "addMedication": "+ إضافة دواء",
+    "frequencyOptions": {
+      "onceDaily": "مرة يومياً",
+      "twiceDaily": "مرتين يومياً",
+      "threeTimesDaily": "ثلاث مرات يومياً",
+      "fourTimesDaily": "أربع مرات يومياً",
+      "every6h": "كل 6 ساعات",
+      "every8h": "كل 8 ساعات",
+      "every12h": "كل 12 ساعة",
+      "every24h": "كل 24 ساعة",
+      "withMeals": "مع الوجبات",
+      "beforeMeals": "قبل الوجبات",
+      "afterMeals": "بعد الوجبات",
+      "beforeBreakfast": "قبل الإفطار",
+      "atBedtime": "عند النوم",
+      "inMorning": "في الصباح",
+      "asNeeded": "عند الحاجة (PRN)",
+      "alternateDays": "يوم بعد يوم",
+      "weekly": "أسبوعياً"
+    },
+    "durationOptions": {
+      "1day": "يوم واحد",
+      "3days": "3 أيام",
+      "5days": "5 أيام",
+      "7days": "7 أيام",
+      "10days": "10 أيام",
+      "14days": "14 يوم",
+      "21days": "21 يوم",
+      "1month": "شهر واحد",
+      "6weeks": "6 أسابيع",
+      "2months": "شهران",
+      "3months": "3 أشهر",
+      "6months": "6 أشهر",
+      "1year": "سنة واحدة",
+      "ongoing": "مستمر",
+      "untilFinished": "حتى الانتهاء"
+    },
+    "clinicalNotes": "ملاحظات سريرية",
+    "recentPrescriptions": "الوصفات الأخيرة",
+    "print": "طباعة",
+    "pdf": {
+      "title": "وصفة طبية رقمية",
+      "date": "التاريخ",
+      "rx": "رقم الوصفة",
+      "patient": "المريض",
+      "medication": "الدواء",
+      "dosage": "الجرعة",
+      "frequency": "التكرار",
+      "duration": "المدة",
+      "instructions": "تعليمات",
+      "footer": "صادر من MediConnect · صادر رقمياً وساري دون توقيع ورقي."
+    }
+  },
+  "labResults": {
+    "title": "نتائج المختبر",
+    "subtitle": "تقارير المختبر للمرضى",
+    "searchPlaceholder": "البحث في الفحوصات وأسماء المختبرات…",
+    "search": "بحث",
+    "noResults": "لا توجد نتائج مختبر بعد",
+    "selectPrompt": "اختر نتيجة لعرض التفاصيل",
+    "interpretationNotes": "ملاحظات التفسير",
+    "addInterpretation": "إضافة تفسير سريري…",
+    "saveNotes": "حفظ الملاحظات",
+    "saving": "جارٍ الحفظ…",
+    "share": "🔗 مشاركة",
+    "ready": "جاهز",
+    "flags": {
+      "normal": "طبيعي",
+      "high": "مرتفع",
+      "low": "منخفض",
+      "critical": "حرج"
+    },
+    "table": {
+      "testName": "اسم الفحص",
+      "value": "القيمة",
+      "unit": "الوحدة",
+      "range": "المرجع",
+      "flag": "الحالة"
+    },
+    "shareModal": {
+      "title": "مشاركة نتيجة المختبر",
+      "password": "كلمة مرور (اختياري)",
+      "passwordPlaceholder": "اتركه فارغاً لعدم وضع كلمة مرور",
+      "expiry": "انتهاء صلاحية الرابط",
+      "1h": "ساعة واحدة",
+      "24h": "24 ساعة",
+      "7d": "7 أيام",
+      "never": "أبداً",
+      "generate": "إنشاء رابط آمن",
+      "expires": "تنتهي في:",
+      "copied": "تم النسخ!",
+      "copyLink": "نسخ الرابط",
+      "revoke": "إلغاء",
+      "revoking": "…"
+    },
+    "patient": "المريض",
+    "issued": "صادر في"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "autoAccept": {
+      "label": "قبول المواعيد تلقائياً",
+      "desc": "عند التفعيل، تُؤكَّد الحجوزات الجديدة فوراً دون موافقة يدوية."
+    },
+    "timezone": {
+      "label": "المنطقة الزمنية للملخص اليومي",
+      "desc": "يصل ملخصك الصباحي في الساعة 7:00 صباحاً في هذه المنطقة."
+    },
+    "notifications": {
+      "title": "قنوات الإشعارات",
+      "push": "الإشعارات الفورية",
+      "email": "إشعارات البريد الإلكتروني"
+    },
+    "availability": {
+      "title": "التوفر",
+      "addDay": "+ إضافة يوم",
+      "noSlots": "لم يتم تعيين أي توفر — لن يرى المرضى أي أوقات.",
+      "to": "إلى"
+    },
+    "saveSettings": "حفظ الإعدادات",
+    "saving": "جارٍ الحفظ…",
+    "saved": "تم الحفظ ✓",
+    "apptTypes": {
+      "title": "أنواع المواعيد",
+      "desc": "حدّد المدة لكل نوع زيارة. الأنواع المعطّلة لن تظهر للمرضى.",
+      "addCustom": "+ إضافة نوع مخصص",
+      "duration": "المدة",
+      "labelPlaceholder": "اسم النوع",
+      "noTypes": "لا توجد أنواع مواعيد.",
+      "types": {
+        "initial": "استشارة أولية",
+        "follow-up": "متابعة",
+        "check-up": "فحص دوري",
+        "urgent": "عاجل"
+      },
+      "durations": {
+        "15": "١٥ دقيقة",
+        "20": "٢٠ دقيقة",
+        "30": "٣٠ دقيقة",
+        "custom": "مخصص"
+      }
+    },
+    "shareProfile": {
+      "title": "مشاركة ملفك الشخصي",
+      "desc": "أرسل هذا الرابط للمرضى — لا يتطلب تسجيل الدخول.",
+      "copy": "نسخ الرابط",
+      "copied": "✓ تم النسخ!"
+    },
+    "profileInfo": {
+      "title": "معلومات الملف الشخصي",
+      "bio": "نبذة شخصية",
+      "bioPlaceholder": "وصف مختصر عن نفسك وخبرتك وأسلوبك…",
+      "yearsExp": "سنوات الخبرة",
+      "years": "سنوات",
+      "license": "رقم الترخيص",
+      "licensePlaceholder": "مثال: MD-123456",
+      "languages": "اللغات المتحدث بها",
+      "languagesPlaceholder": "مثال: الإنجليزية، العربية، الفرنسية",
+      "commaSeparated": "قائمة مفصولة بفواصل",
+      "achievements": "الإنجازات",
+      "achievementsPlaceholder": "مثال: حاصل على بورد، زميل ACS، أفضل طبيب 2024",
+      "education": "التعليم",
+      "addEntry": "+ إضافة",
+      "noEducation": "لا توجد إدخالات تعليمية بعد.",
+      "degreePlaceholder": "الدرجة العلمية (مثال: دكتوراه)",
+      "institutionPlaceholder": "المؤسسة التعليمية",
+      "yearPlaceholder": "السنة"
+    },
+    "locations": {
+      "title": "مواقع العيادة",
+      "add": "+ إضافة",
+      "cancel": "إلغاء",
+      "descBookable": "القابلة للحجز",
+      "descSuffix": "المواقع تظهر في تدفق حجز المريض. مواقع المستشفيات للعرض فقط.",
+      "empty": "لا توجد مواقع بعد. أضف موقعاً حتى يتمكن المرضى من الحجز.",
+      "namePlaceholder": "اسم الموقع *",
+      "addressPlaceholder": "العنوان (اختياري)",
+      "typeBookable": "قابل للحجز",
+      "typeHospital": "مستشفى",
+      "save": "حفظ",
+      "edit": "تعديل",
+      "newLocation": "موقع جديد",
+      "addLocation": "إضافة موقع"
+    },
+    "fee": {
+      "title": "رسوم الاستشارة",
+      "desc": "المبلغ الذي يدفعه المرضى لكل موعد",
+      "currencyNote": "تنطبق العملة على جميع الرسوم في ملفك الشخصي"
+    },
+    "appearance": "المظهر",
+    "theme": "السمة"
+  },
+  "reviews": {
+    "title": "تقييماتي",
+    "subtitle": "آراء المرضى حول استشاراتك",
+    "noReviews": "لا توجد تقييمات بعد.",
+    "noReviewsHint": "تظهر التقييمات بعد إتمام المرضى للاستشارة.",
+    "noReviewsForFilter": "لا توجد تقييمات تطابق هذا الفلتر.",
+    "reviewsLabel": "تقييم",
+    "quickStats": "حسب التقييم",
+    "filterAll": "الكل",
+    "report": "إبلاغ",
+    "reported": "⚑ تم الإبلاغ",
+    "loadMore": "تحميل المزيد",
+    "flagModal": {
+      "title": "الإبلاغ عن هذا التقييم؟",
+      "subtitle": "سيتم تمييز التقييم للمراجعة.",
+      "reasonPlaceholder": "السبب (اختياري)",
+      "cancel": "إلغاء",
+      "report": "إبلاغ"
+    }
+  },
+  "chat": {
+    "back": "→ رجوع",
+    "appointmentChat": "محادثة الموعد",
+    "cancelled": "تم إلغاء هذا الموعد. المحادثة للقراءة فقط.",
+    "loading": "جارٍ التحميل…",
+    "loadEarlier": "تحميل الرسائل السابقة",
+    "seen": "تمت القراءة",
+    "attachFile": "إرفاق ملف",
+    "readOnly": "المحادثة للقراءة فقط",
+    "messagePlaceholder": "اكتب رسالة… (أدخل للإرسال)",
+    "send": "إرسال"
+  },
+  "video": {
+    "endCall": "✕ إنهاء المكالمة",
+    "hideNotes": "إخفاء الملاحظات",
+    "showNotes": "📝 ملاحظات",
+    "connecting": "جارٍ الاتصال…",
+    "waiting": "في انتظار {{name}}…",
+    "connected": "✓ متصل",
+    "privateNote": "📝 ملاحظة خاصة",
+    "noteDesc": "محفوظة في هذا الموعد. مرئية لك فقط.",
+    "notePlaceholder": "اكتب ملاحظتك هنا…",
+    "noteSaved": "تم حفظ الملاحظة.",
+    "noteFailed": "فشل حفظ الملاحظة.",
+    "saveNote": "حفظ الملاحظة",
+    "saving": "جارٍ الحفظ…",
+    "connectionError": "تعذّر بدء جلسة الفيديو. يرجى المحاولة مجدداً."
+  },
+  "lab": {
+    "pendingTitle": "الحساب في انتظار الموافقة",
+    "pendingDesc": "يحتاج المسؤول إلى الموافقة على حساب المختبر الخاص بك قبل رفع النتائج.",
+    "uploadTitle": "رفع نتيجة مختبر",
+    "fields": {
+      "patientId": "معرّف المريض (MongoDB ObjectId)",
+      "labName": "اسم المختبر",
+      "testName": "اسم الفحص",
+      "result": "قيمة النتيجة"
+    },
+    "uploading": "جارٍ الرفع…",
+    "upload": "رفع النتيجة",
+    "myUploads": "رفوعاتي",
+    "noUploads": "لا توجد رفوعات بعد."
+  },
+  "patientRecords": {
+    "title": "سجلات المرضى",
+    "subtitle": "البحث وعرض التاريخ الطبي للمريض",
+    "newPatient": "+ مريض جديد",
+    "searchPlaceholder": "البحث بالاسم أو المعرّف أو الحالة…",
+    "medicalHistory": "التاريخ الطبي",
+    "prescribe": "+ وصف دواء",
+    "vitals": {
+      "bp": "ضغط الدم",
+      "heartRate": "معدل القلب",
+      "spo2": "SpO₂",
+      "mmhg": "ملم زئبق",
+      "bpm": "نبضة/دقيقة",
+      "oxygen": "أكسجين"
+    }
+  },
+  "findDoctor": {
+    "title": "ابحث عن طبيب",
+    "searching": "يبحث…",
+    "results": "{{count}} نتيجة",
+    "searchPlaceholder": "ابحث بالاسم أو التخصص…",
+    "loading": "تحميل…",
+    "noDoctors": "لا يوجد أطباء.",
+    "view": "عرض",
+    "sar": "ريال",
+    "exp": "{{years}} سنة خبرة",
+    "specialties": {
+      "All": "الكل",
+      "general": "طب عام",
+      "dentistry": "طب أسنان",
+      "ophthalmology": "طب عيون",
+      "pediatrics": "طب أطفال",
+      "obstetrics": "نساء وولادة",
+      "internal_medicine": "طب باطني",
+      "ent": "أذن وأنف وحنجرة",
+      "cardiology": "قلبية",
+      "orthopedics": "عظمية",
+      "general_surgery": "جراحة عامة",
+      "psychiatry": "طب نفسي",
+      "dermatology": "جلدية",
+      "aesthetics": "تجميل",
+      "neurology": "عصبية",
+      "vascular": "أوعية دموية",
+      "oncology": "أورام",
+      "nutrition": "تغذية",
+      "endocrinology": "غدد وسكري",
+      "urology": "بولية",
+      "gastroenterology": "هضمية",
+      "physical_therapy": "علاج فيزيائي",
+      "thoracic_surgery": "جراحة صدرية",
+      "neurosurgery": "جراحة عصبية",
+      "orthopedic_surgery": "جراحة عظمية",
+      "vascular_surgery": "جراحة أوعية دموية",
+      "select": "اختر التخصص"
+    }
+  },
+  "myAppts": {
+    "title": "مواعيدي",
+    "subtitle": "المواعيد القادمة والسابقة",
+    "bookNew": "+ حجز موعد",
+    "upcoming": "القادمة",
+    "past": "السابقة",
+    "noUpcoming": "لا مواعيد قادمة.",
+    "bookOne": "احجز موعداً ←",
+    "cancel": "إلغاء",
+    "records": "السجلات",
+    "leaveReview": "⭐ اترك تقييماً",
+    "disableReminders": "تعطيل التذكيرات",
+    "doctor": "الطبيب",
+    "review": {
+      "title": "اترك تقييماً",
+      "rating": "التقييم",
+      "comment": "تعليق (اختياري)",
+      "placeholder": "شارك تجربتك…",
+      "cancel": "إلغاء",
+      "submit": "إرسال التقييم",
+      "submitting": "يُرسل…",
+      "selectRating": "الرجاء اختيار تقييم.",
+      "error": "خطأ في إرسال التقييم."
+    }
+  },
+  "doctorProfile": {
+    "loading": "تحميل…",
+    "pickDate": "اختر تاريخاً",
+    "availableTimes": "الأوقات المتاحة",
+    "loadingSlots": "تحميل المواعيد…",
+    "noAvailability": "لا مواعيد في هذا اليوم.",
+    "reviews": "التقييمات",
+    "reviewCount": "({{count}} تقييم)",
+    "sar": "ريال / زيارة",
+    "yearsExp": "{{years}} سنة خبرة",
+    "patient": "المريض"
+  },
+  "book": {
+    "title": "تأكيد الحجز",
+    "doctor": "الطبيب",
+    "date": "التاريخ",
+    "time": "الوقت",
+    "visitType": "نوع الزيارة",
+    "reason": "السبب (اختياري)",
+    "reasonPlaceholder": "صف باختصار أعراضك أو سبب الزيارة…",
+    "submit": "طلب موعد",
+    "submitting": "يحجز…",
+    "error": "فشل الحجز — قد يكون الموعد محجوزاً"
+  },
+  "bookConfirmed": {
+    "confirmed": {
+      "title": "تم تأكيد الموعد!",
+      "desc": "تم تأكيد موعدك. ستتلقى تذكيراً قبل الزيارة."
+    },
+    "pending": {
+      "title": "تم إرسال الطلب",
+      "desc": "طلبك قيد انتظار موافقة الطبيب. سيتم إخطارك عند التأكيد."
+    },
+    "viewAppointments": "عرض مواعيدي"
+  },
+  "patientSettings": {
+    "title": "الإعدادات",
+    "subtitle": "إدارة ملفك الشخصي وتفضيلاتك",
+    "healthProfile": "الملف الصحي",
+    "dateOfBirth": "تاريخ الميلاد",
+    "bloodType": "فصيلة الدم",
+    "selectBloodType": "— اختر —",
+    "allergies": "الحساسية",
+    "allergiesPlaceholder": "مثال: البنسلين",
+    "conditions": "الأمراض المزمنة",
+    "conditionsPlaceholder": "مثال: السكري",
+    "tagHint": "— اضغط Enter للإضافة",
+    "saveProfile": "حفظ الملف الشخصي",
+    "notificationChannels": "قنوات الإشعارات",
+    "pushNotifications": "الإشعارات الفورية",
+    "emailNotifications": "إشعارات البريد الإلكتروني"
+  },
+  "pharmacy": {
+    "pendingTitle": "في انتظار موافقة الإدارة",
+    "pendingMessage": "حسابك في الصيدلية قيد المراجعة. يمكنك استخدام جميع الميزات بعد الموافقة.",
+    "dashboard": "لوحة تحكم الصيدلية",
+    "lowStock_one": "⚠ منتج واحد منخفض في المخزون",
+    "lowStock_other": "⚠ {{count}} منتجات منخفضة في المخزون",
+    "tabs": {
+      "pos": "🛒 نقطة البيع",
+      "inventory": "📦 المخزون",
+      "sales": "📋 سجل المبيعات",
+      "settings": "⚙️ الإعدادات"
+    },
+    "pos": {
+      "empty": "لا توجد مبيعات مفتوحة",
+      "emptyHint": "افتح نوافذ مبيعات متعددة في آن واحد — كل واحدة مستقلة وقابلة للسحب",
+      "newSale": "+ بيع جديد",
+      "windows_one": "نافذة بيع واحدة مفتوحة",
+      "windows_other": "{{count}} نوافذ بيع مفتوحة",
+      "dragHint": "اسحب شريط العنوان لتغيير الموضع",
+      "anotherSale": "+ بيع آخر"
+    },
+    "inventory": {
+      "empty": "لا توجد منتجات بعد",
+      "addFirst": "+ أضف أول منتج",
+      "add": "+ إضافة منتج",
+      "low": "منخفض",
+      "delete": "حذف",
+      "deleteConfirm": "حذف هذا المنتج؟",
+      "colProduct": "المنتج",
+      "colBarcode": "الباركود",
+      "colUnit": "الوحدة",
+      "colPrice": "السعر",
+      "colStock": "المخزون",
+      "colActions": "الإجراءات"
+    },
+    "sales": {
+      "empty": "لا توجد مبيعات بعد",
+      "receipt": "إيصال #{{number}}",
+      "items_one": "عنصر واحد",
+      "items_other": "{{count}} عناصر"
+    },
+    "settings": {
+      "title": "إعدادات الصيدلية",
+      "name": "اسم الصيدلية",
+      "license": "رقم الترخيص",
+      "address": "العنوان",
+      "save": "حفظ الإعدادات",
+      "saving": "جارٍ الحفظ…",
+      "saved": "تم الحفظ."
+    }
+  }
+}

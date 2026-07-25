@@ -1,0 +1,577 @@
+{
+  "common": {
+    "or": "ou",
+    "years": "ans",
+    "recorded": "enregistrées",
+    "noData": "Aucune donnée",
+    "saving": "Enregistrement…",
+    "saved": "Enregistré ✓",
+    "cancel": "Annuler",
+    "to": "à",
+    "error": "Erreur",
+    "errorLoading": "Échec du chargement des données.",
+    "retry": "Réessayer",
+    "days": {
+      "sun": "Dim",
+      "mon": "Lun",
+      "tue": "Mar",
+      "wed": "Mer",
+      "thu": "Jeu",
+      "fri": "Ven",
+      "sat": "Sam"
+    }
+  },
+  "auth": {
+    "appName": "MediConnect",
+    "appTagline": "La santé réinventée",
+    "appDesc": "Connectez médecins et patients facilement.",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "login": {
+      "title": "Bon retour",
+      "subtitle": "Connectez-vous à votre compte",
+      "submit": "Se connecter →",
+      "submitting": "Connexion…",
+      "noAccount": "Pas de compte ?",
+      "createOne": "Créez-en un gratuitement",
+      "invalidCredentials": "Identifiants invalides"
+    },
+    "register": {
+      "title": "Créer un compte",
+      "subtitle": "Rejoignez MediConnect",
+      "name": "Nom complet",
+      "role": "Je suis",
+      "rolePatient": "Patient",
+      "roleDoctor": "Médecin",
+      "submit": "Créer le compte",
+      "submitting": "Création…",
+      "haveAccount": "Déjà un compte ?",
+      "signIn": "Se connecter"
+    },
+    "features": {
+      "scheduling": {
+        "title": "Planification intelligente",
+        "desc": "Gérez les rendez-vous sans conflits"
+      },
+      "prescriptions": {
+        "title": "Ordonnances numériques",
+        "desc": "Créez et exportez des PDF instantanément"
+      },
+      "location": {
+        "title": "Recherche géolocalisée",
+        "desc": "Trouvez des médecins près de vous par spécialité"
+      }
+    }
+  },
+  "nav": {
+    "findDoctor": "Trouver médecin",
+    "appointments": "Rendez-vous",
+    "records": "Dossiers médicaux",
+    "labResults": "Résultats labo",
+    "dashboard": "Tableau de bord",
+    "logout": "Se déconnecter",
+    "patientRecords": "Dossiers patients",
+    "prescriptions": "Ordonnances",
+    "settings": "Paramètres",
+    "reviews": "Mes avis ⭐",
+    "findADoctor": "Trouver un médecin",
+    "myAppointments": "Mes rendez-vous",
+    "myUploads": "Mes téléchargements",
+    "roleMenu": {
+      "doctor": "Menu médecin",
+      "patient": "Menu patient",
+      "laboratory": "Menu labo"
+    }
+  },
+  "records": {
+    "title": "Dossiers médicaux",
+    "subtitle": "Votre historique de santé complet",
+    "tabs": {
+      "prescriptions": "Ordonnances",
+      "labs": "Résultats labo",
+      "profile": "Profil de santé"
+    },
+    "healthProfile": "Profil de santé",
+    "age": "Âge",
+    "bloodType": "Groupe sanguin",
+    "allergies": "Allergies",
+    "conditionsAllergies": "Maladies & Allergies",
+    "noProfileData": "Aucune donnée de santé. Mettez à jour votre profil.",
+    "allergy": "allergie",
+    "noPrescriptions": "Aucune ordonnance.",
+    "noLabResults": "Aucun résultat.",
+    "prescriptions": "Ordonnances",
+    "tests": "analyse",
+    "tests_plural": "analyses",
+    "years": "ans",
+    "recorded": "enregistrées",
+    "downloadPdf": "↓ PDF",
+    "more": "+{{count}} de plus",
+    "modal": {
+      "prescription": "Ordonnance",
+      "doctor": "Médecin",
+      "patient": "Patient",
+      "issued": "Émise le",
+      "validUntil": "Valide jusqu'au",
+      "medications": "Médicaments",
+      "dosage": "Dosage",
+      "frequency": "Fréquence",
+      "duration": "Durée",
+      "instructions": "Instructions"
+    }
+  },
+  "language": {
+    "label": "Langue",
+    "ar": "العربية",
+    "en": "English",
+    "fr": "Français"
+  },
+  "dashboard": {
+    "greeting": "Bonjour, {{name}}",
+    "appointmentsToday": "{{count}} rendez-vous aujourd'hui",
+    "newPrescription": "+ Nouvelle ordonnance",
+    "stats": {
+      "todayAppointments": "Rendez-vous du jour",
+      "pendingRequests": "Demandes en attente",
+      "totalPatients": "Patients total",
+      "prescriptionsToday": "Ordonnances du jour"
+    },
+    "schedule": {
+      "title": "Planning du jour",
+      "viewAll": "Voir tout",
+      "noAppointments": "Aucun rendez-vous aujourd'hui."
+    },
+    "weeklyVolume": "Volume hebdomadaire"
+  },
+  "appointments": {
+    "title": "Rendez-vous",
+    "subtitle": "Gérez votre planning",
+    "filters": {
+      "all": "Tous",
+      "pending": "En attente",
+      "confirmed": "Confirmé",
+      "completed": "Terminé",
+      "cancelled": "Annulé"
+    },
+    "allAppointments": "Tous les rendez-vous",
+    "total": "{{count}} total",
+    "pendingApproval": "En attente d'approbation",
+    "requests": "{{count}} demandes",
+    "video": "Vidéo",
+    "chat": "Chat",
+    "details": {
+      "title": "Détails du rendez-vous",
+      "patient": "Patient",
+      "dateTime": "Date et heure",
+      "visitType": "Type de visite",
+      "status": "Statut",
+      "reason": "Motif"
+    },
+    "symptoms": {
+      "title": "Symptômes du patient",
+      "unavailable": "Analyse indisponible",
+      "pending": "Analyse en cours…",
+      "aiDisclaimer": "Généré par IA — ne remplace pas le jugement clinique."
+    }
+  },
+  "prescriptions": {
+    "title": "Ordonnances",
+    "subtitle": "Ordonnances numériques",
+    "exportPdf": "↓ Exporter PDF",
+    "saveSign": "Enregistrer & Signer",
+    "saving": "Enregistrement…",
+    "patientId": "ID Patient",
+    "medications": "Médicaments",
+    "drugName": "Nom du médicament",
+    "dose": "Dose",
+    "freq": "Fréq.",
+    "duration": "Durée",
+    "addMedication": "+ Ajouter médicament",
+    "frequencyOptions": {
+      "onceDaily": "Une fois par jour",
+      "twiceDaily": "Deux fois par jour",
+      "threeTimesDaily": "Trois fois par jour",
+      "fourTimesDaily": "Quatre fois par jour",
+      "every6h": "Toutes les 6 heures",
+      "every8h": "Toutes les 8 heures",
+      "every12h": "Toutes les 12 heures",
+      "every24h": "Toutes les 24 heures",
+      "withMeals": "Avec les repas",
+      "beforeMeals": "Avant les repas",
+      "afterMeals": "Après les repas",
+      "beforeBreakfast": "Avant le petit-déjeuner",
+      "atBedtime": "Au coucher",
+      "inMorning": "Le matin",
+      "asNeeded": "Si besoin (PRN)",
+      "alternateDays": "Un jour sur deux",
+      "weekly": "Chaque semaine"
+    },
+    "durationOptions": {
+      "1day": "1 jour",
+      "3days": "3 jours",
+      "5days": "5 jours",
+      "7days": "7 jours",
+      "10days": "10 jours",
+      "14days": "14 jours",
+      "21days": "21 jours",
+      "1month": "1 mois",
+      "6weeks": "6 semaines",
+      "2months": "2 mois",
+      "3months": "3 mois",
+      "6months": "6 mois",
+      "1year": "1 an",
+      "ongoing": "En continu",
+      "untilFinished": "Jusqu'à épuisement"
+    },
+    "clinicalNotes": "Notes cliniques",
+    "recentPrescriptions": "Ordonnances récentes",
+    "print": "Imprimer",
+    "pdf": {
+      "title": "Ordonnance numérique",
+      "date": "Date",
+      "rx": "N° ordonnance",
+      "patient": "Patient",
+      "medication": "Médicament",
+      "dosage": "Dosage",
+      "frequency": "Fréquence",
+      "duration": "Durée",
+      "instructions": "Instructions",
+      "footer": "Généré par MediConnect · Émis numériquement, valide sans signature physique."
+    }
+  },
+  "labResults": {
+    "title": "Résultats labo",
+    "subtitle": "Rapports de laboratoire",
+    "searchPlaceholder": "Chercher analyses, labos…",
+    "search": "Chercher",
+    "noResults": "Aucun résultat de labo",
+    "selectPrompt": "Sélectionnez un résultat",
+    "interpretationNotes": "Notes d'interprétation",
+    "addInterpretation": "Ajouter une interprétation…",
+    "saveNotes": "Enregistrer les notes",
+    "saving": "Enregistrement…",
+    "share": "🔗 Partager",
+    "ready": "Prêt",
+    "flags": {
+      "normal": "Normal",
+      "high": "Élevé",
+      "low": "Bas",
+      "critical": "Critique"
+    },
+    "table": {
+      "testName": "Analyse",
+      "value": "Valeur",
+      "unit": "Unité",
+      "range": "Référence",
+      "flag": "Statut"
+    },
+    "shareModal": {
+      "title": "Partager le résultat",
+      "password": "Mot de passe (optionnel)",
+      "passwordPlaceholder": "Laisser vide pour aucun mot de passe",
+      "expiry": "Expiration du lien",
+      "1h": "1 heure",
+      "24h": "24 heures",
+      "7d": "7 jours",
+      "never": "Jamais",
+      "generate": "Générer un lien sécurisé",
+      "expires": "Expire :",
+      "copied": "Copié !",
+      "copyLink": "Copier le lien",
+      "revoke": "Révoquer",
+      "revoking": "…"
+    },
+    "patient": "Patient",
+    "issued": "Émis le"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "autoAccept": {
+      "label": "Acceptation automatique des rendez-vous",
+      "desc": "Activé : les nouveaux rendez-vous sont confirmés automatiquement."
+    },
+    "timezone": {
+      "label": "Fuseau horaire du résumé",
+      "desc": "Votre résumé matinal arrive à 7h dans ce fuseau."
+    },
+    "notifications": {
+      "title": "Canaux de notification",
+      "push": "Notifications push",
+      "email": "Notifications e-mail"
+    },
+    "availability": {
+      "title": "Disponibilités",
+      "addDay": "+ Ajouter jour",
+      "noSlots": "Aucune disponibilité définie — les patients ne verront aucun créneau.",
+      "to": "à"
+    },
+    "saveSettings": "Enregistrer",
+    "saving": "Enregistrement…",
+    "saved": "Enregistré ✓",
+    "apptTypes": {
+      "title": "Types de rendez-vous",
+      "desc": "Configurez la durée par type de visite. Les types désactivés n'apparaissent pas aux patients.",
+      "addCustom": "+ Ajouter un type personnalisé",
+      "duration": "Durée",
+      "labelPlaceholder": "Nom du type",
+      "noTypes": "Aucun type de rendez-vous configuré.",
+      "types": {
+        "initial": "Consultation initiale",
+        "follow-up": "Suivi",
+        "check-up": "Bilan de santé",
+        "urgent": "Urgent"
+      },
+      "durations": {
+        "15": "15 min",
+        "20": "20 min",
+        "30": "30 min",
+        "custom": "Personnalisé"
+      }
+    },
+    "shareProfile": {
+      "title": "Partager votre profil",
+      "desc": "Envoyez ce lien aux patients — aucune connexion requise.",
+      "copy": "Copier le lien",
+      "copied": "✓ Copié !"
+    },
+    "profileInfo": {
+      "title": "Informations du profil",
+      "bio": "Bio",
+      "bioPlaceholder": "Courte description de vous-même, votre expertise et votre approche…",
+      "yearsExp": "Années d'expérience",
+      "years": "ans",
+      "license": "Numéro de licence",
+      "licensePlaceholder": "ex. MD-123456",
+      "languages": "Langues parlées",
+      "languagesPlaceholder": "ex. Anglais, Arabe, Français",
+      "commaSeparated": "Liste séparée par des virgules",
+      "achievements": "Réalisations",
+      "achievementsPlaceholder": "ex. Certifié, Fellow ACS, Top Médecin 2024",
+      "education": "Formation",
+      "addEntry": "+ Ajouter",
+      "noEducation": "Aucune entrée de formation pour l'instant.",
+      "degreePlaceholder": "Diplôme (ex. MD)",
+      "institutionPlaceholder": "Établissement",
+      "yearPlaceholder": "Année"
+    },
+    "locations": {
+      "title": "Emplacements de la clinique",
+      "add": "+ Ajouter",
+      "cancel": "Annuler",
+      "descBookable": "Réservables",
+      "descSuffix": "Les emplacements apparaissent dans le flux de réservation. Les emplacements hospitaliers sont pour affichage uniquement.",
+      "empty": "Aucun emplacement. Ajoutez-en un pour que les patients puissent réserver.",
+      "namePlaceholder": "Nom de l'emplacement *",
+      "addressPlaceholder": "Adresse (optionnelle)",
+      "typeBookable": "Réservable",
+      "typeHospital": "Hôpital",
+      "save": "Enregistrer",
+      "edit": "Modifier",
+      "newLocation": "Nouvel emplacement",
+      "addLocation": "Ajouter l'emplacement"
+    },
+    "fee": {
+      "title": "Frais de consultation",
+      "desc": "Montant payé par les patients par rendez-vous",
+      "currencyNote": "La devise s'applique à tous les frais de votre profil"
+    },
+    "appearance": "Apparence",
+    "theme": "Thème"
+  },
+  "reviews": {
+    "title": "Mes avis",
+    "subtitle": "Retours patients sur vos consultations",
+    "noReviews": "Aucun avis pour l'instant.",
+    "noReviewsHint": "Les avis apparaissent après qu'un patient complète une consultation.",
+    "noReviewsForFilter": "Aucun avis ne correspond à ce filtre.",
+    "reviewsLabel": "avis",
+    "quickStats": "Par note",
+    "filterAll": "Tout",
+    "report": "Signaler",
+    "reported": "⚑ Signalé",
+    "loadMore": "Charger plus",
+    "flagModal": {
+      "title": "Signaler cet avis ?",
+      "subtitle": "L'avis sera marqué pour modération.",
+      "reasonPlaceholder": "Raison (optionnel)",
+      "cancel": "Annuler",
+      "report": "Signaler"
+    }
+  },
+  "chat": {
+    "back": "← Retour",
+    "appointmentChat": "Chat du rendez-vous",
+    "cancelled": "Ce rendez-vous a été annulé. Le chat est en lecture seule.",
+    "loading": "Chargement…",
+    "loadEarlier": "Charger les messages précédents",
+    "seen": "Vu",
+    "attachFile": "Joindre un fichier",
+    "readOnly": "Chat en lecture seule",
+    "messagePlaceholder": "Tapez un message… (Entrée pour envoyer)",
+    "send": "Envoyer"
+  },
+  "video": {
+    "endCall": "✕ Terminer",
+    "hideNotes": "Masquer notes",
+    "showNotes": "📝 Notes",
+    "connecting": "Connexion…",
+    "waiting": "En attente de {{name}}…",
+    "connected": "✓ Connecté",
+    "privateNote": "📝 Note privée",
+    "noteDesc": "Enregistrée dans ce rendez-vous. Visible uniquement par vous.",
+    "notePlaceholder": "Saisissez votre note ici…",
+    "noteSaved": "Note enregistrée.",
+    "noteFailed": "Échec de l'enregistrement.",
+    "saveNote": "Enregistrer la note",
+    "saving": "Enregistrement…",
+    "connectionError": "Impossible de démarrer la session vidéo. Réessayez."
+  },
+  "lab": {
+    "pendingTitle": "Compte en attente d'approbation",
+    "pendingDesc": "Un administrateur doit approuver votre compte avant de pouvoir télécharger des résultats.",
+    "uploadTitle": "Télécharger un résultat",
+    "fields": {
+      "patientId": "ID Patient (ObjectId MongoDB)",
+      "labName": "Nom du laboratoire",
+      "testName": "Nom de l'analyse",
+      "result": "Valeur du résultat"
+    },
+    "uploading": "Téléchargement…",
+    "upload": "Télécharger le résultat",
+    "myUploads": "Mes téléchargements",
+    "noUploads": "Aucun téléchargement."
+  },
+  "patientRecords": {
+    "title": "Dossiers patients",
+    "subtitle": "Rechercher et consulter l'historique patient",
+    "newPatient": "+ Nouveau patient",
+    "searchPlaceholder": "Rechercher par nom, ID ou pathologie…",
+    "medicalHistory": "Historique médical",
+    "prescribe": "+ Prescrire",
+    "vitals": {
+      "bp": "TA",
+      "heartRate": "Rythme cardiaque",
+      "spo2": "SpO₂",
+      "mmhg": "mmHg",
+      "bpm": "bpm",
+      "oxygen": "oxygène"
+    }
+  },
+  "findDoctor": {
+    "title": "Trouver un médecin",
+    "searching": "Recherche…",
+    "results": "{{count}} résultats",
+    "searchPlaceholder": "Rechercher par nom, spécialité…",
+    "loading": "Chargement…",
+    "noDoctors": "Aucun médecin trouvé.",
+    "view": "Voir",
+    "sar": "SAR",
+    "exp": "{{years}} ans d'exp.",
+    "specialties": {
+      "All": "Tous",
+      "general": "Médecine générale",
+      "dentistry": "Dentisterie",
+      "ophthalmology": "Ophtalmologie",
+      "pediatrics": "Pédiatrie",
+      "obstetrics": "Gynécologie-obstétrique",
+      "internal_medicine": "Médecine interne",
+      "ent": "ORL",
+      "cardiology": "Cardiologie",
+      "orthopedics": "Orthopédie",
+      "general_surgery": "Chirurgie générale",
+      "psychiatry": "Psychiatrie",
+      "dermatology": "Dermatologie",
+      "aesthetics": "Esthétique",
+      "neurology": "Neurologie",
+      "vascular": "Vasculaire",
+      "oncology": "Oncologie",
+      "nutrition": "Nutrition",
+      "endocrinology": "Endocrinologie et diabète",
+      "urology": "Urologie",
+      "gastroenterology": "Gastroentérologie",
+      "physical_therapy": "Kinésithérapie",
+      "thoracic_surgery": "Chirurgie thoracique",
+      "neurosurgery": "Neurochirurgie",
+      "orthopedic_surgery": "Chirurgie orthopédique",
+      "vascular_surgery": "Chirurgie vasculaire",
+      "select": "Choisir une spécialité"
+    }
+  },
+  "myAppts": {
+    "title": "Mes rendez-vous",
+    "subtitle": "À venir et passés",
+    "bookNew": "+ Nouveau",
+    "upcoming": "À venir",
+    "past": "Passés",
+    "noUpcoming": "Aucun rendez-vous à venir.",
+    "bookOne": "En prendre un →",
+    "cancel": "Annuler",
+    "records": "Dossiers",
+    "leaveReview": "⭐ Laisser un avis",
+    "disableReminders": "Désactiver les rappels",
+    "doctor": "Médecin",
+    "review": {
+      "title": "Laisser un avis",
+      "rating": "Note",
+      "comment": "Commentaire (optionnel)",
+      "placeholder": "Partagez votre expérience…",
+      "cancel": "Annuler",
+      "submit": "Soumettre l'avis",
+      "submitting": "Envoi…",
+      "selectRating": "Veuillez sélectionner une note.",
+      "error": "Erreur lors de la soumission."
+    }
+  },
+  "doctorProfile": {
+    "loading": "Chargement…",
+    "pickDate": "Choisir une date",
+    "availableTimes": "Horaires disponibles",
+    "loadingSlots": "Chargement des créneaux…",
+    "noAvailability": "Aucune disponibilité ce jour.",
+    "reviews": "Avis",
+    "reviewCount": "({{count}} avis)",
+    "sar": "SAR / consultation",
+    "yearsExp": "{{years}} ans d'expérience",
+    "patient": "Patient"
+  },
+  "book": {
+    "title": "Confirmer la réservation",
+    "doctor": "Médecin",
+    "date": "Date",
+    "time": "Heure",
+    "visitType": "Type de visite",
+    "reason": "Motif (optionnel)",
+    "reasonPlaceholder": "Décrivez brièvement vos symptômes ou la raison de la visite…",
+    "submit": "Demander un rendez-vous",
+    "submitting": "Réservation…",
+    "error": "Échec de la réservation — créneau peut-être pris"
+  },
+  "bookConfirmed": {
+    "confirmed": {
+      "title": "Rendez-vous confirmé !",
+      "desc": "Votre rendez-vous a été confirmé. Vous recevrez un rappel avant la visite."
+    },
+    "pending": {
+      "title": "Demande envoyée",
+      "desc": "Votre demande est en attente d'approbation. Vous serez notifié une fois confirmé."
+    },
+    "viewAppointments": "Voir mes rendez-vous"
+  },
+  "patientSettings": {
+    "title": "Paramètres",
+    "subtitle": "Gérez votre profil et vos préférences",
+    "healthProfile": "Profil de santé",
+    "dateOfBirth": "Date de naissance",
+    "bloodType": "Groupe sanguin",
+    "selectBloodType": "— Sélectionner —",
+    "allergies": "Allergies",
+    "allergiesPlaceholder": "ex. Pénicilline",
+    "conditions": "Antécédents médicaux",
+    "conditionsPlaceholder": "ex. Diabète",
+    "tagHint": "— appuyer sur Entrée pour ajouter",
+    "saveProfile": "Enregistrer le profil",
+    "notificationChannels": "Canaux de notification",
+    "pushNotifications": "Notifications push",
+    "emailNotifications": "Notifications par e-mail"
+  }
+}
