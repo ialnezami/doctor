@@ -201,7 +201,7 @@ export default function TodayPage() {
         >
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>البحث عن مريض</div>
-            <div style={{ fontSize: 12, color: 'var(--text3)' }}>ابحث عن مريض في شبكة نبض العيادات أو في...</div>
+            <div style={{ fontSize: 12, color: 'var(--text3)' }}>ابحث عن مريض في شبكة سلامتك أو في...</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{

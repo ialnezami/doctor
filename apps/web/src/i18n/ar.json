@@ -22,7 +22,7 @@
     }
   },
   "auth": {
-    "appName": "MediConnect",
+    "appName": "سلامتك",
     "appTagline": "الرعاية الصحية بصورة مختلفة",
     "appDesc": "ربط الأطباء والمرضى بسلاسة.",
     "email": "البريد الإلكتروني",
@@ -38,7 +38,7 @@
     },
     "register": {
       "title": "إنشاء حساب",
-      "subtitle": "انضم إلى MediConnect اليوم",
+      "subtitle": "انضم إلى سلامتك اليوم",
       "name": "الاسم الكامل",
       "role": "أنا",
       "rolePatient": "مريض",
@@ -236,7 +236,7 @@
       "frequency": "التكرار",
       "duration": "المدة",
       "instructions": "تعليمات",
-      "footer": "صادر من MediConnect · صادر رقمياً وساري دون توقيع ورقي."
+      "footer": "صادر من سلامتك · صادر رقمياً وساري دون توقيع ورقي."
     }
   },
   "labResults": {

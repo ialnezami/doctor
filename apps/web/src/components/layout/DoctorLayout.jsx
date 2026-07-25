@@ -28,7 +28,7 @@ export default function DoctorLayout({ children }) {
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
               </svg>
             </div>
-            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--primary)' }}>نبض العيادات</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--primary)' }}>سلامتك</span>
           </div>
           <button
             onClick={() => setDrawerOpen(true)}

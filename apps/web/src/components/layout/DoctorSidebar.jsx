@@ -83,8 +83,8 @@ export default function DoctorSidebar({ onNavigate }) {
               </svg>
             </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--primary)', lineHeight: 1.2 }}>نبض العيادات</div>
-              <div style={{ fontSize: 10, color: 'var(--text3)' }}>إدارة العيادة بالتنظيم</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--primary)', lineHeight: 1.2 }}>سلامتك</div>
+              <div style={{ fontSize: 10, color: 'var(--text3)' }}>Salamtak</div>
             </div>
           </div>
         </div>
