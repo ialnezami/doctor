@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
-import ChatFloatingBubble from '../../components/patient/ChatFloatingBubble';
-import ChatWidget from '../../components/patient/ChatWidget';
+import { Outlet } from 'react-router-dom';
+// import { useState, useEffect } from 'react';
+// import { useLocation } from 'react-router-dom';
+// import ChatFloatingBubble from '../../components/patient/ChatFloatingBubble';
+// import ChatWidget from '../../components/patient/ChatWidget';
 
 /**
  * PatientLayout — layout wrapper for all patient routes.
@@ -15,6 +16,9 @@ import ChatWidget from '../../components/patient/ChatWidget';
  * restructuring the entire route tree. See apps/web/src/components/layout/AppLayout.jsx.
  */
 export default function PatientLayout({ children }) {
+  return <>{children ?? <Outlet />}</>;
+
+  /* AI chat bubble + widget — disabled until backend AI key is configured
   const [chatOpen, setChatOpen] = useState(false);
   const [patientLocation, setPatientLocation] = useState(null);
   const { pathname } = useLocation();
@@ -25,7 +29,7 @@ export default function PatientLayout({ children }) {
     navigator.geolocation.getCurrentPosition(
       ({ coords }) =>
         setPatientLocation({ lat: coords.latitude, lng: coords.longitude }),
-      () => { /* denied or timed out — chat works without geo ranking */ },
+      () => {},
       { timeout: 10000, maximumAge: 300_000 }
     );
   }, []);
@@ -46,4 +50,5 @@ export default function PatientLayout({ children }) {
       />
     </>
   );
+  */
 }
