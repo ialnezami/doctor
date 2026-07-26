@@ -6,6 +6,7 @@ import Button from '../../components/ui/Button';
 import client from '../../api/client';
 import { getNotificationPrefs, updateNotificationPrefs } from '../../api/users';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 
 const TIMEZONES = [
@@ -500,7 +501,7 @@ export default function DoctorSettingsPage() {
       <div style={{ padding: '16px 0', borderTop: '1px solid var(--border)', marginTop: 16 }}>
         <p style={{ fontSize: 13, color: 'var(--text2)', margin: 0 }}>
           لإدارة خدمات العيادة والأسعار،{' '}
-          <a href="/services" style={{ color: 'var(--mint)' }}>انتقل إلى صفحة الخدمات</a>
+          <Link to="/services" style={{ color: 'var(--mint)' }}>انتقل إلى صفحة الخدمات</Link>
         </p>
       </div>
 

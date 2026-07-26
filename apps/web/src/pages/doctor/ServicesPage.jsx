@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import useAuthStore from '../../store/authStore';
 import { updateDoctorSettings } from '../../api/doctors';
+import client from '../../api/client';
 
 const VISIT_TYPES = ['initial', 'follow-up', 'check-up', 'urgent'];
 const VISIT_LABELS = { initial: 'كشف أولي', 'follow-up': 'متابعة', 'check-up': 'فحص دوري', urgent: 'طارئ' };
@@ -18,10 +19,7 @@ export default function ServicesPage() {
   const [newSvc, setNewSvc]       = useState({ key: '', label: '', duration: 30, fee: 0, enabled: true });
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL || ''}/api/doctors/me`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-    })
-      .then(r => r.json())
+    client.get('/doctors/me')
       .then(data => {
         setServices(data.appointmentTypes || []);
         setCurrency(data.currency || 'SAR');
@@ -32,6 +30,7 @@ export default function ServicesPage() {
   }, []);
 
   const save = async (updated) => {
+    if (!doctorId) return;
     setSaving(true); setError('');
     try {
       await updateDoctorSettings(doctorId, { appointmentTypes: updated });
@@ -135,6 +134,7 @@ export default function ServicesPage() {
                 value={svc.label}
                 onChange={e => update(i, 'label', e.target.value)}
                 onBlur={saveEdit}
+                onKeyDown={e => e.key === 'Enter' && saveEdit()}
                 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', background: 'transparent', border: 'none', outline: 'none', width: '100%' }}
               />
             </div>
@@ -144,6 +144,7 @@ export default function ServicesPage() {
                 value={svc.duration}
                 onChange={e => update(i, 'duration', parseInt(e.target.value) || 30)}
                 onBlur={saveEdit}
+                onKeyDown={e => e.key === 'Enter' && saveEdit()}
                 style={{ width: 48, fontSize: 13, color: 'var(--text2)', background: 'transparent', border: 'none', outline: 'none', textAlign: 'center' }}
               /> دق
             </div>
@@ -153,6 +154,7 @@ export default function ServicesPage() {
                 value={svc.fee}
                 onChange={e => update(i, 'fee', parseFloat(e.target.value) || 0)}
                 onBlur={saveEdit}
+                onKeyDown={e => e.key === 'Enter' && saveEdit()}
                 style={{ width: 64, fontSize: 14, fontWeight: 600, color: 'var(--primary)', background: 'transparent', border: 'none', outline: 'none', textAlign: 'center' }}
               /> {currency}
             </div>
