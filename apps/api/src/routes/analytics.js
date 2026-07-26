@@ -14,6 +14,13 @@ router.get('/summary', doctorOnly, async (req, res, next) => {
     const doctor = await Doctor.findOne({ userId: req.user.id }).select('_id');
     if (!doctor) return res.status(404).json({ message: 'Doctor profile not found' });
 
+    // Validate from/to date format
+    const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+    if ((req.query.from && !ISO_DATE.test(req.query.from)) ||
+        (req.query.to   && !ISO_DATE.test(req.query.to))) {
+      return res.status(400).json({ message: 'from and to must be in YYYY-MM-DD format' });
+    }
+
     // Default: current calendar month
     const now   = new Date();
     const from  = req.query.from

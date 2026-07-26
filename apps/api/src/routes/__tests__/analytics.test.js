@@ -150,4 +150,34 @@ describe('GET /api/analytics/summary', () => {
 
     expect(res.status).toBe(200);
   });
+
+  it('returns 400 when from/to params have invalid date format', async () => {
+    const fakeDoctor = { _id: '507f1f77bcf86cd799439012' };
+
+    Doctor.findOne.mockReturnValue({
+      select: jest.fn().mockResolvedValue(fakeDoctor),
+    });
+
+    const res = await request(app)
+      .get('/api/analytics/summary?from=not-a-date&to=2026-01-31')
+      .set('Authorization', 'Bearer test');
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/YYYY-MM-DD/);
+  });
+
+  it('returns 400 when to param has invalid date format', async () => {
+    const fakeDoctor = { _id: '507f1f77bcf86cd799439012' };
+
+    Doctor.findOne.mockReturnValue({
+      select: jest.fn().mockResolvedValue(fakeDoctor),
+    });
+
+    const res = await request(app)
+      .get('/api/analytics/summary?from=2026-01-01&to=invalid')
+      .set('Authorization', 'Bearer test');
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/YYYY-MM-DD/);
+  });
 });
