@@ -133,7 +133,7 @@ export default function ShareViewerPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, paddingBottom: 18, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
             <div style={{ width: 32, height: 32, background: '#0fe3b0', borderRadius: 7, display: 'grid', placeItems: 'center', fontSize: 16, fontWeight: 800, color: '#000' }}>M</div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 16, fontWeight: 600 }}>MediConnect</div>
+              <div style={{ fontSize: 16, fontWeight: 600 }}>Salamtak</div>
               <div style={{ fontSize: 11, color: '#64748b' }}>Secure shared document</div>
             </div>
             <div style={{ fontSize: 11, color: '#0fe3b0', display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -229,7 +229,7 @@ export default function ShareViewerPage() {
           )}
 
           <div style={{ marginTop: 28, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 11, color: '#64748b' }}>🔒 This document was shared securely via MediConnect. Do not share this link further.</span>
+            <span style={{ fontSize: 11, color: '#64748b' }}>🔒 This document was shared securely via Salamtak. Do not share this link further.</span>
           </div>
         </div>
       </div>

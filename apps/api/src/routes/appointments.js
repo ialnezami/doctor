@@ -245,7 +245,7 @@ router.patch('/:id/confirm', auth, requireRole('doctor'), async (req, res, next)
       message: 'Your appointment has been confirmed.',
     }, patientForEmail?.email ? {
       to:      patientForEmail.email,
-      subject: 'Appointment Confirmed — MediConnect',
+      subject: 'Appointment Confirmed — Salamtak',
       html:    appointmentConfirmedEmail(
         patientForEmail.name || 'Patient',
         `Dr. ${doctorUser?.name || 'Your doctor'}`,
@@ -281,7 +281,7 @@ router.patch('/:id/validate', auth, requireRole('doctor'), async (req, res, next
       summary,
     }, patientForEmail2?.email ? {
       to:      patientForEmail2.email,
-      subject: 'Consultation Summary Ready — MediConnect',
+      subject: 'Consultation Summary Ready — Salamtak',
       html:    consultationValidatedEmail(
         patientForEmail2.name || 'Patient',
         `Dr. ${doctorUser2?.name || 'Your doctor'}`,

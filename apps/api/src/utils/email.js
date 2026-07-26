@@ -14,7 +14,7 @@ async function sendEmail(to, subject, html) {
   if (!process.env.RESEND_API_KEY) return;
   try {
     await getResend().emails.send({
-      from: process.env.EMAIL_FROM || 'MediConnect <notifications@mediconnect.app>',
+      from: process.env.EMAIL_FROM || 'Salamtak <notifications@mediconnect.app>',
       to,
       subject,
       html,

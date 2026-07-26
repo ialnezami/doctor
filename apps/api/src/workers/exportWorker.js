@@ -140,7 +140,7 @@ async function processExportJob(job) {
         email:  user.email,
         role:   user.role,
       },
-      generatedBy: 'MediConnect GDPR Export (Article 20)',
+      generatedBy: 'Salamtak GDPR Export (Article 20)',
     },
     data: {
       profile:           profileExport,

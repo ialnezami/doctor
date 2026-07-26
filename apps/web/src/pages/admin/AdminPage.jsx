@@ -790,7 +790,7 @@ export default function AdminPage() {
       <header style={S.header}>
         <div style={S.logo}>
           <div style={{ width: 30, height: 30, background: 'var(--mint, #0fe3b0)', borderRadius: 7, display: 'grid', placeItems: 'center', fontSize: 15, fontWeight: 800, color: '#000' }}>M</div>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600 }}>MediConnect <span style={{ color: 'var(--mint, #0fe3b0)' }}>Admin</span></span>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600 }}>Salamtak <span style={{ color: 'var(--mint, #0fe3b0)' }}>Admin</span></span>
         </div>
         <button onClick={logout} style={{ ...S.btn('red'), padding: '6px 14px', fontSize: 13 }}>Logout</button>
       </header>

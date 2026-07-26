@@ -1,0 +1,28 @@
+{
+  "name": "mediconnect",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace=apps/api",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:mobile": "npm run tunnel --workspace=apps/mobile",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "seed": "npm run seed --workspace=apps/api"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "expo-constants": "~18.0.13",
+    "expo-status-bar": "^55.0.6",
+    "json-schema-deref-sync": "^0.14.0"
+  },
+  "overrides": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  }
+}

@@ -43,7 +43,7 @@ export default function RxVerifyPage() {
           It may have been tampered with or does not exist.
         </div>
         <div style={{ marginTop: 24, fontSize: 12, color: '#475569' }}>
-          Powered by <strong style={{ color: '#0fe3b0' }}>MediConnect</strong>
+          Powered by <strong style={{ color: '#0fe3b0' }}>Salamtak</strong>
         </div>
       </div>
     </div>
@@ -55,7 +55,7 @@ export default function RxVerifyPage() {
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#0fe3b0', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>
-            MediConnect
+            Salamtak
           </div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(15,227,176,0.1)', border: '1px solid rgba(15,227,176,0.3)', borderRadius: 24, padding: '6px 16px' }}>
             <span style={{ fontSize: 16 }}>✓</span>
@@ -114,7 +114,7 @@ export default function RxVerifyPage() {
               Verified · {new Date().toLocaleString()}
             </div>
             <div style={{ fontSize: 11, color: '#0fe3b0', fontWeight: 600 }}>
-              MediConnect Digital Health
+              Salamtak Digital Health
             </div>
           </div>
         </div>

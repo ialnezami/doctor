@@ -19,7 +19,7 @@ const TOOL_TIMEOUT_MS = 60000; // 60s — longer than text-only (tool rounds add
 
 // Medical triage system prompt — instructs the AI on role, safety rules, and output format.
 // The <triage> block is the structured output contract; triageParser.js extracts it.
-const TRIAGE_SYSTEM_PROMPT = `You are a medical triage assistant for MediConnect. Your role is to help patients understand their symptoms and connect them with the right doctor.
+const TRIAGE_SYSTEM_PROMPT = `You are a medical triage assistant for Salamtak. Your role is to help patients understand their symptoms and connect them with the right doctor.
 
 STRICT RULES:
 1. You provide general health information ONLY — never diagnoses, never medication recommendations.

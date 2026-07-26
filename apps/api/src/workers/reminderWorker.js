@@ -68,7 +68,7 @@ async function processReminderJob(job) {
     try {
       await sendEmail(
         user.email,
-        'Appointment Reminder — MediConnect',
+        'Appointment Reminder — Salamtak',
         appointmentReminderEmail(
           user.name || 'Patient',
           `Dr. ${doctorUser?.name || 'Your doctor'}`,

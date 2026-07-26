@@ -1,0 +1,133 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "or": "or",
+    "noData": "No data",
+    "years": "years",
+    "recorded": "recorded"
+  },
+  "auth": {
+    "appTagline": "Healthcare reimagined",
+    "email": "Email",
+    "emailPlaceholder": "Enter email",
+    "password": "Password",
+    "passwordPlaceholder": "Enter password",
+    "login": {
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "noAccount": "No account?",
+      "createOne": "Create one free",
+      "googleSignIn": "Sign in with Google",
+      "invalidCredentials": "Invalid credentials"
+    },
+    "register": {
+      "title": "Create account",
+      "name": "Full name",
+      "namePlaceholder": "Enter your name",
+      "role": "I am a",
+      "rolePatient": "Patient",
+      "roleDoctor": "Doctor",
+      "submit": "Create account",
+      "submitting": "Creating…",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in"
+    }
+  },
+  "tabs": {
+    "findDoctor": "Find Doctor",
+    "appointments": "Appointments",
+    "records": "Records",
+    "labResults": "Lab Results",
+    "profile": "Profile"
+  },
+  "findDoctor": {
+    "title": "Find a Doctor",
+    "result_one": "1 result",
+    "result_other": "{{count}} results",
+    "searching": "Searching…",
+    "searchPlaceholder": "Search name or specialty…",
+    "noResults": "No doctors found",
+    "noResultsHint": "Try a different name or specialty filter.",
+    "available": "Available",
+    "specialties": {
+      "All": "All",
+      "Cardiology": "Cardiology",
+      "Pediatrics": "Pediatrics",
+      "Neurology": "Neurology",
+      "Orthopedics": "Orthopedics",
+      "General": "General"
+    }
+  },
+  "records": {
+    "title": "Medical Records",
+    "healthProfile": "HEALTH PROFILE",
+    "age": "Age",
+    "bloodType": "Blood Type",
+    "allergies": "Allergies",
+    "prescriptions": "PRESCRIPTIONS",
+    "noPrescriptions": "No prescriptions yet.",
+    "conditionsAllergies": "Conditions & Allergies",
+    "noProfileData": "No health profile data yet. Update your profile to fill this in.",
+    "allergy": "allergy"
+  },
+  "appointments": {
+    "title": "My Appointments"
+  },
+  "reviews": {
+    "title": "Reviews",
+    "writeReview": "Write a Review",
+    "leaveReview": "Leave a review",
+    "rating": "Rating",
+    "comment": "Comment (optional)",
+    "commentPlaceholder": "Share your experience…",
+    "submit": "Submit Review",
+    "submitting": "Submitting…",
+    "successTitle": "Review Submitted",
+    "successMsg": "Thank you for your feedback.",
+    "noReviews": "No reviews yet.",
+    "averageRating": "Average rating",
+    "reviewCount_one": "{{count}} review",
+    "reviewCount_other": "{{count}} reviews",
+    "flag": "Report",
+    "flagReason": "Reason (optional)",
+    "flagConfirm": "Report this review?",
+    "flagSuccess": "Review reported.",
+    "windowClosed": "Review window has closed (7 days).",
+    "alreadyReviewed": "You already reviewed this appointment."
+  },
+  "profile": {
+    "title": "Profile",
+    "language": "Language",
+    "logout": "Sign out",
+    "languages": {
+      "ar": "العربية",
+      "en": "English",
+      "fr": "Français"
+    }
+  },
+  "settings": {
+    "apptTypes": {
+      "title": "Appointment Types",
+      "desc": "Set duration per visit type. Disabled types won't show to patients.",
+      "addCustom": "+ Add custom type",
+      "duration": "Duration",
+      "labelPlaceholder": "Type name",
+      "noTypes": "No appointment types configured.",
+      "types": {
+        "initial": "Initial Consultation",
+        "follow-up": "Follow-up",
+        "check-up": "Check-up",
+        "urgent": "Urgent"
+      },
+      "durations": {
+        "15": "15 min",
+        "20": "20 min",
+        "30": "30 min",
+        "custom": "Custom"
+      }
+    }
+  }
+}

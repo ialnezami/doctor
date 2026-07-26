@@ -94,7 +94,7 @@ async function processDigestSendJob(job) {
     const dateStr = DateTime.now().setZone(tz).toISODate();
     await sendEmail(
       user.email,
-      'Your Daily Schedule — MediConnect',
+      'Your Daily Schedule — Salamtak',
       dailyDigestEmail(user.name || 'Doctor', count, dateStr),
     );
   }

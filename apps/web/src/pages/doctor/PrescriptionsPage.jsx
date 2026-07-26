@@ -149,7 +149,7 @@ export default function PrescriptionsPage() {
       <style>@media not print { #__rx_print__ { display:none; } } @media print { body > *:not(#__rx_print__) { display:none; } }</style>
       <div style="font-family:Georgia,serif;padding:40px;max-width:620px;margin:0 auto;color:#000">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:14px;margin-bottom:20px">
-          <div><h2 style="margin:0;font-size:22px">MediConnect</h2><p style="margin:4px 0 0;font-size:12px;color:#555">${pdfTitle}</p></div>
+          <div><h2 style="margin:0;font-size:22px">Salamtak</h2><p style="margin:4px 0 0;font-size:12px;color:#555">${pdfTitle}</p></div>
           <div style="text-align:right;font-size:12px">
             <div>${pdfDate}: ${new Date(rx.createdAt).toLocaleDateString()}</div>
             <div>${pdfRx}${String(rx._id).slice(-6).toUpperCase()}</div>

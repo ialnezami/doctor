@@ -22,7 +22,7 @@
     }
   },
   "auth": {
-    "appName": "MediConnect",
+    "appName": "Salamtak",
     "appTagline": "La santé réinventée",
     "appDesc": "Connectez médecins et patients facilement.",
     "email": "E-mail",
@@ -38,7 +38,7 @@
     },
     "register": {
       "title": "Créer un compte",
-      "subtitle": "Rejoignez MediConnect",
+      "subtitle": "Rejoignez Salamtak",
       "name": "Nom complet",
       "role": "Je suis",
       "rolePatient": "Patient",
@@ -236,7 +236,7 @@
       "frequency": "Fréquence",
       "duration": "Durée",
       "instructions": "Instructions",
-      "footer": "Généré par MediConnect · Émis numériquement, valide sans signature physique."
+      "footer": "Généré par Salamtak · Émis numériquement, valide sans signature physique."
     }
   },
   "labResults": {

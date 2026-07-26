@@ -12,7 +12,7 @@ export default function DownloadPage() {
               <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
             </svg>
           </div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: '#fff', margin: 0 }}>MediConnect</h1>
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: '#fff', margin: 0 }}>Salamtak</h1>
           <p style={{ fontSize: 14, color: '#94a3b8', marginTop: 6 }}>Your healthcare, connected</p>
         </div>
 

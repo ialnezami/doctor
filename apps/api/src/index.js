@@ -81,7 +81,7 @@ const PORT = process.env.PORT || 3000;
 connectDB().then(() => {
   httpServer.listen(PORT, () => {
     const env = process.env.NODE_ENV || 'development';
-    console.log(`\n  MediConnect API`);
+    console.log(`\n  Salamtak API`);
     console.log(`  ➜  Local:   http://localhost:${PORT}`);
     console.log(`  ➜  Health:  http://localhost:${PORT}/health`);
     console.log(`  ➜  Mode:    ${env}`);
