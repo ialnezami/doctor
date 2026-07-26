@@ -14,6 +14,7 @@ import PrescriptionsPage  from '../pages/doctor/PrescriptionsPage';
 import LabResultsPage     from '../pages/doctor/LabResultsPage';
 import DoctorSettingsPage from '../pages/doctor/DoctorSettingsPage';
 import ComingSoonPage     from '../pages/doctor/ComingSoonPage';
+import ServicesPage      from '../pages/doctor/ServicesPage';
 import FindDoctorPage     from '../pages/patient/FindDoctorPage';
 import DoctorProfilePage  from '../pages/patient/DoctorProfilePage';
 import BookAppointmentPage from '../pages/patient/BookAppointmentPage';
@@ -71,7 +72,7 @@ export default function AppRouter() {
         <Route path="/reviews"          element={<DoctorProtected><ReviewsPage /></DoctorProtected>} />
         <Route path="/lab-board"        element={<DoctorProtected><ComingSoonPage /></DoctorProtected>} />
         <Route path="/waiting-room"     element={<DoctorProtected><ComingSoonPage /></DoctorProtected>} />
-        <Route path="/services"         element={<DoctorProtected><ComingSoonPage /></DoctorProtected>} />
+        <Route path="/services"         element={<DoctorProtected><ServicesPage /></DoctorProtected>} />
         <Route path="/invoices"         element={<DoctorProtected><ComingSoonPage /></DoctorProtected>} />
         <Route path="/reports"          element={<DoctorProtected><ComingSoonPage /></DoctorProtected>} />
         <Route path="/staff"            element={<DoctorProtected><ComingSoonPage /></DoctorProtected>} />

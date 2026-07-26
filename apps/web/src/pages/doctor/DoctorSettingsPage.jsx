@@ -25,13 +25,6 @@ const TIMEZONES = [
 
 const DAY_KEYS = ['sun','mon','tue','wed','thu','fri','sat'];
 
-const PREDEFINED_KEYS = ['initial', 'follow-up', 'check-up', 'urgent'];
-const DEFAULT_DURATIONS = { initial: 30, 'follow-up': 20, 'check-up': 30, urgent: 15 };
-const PRESET_DURATIONS = [15, 20, 30];
-const DEFAULT_APPT_TYPES = PREDEFINED_KEYS.map(key => ({
-  key, label: '', duration: DEFAULT_DURATIONS[key], fee: 0, enabled: true,
-}));
-
 const SHARE_BASE = 'https://web-production-1d93d.up.railway.app';
 
 export default function DoctorSettingsPage() {
@@ -46,7 +39,6 @@ export default function DoctorSettingsPage() {
   const [consultationFee, setConsultationFee] = useState('');
   const [currency, setCurrency] = useState('SAR');
   const [availableCurrencies, setAvailableCurrencies] = useState([{ code: 'SAR', name: 'Saudi Riyal' }]);
-  const [apptTypes, setApptTypes] = useState([]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(true);
@@ -84,7 +76,6 @@ export default function DoctorSettingsPage() {
         setTimezone(profile.timezone || 'UTC');
         setConsultationFee(profile.consultationFee != null ? String(profile.consultationFee) : '');
         setCurrency(profile.currency || 'SAR');
-        setApptTypes(profile.appointmentTypes?.length ? profile.appointmentTypes : DEFAULT_APPT_TYPES);
         setBio(profile.bio || '');
         setYearsOfExperience(profile.yearsOfExperience != null ? String(profile.yearsOfExperience) : '');
         setLicenseNumber(profile.licenseNumber || '');
@@ -106,10 +97,6 @@ export default function DoctorSettingsPage() {
       if (data?.currencies?.length) setAvailableCurrencies(data.currencies);
     }).catch(() => {});
   }, [user.id]);
-
-  const addCustomApptType = () => setApptTypes(a => [...a, { key: `custom_${Date.now()}`, label: '', duration: 30, enabled: true }]);
-  const removeApptType = (i) => setApptTypes(a => a.filter((_, idx) => idx !== i));
-  const updateApptType = (i, field, val) => setApptTypes(a => a.map((at, idx) => idx === i ? { ...at, [field]: val } : at));
 
   const addSlot = () => setSlots(s => [...s, { dayOfWeek: 1, startTime: '09:00', endTime: '17:00' }]);
   const removeSlot = (i) => setSlots(s => s.filter((_, idx) => idx !== i));
@@ -167,7 +154,6 @@ export default function DoctorSettingsPage() {
         timezone,
         consultationFee: fee,
         currency,
-        appointmentTypes: apptTypes,
         bio: bio.trim() || '',
         yearsOfExperience: yoe,
         licenseNumber: licenseNumber.trim() || '',
@@ -510,59 +496,12 @@ export default function DoctorSettingsPage() {
         <div style={{ fontSize:11, color:'var(--text3)', marginTop:6 }}>{t('settings.fee.currencyNote')}</div>
       </div>
 
-      {/* Appointment Types */}
-      <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:20, marginBottom:20 }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
-          <div style={{ fontSize:14, fontWeight:500 }}>{t('settings.apptTypes.title')}</div>
-          <Button variant="ghost" style={{ padding:'4px 10px', fontSize:12 }} onClick={addCustomApptType}>
-            {t('settings.apptTypes.addCustom')}
-          </Button>
-        </div>
-        <div style={{ fontSize:12, color:'var(--text2)', marginBottom:14 }}>{t('settings.apptTypes.desc')}</div>
-        {apptTypes.length === 0 && <p style={{ fontSize:12, color:'var(--text3)', margin:0 }}>{t('settings.apptTypes.noTypes')}</p>}
-        {apptTypes.map((at, i) => {
-          const isPredefined = PREDEFINED_KEYS.includes(at.key);
-          const isCustomDuration = !PRESET_DURATIONS.includes(at.duration);
-          return (
-            <div key={at.key + i} style={{ display:'flex', gap:8, alignItems:'center', marginBottom:8, padding:'8px 10px', background:'var(--bg3)', borderRadius:8, border:'1px solid var(--border2)', opacity: at.enabled ? 1 : 0.55 }}>
-              <button onClick={() => updateApptType(i, 'enabled', !at.enabled)}
-                style={{ width:34, height:18, borderRadius:9, background: at.enabled ? 'var(--mint)' : 'var(--border2)', border:'none', cursor:'pointer', position:'relative', flexShrink:0, transition:'background .2s' }}>
-                <span style={{ position:'absolute', top:2, left: at.enabled ? 17 : 2, width:14, height:14, borderRadius:7, background:'#fff', transition:'left .2s', display:'block' }} />
-              </button>
-              {isPredefined ? (
-                <span style={{ flex:1, fontSize:13, color:'var(--text)' }}>{t(`settings.apptTypes.types.${at.key}`, at.key)}</span>
-              ) : (
-                <input value={at.label} onChange={e => updateApptType(i, 'label', e.target.value)}
-                  placeholder={t('settings.apptTypes.labelPlaceholder')}
-                  style={{ ...inputStyle, flex:1 }} />
-              )}
-              <select
-                value={isCustomDuration ? 'custom' : at.duration}
-                onChange={e => { if (e.target.value !== 'custom') updateApptType(i, 'duration', parseInt(e.target.value)); else updateApptType(i, 'duration', 45); }}
-                style={{ background:'var(--bg3)', border:'1px solid var(--border2)', borderRadius:6, padding:'4px 8px', color:'var(--text)', fontSize:12 }}>
-                {PRESET_DURATIONS.map(d => <option key={d} value={d}>{t(`settings.apptTypes.durations.${d}`, `${d} min`)}</option>)}
-                <option value="custom">{t('settings.apptTypes.durations.custom', 'Custom')}</option>
-              </select>
-              {isCustomDuration && (
-                <input type="number" min="5" max="240" value={at.duration}
-                  onChange={e => updateApptType(i, 'duration', parseInt(e.target.value) || 30)}
-                  style={{ ...inputStyle, width:54, textAlign:'center' }} />
-              )}
-              <div style={{ display:'flex', alignItems:'center', gap:4 }}>
-                <input
-                  type="number" min="0" value={at.fee ?? 0}
-                  onChange={e => updateApptType(i, 'fee', parseFloat(e.target.value) || 0)}
-                  placeholder="0"
-                  style={{ ...inputStyle, width:64, textAlign:'center' }}
-                />
-                <span style={{ fontSize:11, color:'var(--text3)', whiteSpace:'nowrap' }}>{currency}</span>
-              </div>
-              {!isPredefined && (
-                <button onClick={() => removeApptType(i)} style={{ background:'none', border:'none', color:'var(--rose)', cursor:'pointer', fontSize:18, padding:'2px', lineHeight:1 }}>×</button>
-              )}
-            </div>
-          );
-        })}
+      {/* Appointment Types — moved to ServicesPage */}
+      <div style={{ padding: '16px 0', borderTop: '1px solid var(--border)', marginTop: 16 }}>
+        <p style={{ fontSize: 13, color: 'var(--text2)', margin: 0 }}>
+          لإدارة خدمات العيادة والأسعار،{' '}
+          <a href="/services" style={{ color: 'var(--mint)' }}>انتقل إلى صفحة الخدمات</a>
+        </p>
       </div>
 
       {/* Availability */}
