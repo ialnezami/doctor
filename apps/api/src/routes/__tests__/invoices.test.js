@@ -103,11 +103,90 @@ describe('GET /api/invoices', () => {
     expect([200, 404]).toContain(res.status);
   });
 
+  it('happy path: returns 200 with invoices, summary, page, totalPages when doctor exists', async () => {
+    const fakeDoctor = { _id: '507f1f77bcf86cd799439012' };
+    const fakeAppointment = {
+      _id: '507f1f77bcf86cd799439013',
+      date: new Date('2026-01-15'),
+      visitType: 'initial',
+      invoiceAmount: 150,
+      paymentStatus: 'unpaid',
+      locationName: 'Clinic A',
+      status: 'completed',
+      patientId: { name: 'Ahmed' },
+    };
+
+    Doctor.findOne.mockReturnValue({
+      select: jest.fn().mockResolvedValue(fakeDoctor),
+    });
+
+    Appointment.find.mockReturnValue({
+      sort: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      populate: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockResolvedValue([fakeAppointment]),
+    });
+    Appointment.countDocuments.mockResolvedValue(1);
+    Appointment.aggregate.mockResolvedValue([{
+      total: 150,
+      collected: 0,
+      outstanding: 150,
+    }]);
+
+    const res = await request(app)
+      .get('/api/invoices')
+      .set('Authorization', 'Bearer test');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('invoices');
+    expect(res.body).toHaveProperty('summary');
+    expect(res.body).toHaveProperty('page', 1);
+    expect(res.body).toHaveProperty('totalPages', 1);
+    expect(res.body.invoices).toHaveLength(1);
+    expect(res.body.invoices[0]._id).toBe('507f1f77bcf86cd799439013');
+    expect(res.body.summary.total).toBe(150);
+  });
+
   it('rejects invalid appointmentId on pay', async () => {
     const res = await request(app)
       .patch('/api/invoices/not-an-id/pay')
       .set('Authorization', 'Bearer test');
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/Invalid/);
+  });
+});
+
+describe('PATCH /api/invoices/:id/pay happy path', () => {
+  it('marks appointment as paid and returns updated invoice', async () => {
+    const fakeDoctor = { _id: '507f1f77bcf86cd799439012' };
+    const fakeAppointment = {
+      _id: '507f1f77bcf86cd799439013',
+      date: new Date('2026-01-15'),
+      visitType: 'initial',
+      invoiceAmount: 150,
+      paymentStatus: 'paid',
+      locationName: 'Clinic A',
+      status: 'completed',
+      patientId: { name: 'Ahmed' },
+    };
+
+    Doctor.findOne.mockReturnValue({
+      select: jest.fn().mockResolvedValue(fakeDoctor),
+    });
+
+    Appointment.findOneAndUpdate.mockReturnValue({
+      populate: jest.fn().mockResolvedValue(fakeAppointment),
+    });
+
+    const res = await request(app)
+      .patch('/api/invoices/507f1f77bcf86cd799439013/pay')
+      .set('Authorization', 'Bearer test');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('invoice');
+    expect(res.body.invoice).toHaveProperty('_id', '507f1f77bcf86cd799439013');
+    expect(res.body.invoice).toHaveProperty('paymentStatus', 'paid');
+    expect(res.body.invoice).toHaveProperty('invoiceAmount', 150);
   });
 });

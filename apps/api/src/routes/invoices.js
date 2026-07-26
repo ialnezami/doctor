@@ -5,7 +5,6 @@ const auth        = require('../middleware/auth');
 const requireRole = require('../middleware/rbac');
 const Appointment = require('../models/Appointment');
 const Doctor      = require('../models/Doctor');
-const User        = require('../models/User');
 const mongoose    = require('mongoose');
 
 const doctorOnly = [auth, requireRole('doctor')];
