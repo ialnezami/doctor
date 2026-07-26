@@ -92,6 +92,10 @@ router.post('/', auth, requireRole('patient'), async (req, res, next) => {
     if (loc.type !== 'bookable')
       return res.status(400).json({ message: 'This location does not accept online bookings' });
 
+    // Capture fee at booking time — frozen so future price changes don't affect this invoice
+    const apptType = doctorProfile?.appointmentTypes?.find(t => t.key === (visitType || 'initial'));
+    const invoiceAmount = apptType?.fee ?? 0;
+
     // Conflict check per-location — doctor can have different slots at different places
     const conflict = await Appointment.findOne({
       doctorId,
@@ -118,6 +122,8 @@ router.post('/', auth, requireRole('patient'), async (req, res, next) => {
       locationAddress: loc.address,
       locationType:    loc.type,
       status,
+      invoiceAmount,
+      paymentStatus:   'unpaid',
     });
     await appt.save();
 
