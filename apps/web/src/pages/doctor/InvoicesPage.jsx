@@ -4,8 +4,8 @@ import client from '../../api/client';
 
 const STATUS_TABS = [
   { key: 'all',    label: 'الكل' },
-  { key: 'unpaid', label: 'غير مدفوعة' },
-  { key: 'paid',   label: 'مدفوعة' },
+  { key: 'unpaid', label: 'غير مدفوع' },
+  { key: 'paid',   label: 'مدفوع' },
 ];
 
 const VISIT_LABELS = {
@@ -70,7 +70,7 @@ export default function InvoicesPage() {
       );
       // Refresh summary in background
       getInvoices({ status: tab, page, limit: 20 })
-        .then(r => setSummary(r.summary || summary))
+        .then(r => setSummary(prev => r.summary || prev))
         .catch(() => {});
     } catch {
       setError('تعذر تحديث حالة الدفع.');
@@ -152,14 +152,14 @@ export default function InvoicesPage() {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 110px 120px 110px 120px',
+                gridTemplateColumns: '1fr 110px 120px 110px 110px 90px',
                 gap: 0,
                 padding: '10px 16px',
                 borderBottom: '1px solid var(--border)',
                 background: 'var(--bg3)',
               }}
             >
-              {['المريض', 'التاريخ', 'نوع الزيارة', 'المبلغ', 'الحالة'].map(h => (
+              {['المريض', 'التاريخ', 'نوع الزيارة', 'المبلغ', 'الحالة', ''].map(h => (
                 <span key={h} style={{ fontSize: 11, fontWeight: 600, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                   {h}
                 </span>
@@ -176,7 +176,7 @@ export default function InvoicesPage() {
                   key={inv._id}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '1fr 110px 120px 110px 120px',
+                    gridTemplateColumns: '1fr 110px 120px 110px 110px 90px',
                     gap: 0,
                     padding: '12px 16px',
                     borderBottom: isLast ? 'none' : '1px solid var(--border)',
@@ -208,7 +208,7 @@ export default function InvoicesPage() {
                     {fmt(inv.invoiceAmount, currency)}
                   </span>
 
-                  {/* Status / Action */}
+                  {/* Status */}
                   {isPaid ? (
                     <span
                       style={{
@@ -218,9 +218,14 @@ export default function InvoicesPage() {
                         borderRadius: 20, padding: '3px 10px', width: 'fit-content',
                       }}
                     >
-                      ✓ مدفوعة
+                      ✓ مدفوع
                     </span>
                   ) : (
+                    <span style={{ fontSize: 12, color: 'var(--text2)' }}>غير مدفوع</span>
+                  )}
+
+                  {/* Action */}
+                  {!isPaid && (
                     <button
                       onClick={() => handleMarkPaid(inv._id)}
                       disabled={!!paying}
@@ -235,7 +240,7 @@ export default function InvoicesPage() {
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {isBusy ? '...' : 'تحديد كمدفوعة'}
+                      {isBusy ? '...' : 'تحصيل'}
                     </button>
                   )}
                 </div>
