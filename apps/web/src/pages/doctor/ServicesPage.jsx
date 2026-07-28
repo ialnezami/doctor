@@ -21,7 +21,11 @@ export default function ServicesPage() {
   useEffect(() => {
     client.get('/doctors/me')
       .then(data => {
-        setServices(data.appointmentTypes || []);
+        const types = (data.appointmentTypes || []).map(t => ({
+          ...t,
+          label: t.label || VISIT_LABELS[t.key] || t.key,
+        }));
+        setServices(types);
         setCurrency(data.currency || 'SAR');
         setDoctorId(data._id);
       })
