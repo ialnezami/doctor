@@ -125,8 +125,8 @@ Validation: appointment must be today's date, `checkedInAt` must be null, status
 
 | Method | Path | Action |
 |--------|------|--------|
-| `GET` | `/api/waiting-room` | Today's appointments with `checkedInAt` set, ordered ASC, populated with patient name + visit type |
-| `PATCH` | `/api/waiting-room/:appointmentId/call` | Sets status → `in_progress`; records `calledAt` timestamp |
+| `GET` | `/api/waiting-room` | Today's appointments with `checkedInAt` set, ordered by `checkedInAt` ASC, populated with patient name + visit type + check-in time |
+| `PATCH` | `/api/waiting-room/:appointmentId/call` | Sets status → `in_progress` (marks patient as called) |
 
 ### Appointment Creation (existing endpoint, modified)
 
