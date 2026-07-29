@@ -50,6 +50,8 @@ const appointmentSchema = new mongoose.Schema({
   },
   paymentStatus: { type: String, enum: ['unpaid', 'paid'], default: 'unpaid' },
   invoiceAmount: { type: Number, default: 0 },
+  qrToken:     { type: String, unique: true, sparse: true, default: null },
+  checkedInAt: { type: Date, default: null },
 }, { timestamps: true });
 
 // Prevent querying a cancelled or completed slot as "booked"

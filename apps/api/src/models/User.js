@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: false, sparse: true, unique: true, lowercase: true, trim: true },
   password: { type: String, select: false },           // optional — Google-only users have no password
   googleId: { type: String, sparse: true, unique: true }, // sparse: only index documents that have this field
-  role: { type: String, enum: ['doctor', 'patient', 'laboratory', 'pharmacy'], required: true },
+  role: { type: String, enum: ['doctor', 'patient', 'laboratory', 'pharmacy', 'secretary'], required: true },
   location: {
     type: { type: String, default: 'Point' },
     coordinates: { type: [Number], default: [0, 0] }, // [lng, lat]
@@ -20,6 +20,12 @@ const userSchema = new mongoose.Schema({
     emailEnabled: { type: Boolean, default: true },
   },
   isSuspended: { type: Boolean, default: false },
+
+  // Secretary-only fields
+  linkedDoctorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  isActive:       { type: Boolean, default: true },
+  inviteToken:    { type: String, default: null },
+  inviteExpiry:   { type: Date,   default: null },
 
   // GDPR Article 7 — explicit consent tracking
   consentVersion:        { type: String,  default: null },  // e.g. "2024-01" — bump when terms change
