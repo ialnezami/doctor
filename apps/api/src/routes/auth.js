@@ -79,8 +79,9 @@ router.post('/register', registerLimiter, [
       meta: { consentVersion: user.consentVersion },
     }).catch(err => console.error('[audit] consent log failed:', err.message));
 
-    const token = sign({ id: user._id, role: user.role });
-    res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    const payload = { id: user._id, role: user.role };
+    const token = sign(payload);
+    res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, linkedDoctorId: null } });
   } catch (err) {
     next(err);
   }
@@ -134,8 +135,12 @@ router.post('/login', loginLimiter, [
       outcome: 'success',
     }).catch(err => console.error('[audit] login log failed:', err.message));
 
-    const token = sign({ id: user._id, role: user.role });
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    const payload = { id: user._id, role: user.role };
+    if (user.role === 'secretary' && user.linkedDoctorId) {
+      payload.linkedDoctorId = user.linkedDoctorId;
+    }
+    const token = sign(payload);
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, linkedDoctorId: user.linkedDoctorId || null } });
   } catch (err) {
     next(err);
   }

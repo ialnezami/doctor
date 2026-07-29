@@ -22,12 +22,17 @@ module.exports = async (req, res, next) => {
   // Future optimization: cache erasedAt=true entries in Redis with a short TTL
   // to avoid a DB round-trip on every request for known-erased users.
   try {
-    const user = await User.findById(decoded.id).select('erasedAt isSuspended').lean();
+    const user = await User.findById(decoded.id).select('erasedAt isSuspended isActive').lean();
     if (!user) return res.status(401).json({ message: 'User not found' });
     if (user.erasedAt) return res.status(401).json({ message: 'Account has been erased' });
     // isSuspended previously checked only at login; enforcing here blocks suspended
     // users on every request, not just the next login attempt.
     if (user.isSuspended) return res.status(403).json({ message: 'Account suspended. Contact support.' });
+    // Secretary revocation: isActive=false means the doctor removed their access.
+    // Only check for secretary role — non-secretary users don't have this field.
+    if (decoded.role === 'secretary' && !user.isActive) {
+      return res.status(403).json({ message: 'Secretary access has been revoked' });
+    }
   } catch (err) {
     // DB failure: fail-closed is the secure choice — fail-open would allow erased/suspended
     // users through if the DB is temporarily unavailable.
