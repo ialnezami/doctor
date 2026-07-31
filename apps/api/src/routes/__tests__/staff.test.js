@@ -91,4 +91,16 @@ describe('DELETE /api/staff/:userId', () => {
     expect(res.status).toBe(400);
     expect(res.body.message).toBe('معرف غير صالح');
   });
+
+  it('clears inviteToken and inviteExpiry on revoke', async () => {
+    User.findOneAndUpdate = jest.fn().mockResolvedValue({ _id: '507f1f77bcf86cd799439012' });
+
+    await request(app).delete('/api/staff/507f1f77bcf86cd799439012');
+
+    expect(User.findOneAndUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ _id: '507f1f77bcf86cd799439012' }),
+      expect.objectContaining({ isActive: false, inviteToken: null, inviteExpiry: null }),
+      expect.any(Object),
+    );
+  });
 });

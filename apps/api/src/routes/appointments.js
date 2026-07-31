@@ -198,9 +198,17 @@ router.post('/', auth, requireRole('patient'), async (req, res, next) => {
 // GET /api/appointments — list for current user
 router.get('/', auth, async (req, res, next) => {
   try {
-    const filter = req.user.role === 'doctor'
-      ? { doctorId: req.user.id }
-      : { patientId: req.user.id };
+    let filter;
+
+    if (req.user.role === 'secretary') {
+      const doctor = await Doctor.findOne({ userId: req.user.linkedDoctorId });
+      if (!doctor) return res.status(404).json({ message: 'Linked doctor not found' });
+      filter = { doctorId: doctor._id };
+    } else if (req.user.role === 'doctor') {
+      filter = { doctorId: req.user.id };
+    } else {
+      filter = { patientId: req.user.id };
+    }
 
     if (req.query.status) filter.status = req.query.status;
     if (req.user.role === 'doctor' && req.query.patientId) filter.patientId = req.query.patientId;
@@ -249,11 +257,24 @@ router.patch('/:id/status', auth, async (req, res, next) => {
     const isDoctor  = req.user.role === 'doctor'  && appt.doctorId.toString()  === req.user.id;
     const isPatient = req.user.role === 'patient' && appt.patientId.toString() === req.user.id;
 
-    if (!isDoctor && !isPatient) return res.status(403).json({ message: 'Forbidden' });
+    let isSecretary = false;
+    if (req.user.role === 'secretary') {
+      const secDoctor = await Doctor.findOne({ userId: req.user.linkedDoctorId });
+      if (!secDoctor) return res.status(404).json({ message: 'Linked doctor not found' });
+      if (appt.doctorId.toString() !== secDoctor._id.toString()) {
+        return res.status(403).json({ message: 'Forbidden' });
+      }
+      isSecretary = true;
+    }
+
+    if (!isDoctor && !isPatient && !isSecretary) return res.status(403).json({ message: 'Forbidden' });
     if (isPatient && status !== 'cancelled') return res.status(403).json({ message: 'Patients can only cancel' });
+    if (isSecretary && !['confirmed', 'cancelled'].includes(status)) {
+      return res.status(403).json({ message: 'Secretaries can only confirm or cancel appointments' });
+    }
 
     appt.status = status;
-    if (notes) appt.notes = notes;
+    if (notes && !isSecretary) appt.notes = notes;
     await appt.save();
     res.json(appt);
 

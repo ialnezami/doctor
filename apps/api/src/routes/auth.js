@@ -122,6 +122,9 @@ router.post('/login', loginLimiter, [
     if (user.isSuspended) {
       return res.status(403).json({ message: 'Account suspended. Contact support.' });
     }
+    if (user.role === 'secretary' && !user.isActive) {
+      return res.status(403).json({ message: 'تم إلغاء صلاحيات وصولك' });
+    }
 
     // Fire-and-forget audit log for successful login.
     AuditLog.create({

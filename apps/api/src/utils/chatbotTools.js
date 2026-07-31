@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const { getRankedDoctors } = require('./doctorRanking');
 const { setPendingBooking, getPendingBooking, clearPendingBooking } = require('./sessionStore');
 const Doctor = require('../models/Doctor');
@@ -294,6 +295,7 @@ async function bookAppointment(input, context) {
     locationName:    location?.name    || '',
     locationAddress: location?.address || '',
     locationType:    location?.type    || null,
+    qrToken:         crypto.randomBytes(32).toString('hex'),
   });
 
   clearPendingBooking(userId);

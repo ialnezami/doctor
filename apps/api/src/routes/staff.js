@@ -78,7 +78,7 @@ router.delete('/:userId', auth, requireRole('doctor'), async (req, res, next) =>
     }
     const secretary = await User.findOneAndUpdate(
       { _id: req.params.userId, role: 'secretary', linkedDoctorId: req.user.id },
-      { isActive: false },
+      { isActive: false, inviteToken: null, inviteExpiry: null },
       { new: true }
     );
     if (!secretary) return res.status(404).json({ message: 'لم يتم العثور على السكرتيرة' });

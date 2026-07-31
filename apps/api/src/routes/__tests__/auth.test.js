@@ -109,3 +109,49 @@ describe('POST /api/auth/accept-invite', () => {
     expect(res.body.message).toBe('رابط الدعوة غير صالح أو منتهي الصلاحية');
   });
 });
+
+// ── POST /api/auth/login — inactive secretary ────────────────────────────────
+
+describe('POST /api/auth/login — inactive secretary', () => {
+  it('returns 403 when secretary isActive is false', async () => {
+    User.findOne = jest.fn().mockReturnValue({
+      select: jest.fn().mockResolvedValue({
+        _id:            '507f1f77bcf86cd799439033',
+        role:           'secretary',
+        isSuspended:    false,
+        isActive:       false,
+        linkedDoctorId: '507f1f77bcf86cd799439011',
+        comparePassword: jest.fn().mockResolvedValue(true),
+      }),
+    });
+
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ identifier: 'sec@clinic.com', password: 'ValidPass1' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.message).toBe('تم إلغاء صلاحيات وصولك');
+  });
+
+  it('returns 200 when secretary isActive is true', async () => {
+    User.findOne = jest.fn().mockReturnValue({
+      select: jest.fn().mockResolvedValue({
+        _id:            '507f1f77bcf86cd799439033',
+        role:           'secretary',
+        isSuspended:    false,
+        isActive:       true,
+        linkedDoctorId: '507f1f77bcf86cd799439011',
+        name:           'Sara',
+        email:          'sec@clinic.com',
+        comparePassword: jest.fn().mockResolvedValue(true),
+      }),
+    });
+
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ identifier: 'sec@clinic.com', password: 'ValidPass1' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.token).toBe('fake.jwt.token');
+  });
+});
