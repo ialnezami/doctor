@@ -1,4 +1,5 @@
 const router       = require('express').Router();
+const crypto       = require('crypto');
 const auth         = require('../middleware/auth');
 const requireRole  = require('../middleware/rbac');
 const Appointment  = require('../models/Appointment');
@@ -11,6 +12,13 @@ const { computeReminderDelays } = require('../utils/reminderDelays');
 const { sendEmail }             = require('../utils/email');
 const { appointmentConfirmedEmail, consultationValidatedEmail } = require('../utils/emailTemplates');
 const { generateRescheduleSuggestions } = require('../utils/smartScheduling');
+const { body, validationResult } = require('express-validator');
+
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(422).json({ errors: errors.array() });
+  next();
+};
 
 async function notifyUser(recipientId, type, payload, emailData) {
   const notif = await Notification.create({ recipientId, type, payload });
@@ -76,6 +84,39 @@ async function cancelReminders(appt) {
   }
 }
 
+// POST /api/appointments/checkin — public, no auth — patient scans QR
+router.post('/checkin', [
+  body('token').notEmpty().isLength({ min: 64, max: 64 }).withMessage('Invalid token'),
+], validate, async (req, res, next) => {
+  try {
+    const { token } = req.body;
+
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const todayEnd   = new Date(); todayEnd.setHours(23, 59, 59, 999);
+
+    const appt = await Appointment.findOneAndUpdate(
+      {
+        qrToken:      token,
+        date:         { $gte: todayStart, $lte: todayEnd },
+        checkedInAt:  null,
+        status:       { $nin: ['cancelled', 'completed', 'archived'] },
+      },
+      { checkedInAt: new Date() },
+      { new: true }
+    ).populate('patientId', 'name');
+
+    if (!appt) {
+      return res.status(400).json({ message: 'رابط الحجز غير صالح أو تم تسجيل الحضور مسبقاً' });
+    }
+
+    res.json({
+      message:         'تم تسجيل حضورك بنجاح',
+      patientName:     appt.patientId?.name || 'المريض',
+      appointmentTime: appt.timeSlot?.start,
+    });
+  } catch (err) { next(err); }
+});
+
 // POST /api/appointments — patient books
 router.post('/', auth, requireRole('patient'), async (req, res, next) => {
   try {
@@ -124,6 +165,7 @@ router.post('/', auth, requireRole('patient'), async (req, res, next) => {
       status,
       invoiceAmount,
       paymentStatus:   'unpaid',
+      qrToken:         crypto.randomBytes(32).toString('hex'),
     });
     await appt.save();
 
