@@ -2,17 +2,17 @@
 
 const router      = require('express').Router();
 const auth        = require('../middleware/auth');
-const requireRole = require('../middleware/rbac');
+const { requireDoctorOrSecretary } = require('../middleware/secretaryAuth');
 const Appointment = require('../models/Appointment');
 const Doctor      = require('../models/Doctor');
 const mongoose    = require('mongoose');
 
-const doctorOnly = [auth, requireRole('doctor')];
+const doctorOrSecretary = [auth, requireDoctorOrSecretary];
 
 // GET /api/invoices
-router.get('/', doctorOnly, async (req, res, next) => {
+router.get('/', doctorOrSecretary, async (req, res, next) => {
   try {
-    const doctor = await Doctor.findOne({ userId: req.user.id }).select('_id');
+    const doctor = await Doctor.findOne({ userId: req.doctorUserId }).select('_id');
     if (!doctor) return res.status(404).json({ message: 'Doctor profile not found' });
 
     const { status = 'all', page = 1, limit = 20 } = req.query;
@@ -67,13 +67,13 @@ router.get('/', doctorOnly, async (req, res, next) => {
 });
 
 // PATCH /api/invoices/:appointmentId/pay
-router.patch('/:appointmentId/pay', doctorOnly, async (req, res, next) => {
+router.patch('/:appointmentId/pay', doctorOrSecretary, async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.appointmentId)) {
       return res.status(400).json({ message: 'Invalid appointment ID' });
     }
 
-    const doctor = await Doctor.findOne({ userId: req.user.id }).select('_id');
+    const doctor = await Doctor.findOne({ userId: req.doctorUserId }).select('_id');
     if (!doctor) return res.status(404).json({ message: 'Doctor profile not found' });
 
     const appt = await Appointment.findOneAndUpdate(
