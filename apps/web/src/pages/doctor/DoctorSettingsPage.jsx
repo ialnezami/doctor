@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { updateDoctorSettings, getDoctorLocations, addDoctorLocation, updateDoctorLocation, deleteDoctorLocation, getPlatformCurrencies } from '../../api/doctors';
 import useAuthStore from '../../store/authStore';
@@ -8,6 +8,7 @@ import { getNotificationPrefs, updateNotificationPrefs } from '../../api/users';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
+import { getStaff, inviteSecretary, revokeSecretary } from '../../api/staff';
 
 const TIMEZONES = [
   { label: 'UTC',                 value: 'UTC' },
@@ -28,7 +29,7 @@ const DAY_KEYS = ['sun','mon','tue','wed','thu','fri','sat'];
 
 const SHARE_BASE = 'https://web-production-1d93d.up.railway.app';
 
-export default function DoctorSettingsPage() {
+export default function DoctorSettingsPage({ initialTab }) {
   const { user } = useAuthStore();
   const { t } = useTranslation();
   const isMobile = useIsMobile();
@@ -64,6 +65,14 @@ export default function DoctorSettingsPage() {
 
   // Share panel UI state
   const [copied, setCopied] = useState(false);
+
+  // Staff / Secretaries state
+  const [staffList,    setStaffList]    = useState([]);
+  const [staffLoading, setStaffLoading] = useState(false);
+  const [inviteEmail,  setInviteEmail]  = useState('');
+  const [inviting,     setInviting]     = useState(false);
+  const [staffError,   setStaffError]   = useState('');
+  const [staffSuccess, setStaffSuccess] = useState('');
 
   const DAYS = DAY_KEYS.map(k => t(`common.days.${k}`));
 
@@ -187,6 +196,42 @@ export default function DoctorSettingsPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
+  };
+
+  // Staff handlers
+  const loadStaff = useCallback(() => {
+    setStaffLoading(true);
+    getStaff()
+      .then(d => setStaffList(d.secretaries || []))
+      .catch(() => setStaffError('تعذر تحميل قائمة الموظفين'))
+      .finally(() => setStaffLoading(false));
+  }, []);
+
+  useEffect(() => { loadStaff(); }, [loadStaff]);
+
+  const handleInvite = async () => {
+    if (!inviteEmail.trim()) return;
+    setInviting(true); setStaffError(''); setStaffSuccess('');
+    try {
+      await inviteSecretary(inviteEmail.trim());
+      setStaffSuccess('تم إرسال الدعوة');
+      setInviteEmail('');
+      loadStaff();
+    } catch (err) {
+      setStaffError(err.response?.data?.message || err.message || 'تعذر إرسال الدعوة');
+    } finally {
+      setInviting(false);
+    }
+  };
+
+  const handleRevoke = async (userId) => {
+    if (!window.confirm('هل تريد إلغاء وصول هذا الموظف؟')) return;
+    try {
+      await revokeSecretary(userId);
+      setStaffList(prev => prev.map(s => s._id === userId ? { ...s, isActive: false } : s));
+    } catch {
+      setStaffError('تعذر إلغاء الوصول');
+    }
   };
 
   const inputStyle = {
@@ -555,6 +600,61 @@ export default function DoctorSettingsPage() {
             >
               {opt.label}
             </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Staff / Secretaries */}
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: 20, marginTop: 24, marginBottom: 20 }}>
+        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>الموظفون</div>
+        <div style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 16 }}>أضف سكرتيرة للوصول إلى غرفة الانتظار والمواعيد</div>
+
+        <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+          <input
+            type="email"
+            placeholder="البريد الإلكتروني"
+            value={inviteEmail}
+            onChange={e => setInviteEmail(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleInvite()}
+            style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg3)', color: 'var(--text)', fontSize: 13 }}
+          />
+          <button
+            onClick={handleInvite}
+            disabled={inviting || !inviteEmail.trim()}
+            style={{ background: 'var(--mint)', color: '#060d18', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: inviting || !inviteEmail.trim() ? 'not-allowed' : 'pointer', opacity: inviting ? 0.7 : 1, whiteSpace: 'nowrap' }}
+          >
+            {inviting ? '...' : 'دعوة'}
+          </button>
+        </div>
+
+        {staffError   && <p style={{ fontSize: 13, color: 'var(--rose)',  marginBottom: 8, marginTop: 0 }}>{staffError}</p>}
+        {staffSuccess && <p style={{ fontSize: 13, color: '#16a34a',      marginBottom: 8, marginTop: 0 }}>{staffSuccess}</p>}
+
+        {staffLoading && <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 8 }}>جاري التحميل...</p>}
+
+        {staffList.length === 0 && !staffLoading && (
+          <p style={{ fontSize: 13, color: 'var(--text3)', textAlign: 'center', padding: '16px 0', margin: 0 }}>لا يوجد موظفون — أرسل دعوة أعلاه</p>
+        )}
+
+        <div style={{ display: 'grid', gap: 8 }}>
+          {staffList.map(s => (
+            <div key={s._id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'var(--bg3)', borderRadius: 8, border: '1px solid var(--border)' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name || s.email}</div>
+                {s.name && <div style={{ fontSize: 12, color: 'var(--text3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.email}</div>}
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: s.isActive ? 'rgba(22,163,74,0.15)' : 'var(--bg2)', color: s.isActive ? '#16a34a' : 'var(--text3)', whiteSpace: 'nowrap' }}>
+                {s.isActive ? 'نشط' : 'معلق'}
+              </span>
+              {s.isActive && (
+                <button
+                  onClick={() => handleRevoke(s._id)}
+                  style={{ fontSize: 12, color: 'var(--rose)', background: 'none', border: '1px solid var(--rose)', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                >
+                  إلغاء
+                </button>
+              )}
+            </div>
           ))}
         </div>
       </div>
