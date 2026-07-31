@@ -91,28 +91,44 @@ router.post('/checkin', [
   try {
     const { token } = req.body;
 
-    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-    const todayEnd   = new Date(); todayEnd.setHours(23, 59, 59, 999);
+    // Step 1 — Find by token only; let subsequent checks produce distinct errors
+    const appt = await Appointment.findOne({ qrToken: token }).populate('patientId', 'name');
+    if (!appt) return res.status(404).json({ message: 'رمز غير صالح' });
 
-    const appt = await Appointment.findOneAndUpdate(
-      {
-        qrToken:      token,
-        date:         { $gte: todayStart, $lte: todayEnd },
-        checkedInAt:  null,
-        status:       { $nin: ['cancelled', 'completed', 'archived'] },
-      },
-      { checkedInAt: new Date() },
-      { new: true }
-    ).populate('patientId', 'name');
-
-    if (!appt) {
-      return res.status(400).json({ message: 'رابط الحجز غير صالح أو تم تسجيل الحضور مسبقاً' });
+    // Step 2 — Already checked in
+    if (appt.checkedInAt) {
+      return res.status(409).json({ message: 'تم تسجيل حضورك مسبقاً' });
     }
 
-    res.json({
+    // Step 3 — Appointment is not today
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayEnd   = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+    const apptDate = new Date(appt.date);
+    if (apptDate < todayStart || apptDate >= todayEnd) {
+      return res.status(400).json({ message: 'هذا الموعد ليس اليوم' });
+    }
+
+    // Step 4 — Appointment is cancelled (or completed/archived)
+    if (['cancelled', 'completed', 'archived'].includes(appt.status)) {
+      return res.status(400).json({ message: 'تم إلغاء هذا الموعد' });
+    }
+
+    // Step 5 — Atomic stamp — prevents race condition on concurrent scans
+    const updated = await Appointment.findOneAndUpdate(
+      { _id: appt._id, checkedInAt: null },
+      { checkedInAt: new Date() },
+      { new: true }
+    );
+    // Guard for race: another request won the concurrent scan
+    if (!updated) {
+      return res.status(409).json({ message: 'تم تسجيل حضورك مسبقاً' });
+    }
+
+    return res.status(200).json({
       message:         'تم تسجيل حضورك بنجاح',
       patientName:     appt.patientId?.name || 'المريض',
-      appointmentTime: appt.timeSlot?.start,
+      appointmentTime: appt.timeSlot,
     });
   } catch (err) { next(err); }
 });
