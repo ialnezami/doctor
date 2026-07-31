@@ -75,14 +75,20 @@ describe('POST /api/staff/invite', () => {
 
 describe('DELETE /api/staff/:userId', () => {
   it('returns 200 when secretary found', async () => {
-    User.findOneAndUpdate = jest.fn().mockResolvedValue({ _id: 'sec1' });
-    const res = await request(app).delete('/api/staff/sec1');
+    User.findOneAndUpdate = jest.fn().mockResolvedValue({ _id: '507f1f77bcf86cd799439012' });
+    const res = await request(app).delete('/api/staff/507f1f77bcf86cd799439012');
     expect(res.status).toBe(200);
   });
 
   it('returns 404 when not found or wrong doctor', async () => {
     User.findOneAndUpdate = jest.fn().mockResolvedValue(null);
-    const res = await request(app).delete('/api/staff/sec999');
+    const res = await request(app).delete('/api/staff/507f1f77bcf86cd799439099');
     expect(res.status).toBe(404);
+  });
+
+  it('returns 400 for invalid ObjectId', async () => {
+    const res = await request(app).delete('/api/staff/not-a-valid-id');
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('معرف غير صالح');
   });
 });

@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const router = require('express').Router();
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
@@ -345,7 +346,7 @@ router.post('/accept-invite', [
   try {
     const { token, password } = req.body;
 
-    const tokenHash = require('crypto').createHash('sha256').update(token).digest('hex');
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
     const user = await User.findOne({
       inviteToken:  tokenHash,

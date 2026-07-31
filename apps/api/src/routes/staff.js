@@ -1,10 +1,12 @@
 'use strict';
 
 const crypto     = require('crypto');
+const { isValidObjectId } = require('mongoose');
 const router     = require('express').Router();
 const { body, validationResult } = require('express-validator');
 const auth       = require('../middleware/auth');
 const requireRole = require('../middleware/rbac');
+const { requireDoctorOrSecretary } = require('../middleware/secretaryAuth');
 const User       = require('../models/User');
 const { sendEmail } = require('../utils/email');
 const { hmacHash }  = require('../utils/blindIndex');
@@ -15,12 +17,12 @@ const validate = (req, res, next) => {
   next();
 };
 
-// GET /api/staff — list secretaries linked to this doctor
-router.get('/', auth, requireRole('doctor'), async (req, res, next) => {
+// GET /api/staff — list secretaries linked to this doctor (also accessible by secretary)
+router.get('/', auth, requireDoctorOrSecretary, async (req, res, next) => {
   try {
     const secretaries = await User.find({
       role: 'secretary',
-      linkedDoctorId: req.user.id,
+      linkedDoctorId: req.doctorUserId,
     }).select('name email isActive createdAt').lean();
     res.json({ secretaries });
   } catch (err) { next(err); }
@@ -71,6 +73,9 @@ router.post('/invite', auth, requireRole('doctor'), [
 // DELETE /api/staff/:userId — doctor revokes secretary access
 router.delete('/:userId', auth, requireRole('doctor'), async (req, res, next) => {
   try {
+    if (!isValidObjectId(req.params.userId)) {
+      return res.status(400).json({ message: 'معرف غير صالح' });
+    }
     const secretary = await User.findOneAndUpdate(
       { _id: req.params.userId, role: 'secretary', linkedDoctorId: req.user.id },
       { isActive: false },
