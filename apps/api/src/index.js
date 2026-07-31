@@ -71,6 +71,7 @@ app.use('/api/map',           require('./routes/map'));
 app.use('/api/chatbot',       require('./routes/chatbot'));
 app.use('/api/invoices',      require('./routes/invoices'));
 app.use('/api/analytics',    require('./routes/analytics'));
+app.use('/api/staff',        require('./routes/staff'));
 
 app.use(errorHandler);
 

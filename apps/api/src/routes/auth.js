@@ -337,4 +337,52 @@ router.post('/google', [
   }
 });
 
+// POST /api/auth/accept-invite — secretary sets password and activates account
+router.post('/accept-invite', [
+  body('token').notEmpty().withMessage('token is required'),
+  body('password').isLength({ min: 8 }).withMessage('password must be at least 8 characters'),
+], validate, async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+
+    const tokenHash = require('crypto').createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+      inviteToken:  tokenHash,
+      inviteExpiry: { $gt: new Date() },
+      role:         'secretary',
+      isActive:     false,
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'رابط الدعوة غير صالح أو منتهي الصلاحية' });
+    }
+
+    user.password    = password; // pre-save hook hashes it
+    user.isActive    = true;
+    user.inviteToken  = null;
+    user.inviteExpiry = null;
+    // Record consent at activation
+    user.consentVersion       = process.env.TERMS_VERSION || '1.0';
+    user.consentTimestamp     = new Date();
+    user.consentIp            = req.ip;
+    user.dataProcessingAllowed = true;
+    await user.save();
+
+    const payload = { id: user._id, role: user.role, linkedDoctorId: user.linkedDoctorId };
+    const jwtToken = sign(payload);
+
+    res.json({
+      token: jwtToken,
+      user: {
+        id:              user._id,
+        name:            user.name,
+        email:           user.email,
+        role:            user.role,
+        linkedDoctorId:  user.linkedDoctorId,
+      },
+    });
+  } catch (err) { next(err); }
+});
+
 module.exports = router;
