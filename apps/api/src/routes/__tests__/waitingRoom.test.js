@@ -11,10 +11,12 @@ jest.mock('../../middleware/secretaryAuth', () => ({
   },
 }));
 jest.mock('../../models/Appointment');
+jest.mock('../../models/Doctor');
 
 const express     = require('express');
 const request     = require('supertest');
 const Appointment = require('../../models/Appointment');
+const Doctor      = require('../../models/Doctor');
 const router      = require('../waitingRoom');
 
 const app = express();
@@ -25,6 +27,9 @@ beforeEach(() => jest.clearAllMocks());
 
 describe('GET /api/waiting-room', () => {
   it('returns 200 with queue', async () => {
+    Doctor.findOne = jest.fn().mockReturnValue({
+      select: jest.fn().mockResolvedValue({ _id: 'doctor1' }),
+    });
     Appointment.find = jest.fn().mockReturnValue({
       sort:     jest.fn().mockReturnThis(),
       populate: jest.fn().mockReturnThis(),
@@ -38,10 +43,23 @@ describe('GET /api/waiting-room', () => {
     expect(res.body.queue).toHaveLength(1);
     expect(res.body.queue[0].patientName).toBe('Ali');
   });
+
+  it('returns 404 when doctor profile not found', async () => {
+    Doctor.findOne = jest.fn().mockReturnValue({
+      select: jest.fn().mockResolvedValue(null),
+    });
+
+    const res = await request(app).get('/api/waiting-room');
+    expect(res.status).toBe(404);
+    expect(res.body.message).toBe('Doctor profile not found');
+  });
 });
 
 describe('PATCH /api/waiting-room/:id/call', () => {
   it('returns 200 and updated appointment', async () => {
+    Doctor.findOne = jest.fn().mockReturnValue({
+      select: jest.fn().mockResolvedValue({ _id: 'doctor1' }),
+    });
     Appointment.findOneAndUpdate = jest.fn().mockReturnValue({
       populate: jest.fn().mockResolvedValue({
         _id: 'a1', status: 'in_progress', patientId: { name: 'Ali' }, timeSlot: { start: '09:00' },
@@ -53,10 +71,23 @@ describe('PATCH /api/waiting-room/:id/call', () => {
   });
 
   it('returns 404 when appointment not found', async () => {
+    Doctor.findOne = jest.fn().mockReturnValue({
+      select: jest.fn().mockResolvedValue({ _id: 'doctor1' }),
+    });
     Appointment.findOneAndUpdate = jest.fn().mockReturnValue({
       populate: jest.fn().mockResolvedValue(null),
     });
     const res = await request(app).patch('/api/waiting-room/bad/call');
     expect(res.status).toBe(404);
+  });
+
+  it('returns 404 when doctor profile not found', async () => {
+    Doctor.findOne = jest.fn().mockReturnValue({
+      select: jest.fn().mockResolvedValue(null),
+    });
+
+    const res = await request(app).patch('/api/waiting-room/a1/call');
+    expect(res.status).toBe(404);
+    expect(res.body.message).toBe('Doctor profile not found');
   });
 });
