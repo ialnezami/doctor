@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Search, Eye, X, Check, UserPlus, Calendar } from 'lucide-react';
+import { Bell, Search, Eye, X, Check, UserPlus, Calendar, QrCode } from 'lucide-react';
+import QRModal from '../../components/doctor/QRModal';
 import axios from 'axios';
 import { getAppointments } from '../../api/appointments';
 import { groupTodayAppointments } from '../../utils/appointmentGroups';
@@ -54,7 +55,7 @@ function ActionBtn({ icon: Icon, title, onClick, color }) {
   );
 }
 
-function AppointmentCard({ appt, index, isCurrent, onStatusChange }) {
+function AppointmentCard({ appt, index, isCurrent, onStatusChange, onShowQR }) {
   const navigate = useNavigate();
   const status = STATUS_BADGE[appt.status] || STATUS_BADGE.scheduled;
   const urgency = URGENCY_BADGE[appt.urgency];
@@ -103,6 +104,7 @@ function AppointmentCard({ appt, index, isCurrent, onStatusChange }) {
 
       <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
         <ActionBtn icon={Eye} title="عرض" onClick={() => navigate(`/appointments/${appt._id}`)} />
+        {appt.qrToken && <ActionBtn icon={QrCode} title="رمز الحضور" onClick={() => onShowQR(appt)} />}
         <ActionBtn icon={X} title="إلغاء" color="var(--rose)" onClick={() => onStatusChange(appt._id, 'cancelled')} />
         {isCurrent
           ? <ActionBtn icon={Check} title="تم الحضور" color="var(--primary)" onClick={() => onStatusChange(appt._id, 'attended')} />
@@ -130,6 +132,7 @@ export default function TodayPage() {
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState(null);
   const [showSearch, setShowSearch]     = useState(false);
+  const [qrAppt, setQrAppt]            = useState(null);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -247,7 +250,7 @@ export default function TodayPage() {
           <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 10, marginBottom: 16, overflow: 'hidden' }}>
             <SectionHeader icon="🟢" title="الآن" count={current.length} />
             {current.map((a, i) => (
-              <AppointmentCard key={a._id} appt={a} index={i + 1} isCurrent onStatusChange={updateStatus} />
+              <AppointmentCard key={a._id} appt={a} index={i + 1} isCurrent onStatusChange={updateStatus} onShowQR={setQrAppt} />
             ))}
           </div>
         )}
@@ -256,13 +259,14 @@ export default function TodayPage() {
           <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
             <SectionHeader icon="📅" title="القادم" count={upcoming.length} />
             {upcoming.map((a, i) => (
-              <AppointmentCard key={a._id} appt={a} index={i + 1} isCurrent={false} onStatusChange={updateStatus} />
+              <AppointmentCard key={a._id} appt={a} index={i + 1} isCurrent={false} onStatusChange={updateStatus} onShowQR={setQrAppt} />
             ))}
           </div>
         )}
       </div>
 
       {showSearch && <PatientSearchModal onClose={() => setShowSearch(false)} />}
+      {qrAppt && <QRModal appt={qrAppt} onClose={() => setQrAppt(null)} />}
     </div>
   );
 }
