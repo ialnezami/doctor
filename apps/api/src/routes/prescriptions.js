@@ -140,21 +140,22 @@ router.get('/:id/pdf', auth,
 // POST /api/prescriptions/:id/dispense — pharmacy only
 router.post('/:id/dispense', auth, requireRole('pharmacy'), async (req, res, next) => {
   try {
-    const prescription = await Prescription.findById(req.params.id)
-      .populate('patientId', 'name')
-      .populate('doctorId', 'name');
-
-    if (!prescription) return res.status(404).json({ message: 'Prescription not found' });
-
-    if (prescription.dispensedAt) {
-      return res.status(409).json({
-        message: 'Prescription already dispensed',
-        dispensedAt: prescription.dispensedAt,
-      });
-    }
-
     const pharmacy = await Pharmacy.findOne({ userId: req.user.id });
     if (!pharmacy) return res.status(403).json({ message: 'Pharmacy profile not found' });
+
+    // Fix 2: atomic dispense — prevents double-dispensing under concurrent requests
+    const prescription = await Prescription.findOneAndUpdate(
+      { _id: req.params.id, dispensedAt: null },
+      { $set: { dispensedAt: new Date(), dispensedBy: pharmacy._id } },
+      { new: true }
+    ).populate('patientId', 'name').populate('doctorId', 'name');
+
+    if (!prescription) {
+      // Distinguish not-found from already-dispensed
+      const existing = await Prescription.findById(req.params.id);
+      if (!existing) return res.status(404).json({ message: 'Prescription not found' });
+      return res.status(409).json({ message: 'Prescription already dispensed' });
+    }
 
     const products = await Product.find({ pharmacyId: pharmacy._id });
 
@@ -168,22 +169,24 @@ router.post('/:id/dispense', auth, requireRole('pharmacy'), async (req, res, nex
         continue;
       }
       const stockBefore = product.stockQty;
-      if (stockBefore > 0) {
-        await Product.findOneAndUpdate(
-          { _id: product._id, stockQty: { $gt: 0 } },
-          { $inc: { stockQty: -1 } }
-        );
-        dispensedMedications.push({ name: med.name, matched: true, stockBefore, stockAfter: stockBefore - 1 });
-      } else {
-        dispensedMedications.push({ name: med.name, matched: true, stockBefore: 0, stockAfter: 0 });
-      }
+      // Fix 3: derive stockAfter from the post-update document, not in-memory arithmetic
+      const updated = await Product.findOneAndUpdate(
+        { _id: product._id, stockQty: { $gt: 0 } },
+        { $inc: { stockQty: -1 } },
+        { new: true }
+      );
+      const stockAfter = updated ? updated.stockQty : stockBefore;
+      dispensedMedications.push({ name: med.name, matched: true, stockBefore, stockAfter });
     }
 
-    prescription.dispensedAt = new Date();
-    prescription.dispensedBy = pharmacy._id;
-    await prescription.save();
-
-    res.status(201).json({ prescription, dispensedMedications });
+    // Fix 1: PHI-safe response — patient first name only, no dosage/instructions
+    res.status(201).json({
+      dispensedMedications,
+      prescriptionId: prescription._id,
+      patientFirstName: prescription.patientId?.name?.split(' ')[0] || '',
+      doctor: prescription.doctorId?.name,
+      dispensedAt: prescription.dispensedAt,
+    });
   } catch (err) {
     next(err);
   }
