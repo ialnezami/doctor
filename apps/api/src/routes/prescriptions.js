@@ -2,8 +2,10 @@
 const router = require('express').Router();
 const { randomUUID } = require('crypto');
 const auth = require('../middleware/auth');
-const requireRole = require('../middleware/rbac');
+const requireRole = require('../middleware/requireRole');
 const Prescription = require('../models/Prescription');
+const Pharmacy = require('../models/Pharmacy');
+const Product  = require('../models/Product');
 const { auditLog } = require('../middleware/auditLogger');
 
 // POST /api/prescriptions — doctor creates
@@ -134,5 +136,57 @@ router.get('/:id/pdf', auth,
     }
   }
 );
+
+// POST /api/prescriptions/:id/dispense — pharmacy only
+router.post('/:id/dispense', auth, requireRole('pharmacy'), async (req, res, next) => {
+  try {
+    const prescription = await Prescription.findById(req.params.id)
+      .populate('patientId', 'name')
+      .populate('doctorId', 'name');
+
+    if (!prescription) return res.status(404).json({ message: 'Prescription not found' });
+
+    if (prescription.dispensedAt) {
+      return res.status(409).json({
+        message: 'Prescription already dispensed',
+        dispensedAt: prescription.dispensedAt,
+      });
+    }
+
+    const pharmacy = await Pharmacy.findOne({ userId: req.user.id });
+    if (!pharmacy) return res.status(403).json({ message: 'Pharmacy profile not found' });
+
+    const products = await Product.find({ pharmacyId: pharmacy._id });
+
+    const dispensedMedications = [];
+    for (const med of prescription.medications) {
+      const product = products.find(
+        p => p.name.toLowerCase() === med.name.toLowerCase()
+      );
+      if (!product) {
+        dispensedMedications.push({ name: med.name, matched: false, stockBefore: 0, stockAfter: 0 });
+        continue;
+      }
+      const stockBefore = product.stockQty;
+      if (stockBefore > 0) {
+        await Product.findOneAndUpdate(
+          { _id: product._id, stockQty: { $gt: 0 } },
+          { $inc: { stockQty: -1 } }
+        );
+        dispensedMedications.push({ name: med.name, matched: true, stockBefore, stockAfter: stockBefore - 1 });
+      } else {
+        dispensedMedications.push({ name: med.name, matched: true, stockBefore: 0, stockAfter: 0 });
+      }
+    }
+
+    prescription.dispensedAt = new Date();
+    prescription.dispensedBy = pharmacy._id;
+    await prescription.save();
+
+    res.status(201).json({ prescription, dispensedMedications });
+  } catch (err) {
+    next(err);
+  }
+});
 
 module.exports = router;
