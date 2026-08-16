@@ -7,6 +7,7 @@ import { getPatientMe } from '../../api/patients';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import ShareQRModal from '../../components/ShareQRModal';
 
 function calcAge(dob) {
   if (!dob) return '—';
@@ -274,6 +275,7 @@ export default function MedicalRecordsPage() {
   const [patient, setPatient] = useState(null);
   const [tab, setTab] = useState('prescriptions');
   const [selectedRx, setSelectedRx] = useState(null);
+  const [shareRx, setShareRx] = useState(null);
 
   useEffect(() => {
     getPrescriptions().then(setRxList).catch(() => {});
@@ -334,6 +336,12 @@ export default function MedicalRecordsPage() {
                         <div style={{ fontSize:11.5, color:'var(--text2)', marginTop:2 }}>{rx.medications?.map(m=>m.name).join(', ')} · {new Date(rx.createdAt).toLocaleDateString()}</div>
                       </div>
                       <Button variant="ghost" onClick={e => { e.stopPropagation(); setSelectedRx({ rx, rxNumber }); }} style={{ padding:'4px 9px', fontSize:11, flexShrink:0 }}>{t('records.downloadPdf')}</Button>
+                      <button
+                        onClick={e => { e.stopPropagation(); setShareRx(rx); }}
+                        style={{ background:'none', border:'1px solid var(--primary)', color:'var(--primary)', borderRadius:7, padding:'5px 12px', cursor:'pointer', fontSize:12, flexShrink:0 }}
+                      >
+                        مشاركة QR
+                      </button>
                     </div>
                   );
                 })}
@@ -418,6 +426,7 @@ export default function MedicalRecordsPage() {
           )}
         </div>
       </div>
+      {shareRx && <ShareQRModal prescription={shareRx} onClose={() => setShareRx(null)} />}
     </div>
   );
 }
