@@ -1,11 +1,53 @@
 'use strict';
 const router = require('express').Router();
 const auth = require('../middleware/auth');
-const requireRole = require('../middleware/rbac');
+const requireRole = require('../middleware/requireRole');
 const LabResult = require('../models/LabResult');
 const Lab = require('../models/Lab');
+const SharedLink = require('../models/SharedLink');
+const Prescription = require('../models/Prescription');
 const { getLabQueue } = require('../queues/reminderQueue');
 const { auditLog } = require('../middleware/auditLogger');
+
+// POST /api/lab-results/from-prescription — lab role only
+router.post('/from-prescription', auth, requireRole('lab'), async (req, res, next) => {
+  try {
+    const { shareToken } = req.body;
+    if (!shareToken) return res.status(422).json({ message: 'shareToken is required' });
+
+    const link = await SharedLink.findOne({ token: shareToken });
+    if (!link || link.revokedAt || (link.expiresAt && link.expiresAt < new Date())) {
+      return res.status(404).json({ message: 'Invalid or expired share token' });
+    }
+
+    const prescription = await Prescription.findById(link.resourceId);
+    if (!prescription) return res.status(404).json({ message: 'Prescription not found' });
+
+    if (!prescription.analyses || prescription.analyses.length === 0) {
+      return res.status(422).json({ message: 'Prescription has no lab tests ordered' });
+    }
+
+    const existing = await LabResult.findOne({ prescriptionId: prescription._id });
+    if (existing) {
+      return res.status(409).json({ message: 'A lab result already exists for this prescription' });
+    }
+
+    const lab = await Lab.findOne({ userId: req.user.id });
+
+    const labResult = await LabResult.create({
+      patientId: prescription.patientId,
+      doctorId: req.user.id,
+      labName: lab?.labName || 'Unknown Lab',
+      tests: prescription.analyses.map(a => ({ name: a.name, value: '', flag: 'normal' })),
+      status: 'pending',
+      prescriptionId: prescription._id,
+    });
+
+    res.status(201).json(labResult);
+  } catch (err) {
+    next(err);
+  }
+});
 
 // L-02: create lab result (doctor or approved laboratory)
 router.post('/', auth, requireRole('doctor', 'laboratory'),
