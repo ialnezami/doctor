@@ -1,4 +1,5 @@
 'use strict';
+const crypto       = require('crypto');
 const router = require('express').Router();
 const auth = require('../middleware/auth');
 const requireRole = require('../middleware/requireRole');
@@ -6,6 +7,9 @@ const LabResult = require('../models/LabResult');
 const Lab = require('../models/Lab');
 const SharedLink = require('../models/SharedLink');
 const Prescription = require('../models/Prescription');
+const Notification = require('../models/Notification');
+const User         = require('../models/User');
+const { sendPush } = require('../utils/fcm');
 const { getLabQueue } = require('../queues/reminderQueue');
 const { auditLog } = require('../middleware/auditLogger');
 
@@ -204,5 +208,68 @@ router.patch('/:id/notes', auth, requireRole('doctor'),
     } catch (err) { next(err); }
   }
 );
+
+// PATCH /api/lab-results/:id/status — lab role, owner only
+router.patch('/:id/status', auth, requireRole('lab'), async (req, res, next) => {
+  try {
+    const { status, tests } = req.body;
+
+    if (!['processing', 'ready'].includes(status)) {
+      return res.status(422).json({ message: 'status must be processing or ready' });
+    }
+
+    const result = await LabResult.findById(req.params.id);
+    if (!result) return res.status(404).json({ message: 'Lab result not found' });
+
+    if (result.doctorId.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    if (status === 'processing') {
+      result.status = 'processing';
+      await result.save();
+      return res.json({ labResult: result });
+    }
+
+    // status === 'ready'
+    if (!tests || !Array.isArray(tests) || tests.length === 0 || tests.some(t => !t.value)) {
+      return res.status(422).json({ message: 'All test results must have a value' });
+    }
+
+    result.tests  = tests;
+    result.status = 'ready';
+    await result.save();
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const sharedLink = await SharedLink.create({
+      resourceType: 'lab_result',
+      resourceId:   result._id,
+      ownerId:      result.patientId,
+      token,
+      expiresAt:    null,
+    });
+
+    await Notification.create({
+      recipientId: result.patientId,
+      type:        'lab_ready',
+      payload:     { labResultId: result._id, token },
+      read:        false,
+    });
+
+    const patient = await User.findById(result.patientId).select('fcmToken');
+    if (patient?.fcmToken) {
+      await sendPush(
+        patient.fcmToken,
+        'نتائج التحليل جاهزة',
+        `نتائج تحاليلك من ${result.labName} جاهزة للاطلاع`,
+        { type: 'lab_ready', token }
+      );
+    }
+
+    res.json({ labResult: result, sharedLink: { token, url: `/s/${token}` } });
+  } catch (err) {
+    next(err);
+  }
+});
 
 module.exports = router;
