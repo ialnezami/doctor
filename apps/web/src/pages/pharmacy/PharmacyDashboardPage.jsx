@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import ScanModal            from '../../components/ScanModal';
+import PrescriptionCheckView from '../../components/PrescriptionCheckView';
+import client               from '../../api/client';
 import {
   getPharmacyProfile, updatePharmacyProfile,
   getProducts, createProduct, deleteProduct, adjustStock,
@@ -293,7 +296,25 @@ export default function PharmacyDashboardPage() {
   const [profForm,       setProfForm]       = useState({ pharmacyName: '', licenseNumber: '', address: '' });
   const [profSaving,     setProfSaving]     = useState(false);
   const [profMsg,        setProfMsg]        = useState('');
+  const [scanning,    setScanning]    = useState(false);
+  const [scanResult,  setScanResult]  = useState(null);
+  const [scanError,   setScanError]   = useState('');
   const saleCounter = useRef(1);
+
+  const handleScan = async (decodedText) => {
+    setScanning(false);
+    setScanError('');
+    try {
+      const url = new URL(decodedText);
+      const token = url.pathname.split('/s/')[1];
+      if (!token) throw new Error('invalid');
+      const data = await client.get(`/share/${token}`);
+      if (data.resourceType !== 'prescription') throw new Error('not a prescription');
+      setScanResult({ prescription: data.resource });
+    } catch {
+      setScanError('رمز QR غير صالح أو لا يشير إلى وصفة طبية');
+    }
+  };
 
   useEffect(() => {
     getPharmacyProfile()
@@ -398,9 +419,18 @@ export default function PharmacyDashboardPage() {
           )}
         </div>
         {activeTab === 'pos' && (
-          <button onClick={openNewSale} style={{ ...S.btn('mint'), padding: '9px 22px' }}>
-            {t('pharmacy.pos.newSale')}
-          </button>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button onClick={openNewSale} style={{ ...S.btn('mint'), padding: '9px 22px' }}>
+              {t('pharmacy.pos.newSale')}
+            </button>
+            <button
+              onClick={() => { setScanResult(null); setScanError(''); setScanning(true); }}
+              style={{ ...S.btn('ghost'), padding: '9px 22px' }}
+            >
+              مسح وصفة طبية
+            </button>
+            {scanError && <p style={{ color: 'var(--rose)', fontSize: 12, margin: 0 }}>{scanError}</p>}
+          </div>
         )}
         {activeTab === 'inventory' && (
           <button onClick={() => setShowAddProduct(true)} style={{ ...S.btn('mint'), padding: '9px 22px' }}>
@@ -550,6 +580,46 @@ export default function PharmacyDashboardPage() {
                 {profSaving ? t('pharmacy.settings.saving') : t('pharmacy.settings.save')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {scanning && (
+        <ScanModal onScan={handleScan} onClose={() => setScanning(false)} />
+      )}
+
+      {scanResult && (
+        <div
+          onClick={() => setScanResult(null)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)',
+            display: 'grid', placeItems: 'center', zIndex: 1100,
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            dir="rtl"
+            style={{
+              background: 'var(--bg2)', border: '1px solid var(--border)',
+              borderRadius: 14, padding: 24, maxWidth: 420, width: '90%',
+            }}
+          >
+            <p style={{ fontWeight: 700, fontSize: 15, margin: '0 0 16px' }}>الوصفة الطبية</p>
+            <PrescriptionCheckView
+              prescription={scanResult.prescription}
+              products={products}
+              onDispense={() => setScanResult(null)}
+            />
+            <button
+              onClick={() => setScanResult(null)}
+              style={{
+                marginTop: 12, width: '100%', background: 'var(--bg3)',
+                border: '1px solid var(--border)', borderRadius: 8,
+                padding: '7px 0', cursor: 'pointer', fontSize: 13,
+              }}
+            >
+              إغلاق
+            </button>
           </div>
         </div>
       )}
