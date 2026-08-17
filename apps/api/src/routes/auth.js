@@ -13,6 +13,7 @@ const { loginLimiter, registerLimiter } = require('../middleware/rateLimiter');
 const { hmacHash } = require('../utils/blindIndex');
 const { normalizePhone } = require('../utils/phoneUtils');
 const AuditLog = require('../models/AuditLog');
+const OtpCode  = require('../models/OtpCode');
 
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -386,6 +387,89 @@ router.post('/accept-invite', [
         linkedDoctorId:  user.linkedDoctorId,
       },
     });
+  } catch (err) { next(err); }
+});
+
+// POST /api/auth/claim-account — send OTP to WhatsApp-registered phone
+router.post('/claim-account', [
+  body('phone').notEmpty().withMessage('phone is required'),
+], validate, async (req, res, next) => {
+  try {
+    const phone     = normalizePhone(req.body.phone);
+    const phoneHash = hmacHash(phone);
+
+    const user = await User.findOne({ phoneHash });
+    if (!user) return res.status(404).json({ message: 'No account found for this phone number.' });
+
+    await OtpCode.deleteMany({ phoneHash, used: false });
+
+    const otp      = String(Math.floor(100000 + Math.random() * 900000));
+    const codeHash = crypto.createHash('sha256').update(otp).digest('hex');
+
+    const otpDoc = new OtpCode({
+      phoneHash,
+      codeHash,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    });
+    await otpDoc.save();
+
+    const twilioClient = require('twilio')(
+      process.env.TWILIO_ACCOUNT_SID,
+      process.env.TWILIO_AUTH_TOKEN,
+    );
+    await twilioClient.messages.create({
+      from: process.env.TWILIO_WHATSAPP_NUMBER,
+      to:   `whatsapp:${phone}`,
+      body: `رمز التحقق الخاص بك في سلامتك: ${otp}\nYour Salamtak verification code: ${otp}\n(Valid for 10 minutes)`,
+    });
+
+    res.json({ message: 'OTP sent to your WhatsApp number.' });
+  } catch (err) { next(err); }
+});
+
+// POST /api/auth/claim-account/verify — verify OTP and set password
+router.post('/claim-account/verify', [
+  body('phone').notEmpty(),
+  body('otp').isLength({ min: 6, max: 6 }).isNumeric(),
+  body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+], validate, async (req, res, next) => {
+  try {
+    const phone     = normalizePhone(req.body.phone);
+    const phoneHash = hmacHash(phone);
+
+    const user = await User.findOne({ phoneHash });
+    if (!user) return res.status(404).json({ message: 'Account not found.' });
+
+    const otpDoc = await OtpCode.findOne({ phoneHash, used: false });
+    if (!otpDoc) return res.status(400).json({ message: 'No active OTP. Please request a new one.' });
+
+    // Increment attempts before comparing — prevents timing attacks from resetting count
+    otpDoc.attempts += 1;
+    if (otpDoc.attempts > 3) {
+      otpDoc.used = true;
+      await otpDoc.save();
+      return res.status(400).json({ message: 'Too many attempts. Please request a new OTP.' });
+    }
+
+    if (otpDoc.expiresAt < new Date()) {
+      return res.status(400).json({ message: 'OTP expired. Please request a new one.' });
+    }
+
+    const submittedHash = crypto.createHash('sha256').update(req.body.otp).digest('hex');
+    if (submittedHash !== otpDoc.codeHash) {
+      await otpDoc.save();
+      return res.status(400).json({ message: 'Invalid OTP.' });
+    }
+
+    otpDoc.used = true;
+    await otpDoc.save();
+
+    user.password       = await require('bcryptjs').hash(req.body.password, 12);
+    user.whatsappLinked = true;
+    await user.save();
+
+    const token = sign({ id: user._id, role: user.role });
+    res.json({ token, message: 'Account claimed successfully.' });
   } catch (err) { next(err); }
 });
 
