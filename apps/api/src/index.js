@@ -73,6 +73,7 @@ app.use('/api/invoices',      require('./routes/invoices'));
 app.use('/api/analytics',    require('./routes/analytics'));
 app.use('/api/staff',        require('./routes/staff'));
 app.use('/api/waiting-room', require('./routes/waitingRoom'));
+app.use('/api/whatsapp',    require('./routes/whatsapp'));
 
 app.use(errorHandler);
 
