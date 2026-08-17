@@ -13,7 +13,9 @@ const LIMIT = 20;
 function checkRateLimit(phone) {
   const count = cache.get(phone) || 0;
   if (count >= LIMIT) return false;
-  cache.set(phone, count + 1, cache.getTtl(phone) ? undefined : 3600);
+  const remainingTtl = cache.getTtl(phone);
+  const ttl = remainingTtl ? Math.ceil((remainingTtl - Date.now()) / 1000) : 3600;
+  cache.set(phone, count + 1, ttl);
   return true;
 }
 

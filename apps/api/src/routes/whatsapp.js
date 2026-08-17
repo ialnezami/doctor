@@ -14,7 +14,11 @@ const { runAgent }            = require('../services/whatsappAgent');
 const { checkRateLimit }      = require('../utils/whatsappRateLimiter');
 
 function twiml(message) {
-  return `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${message}</Message></Response>`;
+  const safe = message
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  return `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${safe}</Message></Response>`;
 }
 
 function validateTwilioSignature(req) {
