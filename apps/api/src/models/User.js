@@ -27,6 +27,9 @@ const userSchema = new mongoose.Schema({
   inviteToken:    { type: String, default: null },
   inviteExpiry:   { type: Date,   default: null },
 
+  // WhatsApp — set true once user claims account via OTP
+  whatsappLinked: { type: Boolean, default: false },
+
   // GDPR Article 7 — explicit consent tracking
   consentVersion:        { type: String,  default: null },  // e.g. "2024-01" — bump when terms change
   consentTimestamp:      { type: Date,    default: null },  // when consent was given
